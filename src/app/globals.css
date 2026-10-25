@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-primary: #4f8c4c;
+    --brand-dark: #3a7536;
+    --brand-accent: #2ea033;
+    --navy-header: #252c41;
+    --text-primary: #252c41;
+    --text-muted: #5e5e5e;
+    --border-color: #eaedf5;
+    --bg-surface: #ffffff;
+    --bg-page: #f7f9fc;
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom Zealosh utility classes */
+.btn-primary {
+  @apply bg-[#4f8c4c] hover:bg-[#3a7536] text-white font-medium px-5 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow flex items-center justify-center gap-2;
+}
+
+.btn-secondary {
+  @apply bg-[#252c41] hover:bg-[#1a1f2e] text-white font-medium px-5 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow flex items-center justify-center gap-2;
+}
+
+.btn-outline {
+  @apply border border-[#4f8c4c] text-[#4f8c4c] hover:bg-[#4f8c4c] hover:text-white font-medium px-5 py-2.5 rounded-lg transition-all duration-200 flex items-center justify-center gap-2;
+}
+
+.badge-green {
+  @apply bg-[#e1f0df] text-[#3a7536] text-xs font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wider;
+}
+
+.badge-navy {
+  @apply bg-[#eaedf5] text-[#252c41] text-xs font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wider;
+}
+
+.card-elevated {
+  @apply bg-white rounded-xl border border-[#eaedf5] shadow-sm hover:shadow-md transition-shadow duration-200;
+}
