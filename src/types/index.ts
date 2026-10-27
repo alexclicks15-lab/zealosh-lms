@@ -176,3 +176,262 @@ export interface AuditLogEntry {
   details: Record<string, unknown>;
   ipAddress?: string;
 }
+
+export interface OAuthCode {
+  code: string;
+  userId: string;
+  clientId: string;
+  redirectUri: string;
+  scope?: string;
+  state?: string;
+  nonce?: string;
+  codeChallenge?: string;
+  codeChallengeMethod?: 'S256' | 'plain';
+  expiresAt: number;
+  used: boolean;
+  createdAt: string;
+}
+
+// -------------------------------------------------------------
+// Assignment & Grading Rubric Types
+// -------------------------------------------------------------
+export interface RubricCriterion {
+  id: string;
+  title: string;
+  description: string;
+  maxPoints: number;
+}
+
+export interface GradingRubric {
+  id: string;
+  title: string;
+  criteria: RubricCriterion[];
+  totalPoints: number;
+}
+
+export interface Assignment {
+  id: string;
+  courseId: string;
+  batchId?: string; // Optional: cohort specific or course-wide
+  title: string;
+  description: string;
+  instructionsHtml?: string;
+  dueDate: string; // ISO 8601
+  maxScore: number;
+  rubric?: GradingRubric;
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RubricScore {
+  criterionId: string;
+  score: number;
+  comment?: string;
+}
+
+export interface AssignmentSubmission {
+  id: string;
+  assignmentId: string;
+  courseId?: string; // Derived from assignment
+  batchId?: string; // Derived from assignment
+  userId: string;
+  studentName?: string;
+  studentEmail?: string;
+  submissionText?: string;
+  attachmentUrl?: string;
+  attachmentFilename?: string;
+  submittedAt: string;
+  status: 'SUBMITTED' | 'GRADED' | 'RESUBMISSION_REQUESTED';
+  score?: number;
+  feedback?: string;
+  rubricScores?: RubricScore[];
+  gradedByUserId?: string;
+  gradedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// -------------------------------------------------------------
+// Recurring Class Schedule Definition
+// -------------------------------------------------------------
+export interface RecurringScheduleRule {
+  daysOfWeek: number[]; // 0 = Sun, 1 = Mon ... 6 = Sat
+  startTime: string; // "19:00"
+  durationMinutes: number; // 120
+  timeZone: string; // "Asia/Kolkata"
+}
+
+// -------------------------------------------------------------
+// Commerce, Invoicing & Reporting Types
+// -------------------------------------------------------------
+export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED' | 'CANCELLED';
+export type PaymentGateway = 'RAZORPAY' | 'STRIPE' | 'MANUAL';
+
+export interface PaymentOrder {
+  id: string; // e.g. "ord_asp_98234"
+  userId: string;
+  userEmail: string;
+  userName: string;
+  courseId: string;
+  batchId: string;
+  currency: 'INR' | 'USD';
+  amount: number;
+  status: PaymentStatus;
+  gateway: PaymentGateway;
+  gatewayOrderId?: string;
+  gatewayPaymentId?: string;
+  gatewayRefundId?: string;
+  refundReason?: string;
+  refundedAt?: string;
+  billingAddress?: BillingAddress;
+  invoiceId?: string;
+  enrollmentId?: string;
+  createdAt: string;
+  paidAt?: string;
+}
+
+export interface BillingAddress {
+  companyName?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  taxId?: string; // GSTIN / Tax ID
+}
+
+export interface InvoiceRecord {
+  id: string; // e.g. "inv-2026-001"
+  invoiceNumber: string; // e.g. "INV-2026-8491"
+  orderId: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  billingAddress?: BillingAddress;
+  courseId: string;
+  courseTitle: string;
+  batchId: string;
+  batchName: string;
+  subtotal: number;
+  taxRatePercent: number; // e.g. 18 for GST
+  taxAmount: number;
+  totalAmount: number;
+  currency: 'INR' | 'USD';
+  status: 'ISSUED' | 'PAID' | 'VOID' | 'REFUNDED';
+  issuedAt: string;
+  paidAt?: string;
+  hsnCode: string; // "999293" (Training & Education Services)
+  providerGstin: string; // "32AABCZ1234F1Z5"
+  providerGstinVerified?: boolean;
+  paymentMethod?: string;
+  transactionRef?: string;
+}
+
+export type ReportDataset = 'enrollments' | 'exams' | 'certificates' | 'revenue';
+export type ReportFormat = 'csv' | 'json';
+
+// ============================================================================
+// Class Recordings, Topic Highlights, References & Interactive Doubts
+// ============================================================================
+export type RecordingStorageProvider = 'SUPABASE_STORAGE' | 'S3_COMPATIBLE' | 'BIGBLUEBUTTON' | 'EXTERNAL_SECURE';
+export type RecordingStatus = 'PROCESSING' | 'AVAILABLE' | 'ARCHIVED' | 'REVOKED';
+export type GrantStatus = 'ACTIVE' | 'REVOKED';
+export type ResourceType = 'PDF' | 'SLIDES' | 'URL' | 'CODE' | 'NOTES';
+export type DoubtStatus = 'OPEN' | 'RESOLVED' | 'CLARIFICATION_REQUESTED';
+
+export interface ClassRecording {
+  id: string;
+  sessionId: string;
+  courseId: string;
+  batchId: string;
+  title: string;
+  description?: string;
+  storageProvider: RecordingStorageProvider;
+  storagePath: string;
+  mediaUrl: string;
+  durationSeconds: number;
+  fileSizeBytes: number;
+  status: RecordingStatus;
+  isDownloadable: boolean;
+  allowDownload?: boolean;
+  availableFrom: string;
+  expiresAt?: string;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Optional relations
+  highlights?: RecordingHighlight[];
+  resources?: RecordingResource[];
+  doubts?: RecordingDoubt[];
+  batchAccessGrants?: RecordingBatchAccess[];
+}
+
+export interface RecordingBatchAccess {
+  id: string;
+  recordingId: string;
+  sourceBatchId: string;
+  targetBatchId: string;
+  allowDownload: boolean;
+  status: GrantStatus;
+  grantedBy: string;
+  grantedAt: string;
+  expiresAt?: string;
+  createdAt: string;
+}
+
+export interface RecordingHighlight {
+  id: string;
+  recordingId: string;
+  title: string;
+  description?: string;
+  startTimestampSeconds: number;
+  endTimestampSeconds: number;
+  topicId?: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RecordingResource {
+  id: string;
+  recordingId: string;
+  highlightId?: string;
+  title: string;
+  description?: string;
+  resourceType: ResourceType;
+  url: string;
+  fileSizeBytes?: number;
+  timestampSeconds?: number;
+  uploadedBy: string;
+  createdAt: string;
+}
+
+export interface RecordingDoubtAnswer {
+  id: string;
+  doubtId: string;
+  instructorId: string;
+  instructorName?: string;
+  answerText: string;
+  referenceUrl?: string;
+  createdAt: string;
+}
+
+export interface RecordingDoubt {
+  id: string;
+  recordingId: string;
+  userId: string;
+  userName?: string;
+  timestampSeconds: number;
+  highlightId?: string;
+  question: string;
+  status: DoubtStatus;
+  isPublic: boolean;
+  createdAt: string;
+  updatedAt: string;
+  answers?: RecordingDoubtAnswer[];
+}
+
+export * from './config';
+
+

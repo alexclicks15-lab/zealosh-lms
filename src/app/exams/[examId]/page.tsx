@@ -212,6 +212,38 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
             </div>
           </div>
 
+          {/* Official Issued Credential Card */}
+          {examResult.passed && examResult.certificate && (
+            <div className="bg-[#f1f8f0] border-b border-[#3a7536]/20 p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#4f8c4c] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Award className="w-7 h-7" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#3a7536] bg-green-100 px-2 py-0.5 rounded">
+                    Official Accreditation Credential Issued
+                  </span>
+                  <h3 className="text-lg font-extrabold text-[#252c41] mt-1">
+                    Certificate Code: {examResult.certificate.certificateCode}
+                  </h3>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    Cryptographically recorded in the Zealosh Compliance Registry on{' '}
+                    {new Date(examResult.certificate.issueDate).toLocaleDateString()} with a passing score of{' '}
+                    <strong>{examResult.totalScore}%</strong>.
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                href={`/verify/${encodeURIComponent(examResult.certificate.certificateCode)}`}
+                className="btn-primary bg-[#3a7536] hover:bg-[#2e5e2b] text-xs py-3 px-6 shadow-md flex items-center gap-2 shrink-0 w-full md:w-auto justify-center"
+              >
+                <Award className="w-4 h-4" />
+                <span>View & Print Official Certificate</span>
+              </Link>
+            </div>
+          )}
+
           {/* Domain Breakdown */}
           <div className="p-8 border-b border-[#eaedf5]">
             <h3 className="font-bold text-base text-[#252c41] mb-4">

@@ -6,7 +6,8 @@ export async function GET(request: Request) {
   const certFilter = searchParams.get('cert');
   const deliveryFilter = searchParams.get('delivery');
 
-  let courses = Array.from(db.courses.values()).filter((c) => c.status === 'PUBLISHED');
+  const allCourses = await db.getCourses();
+  let courses = allCourses.filter((c) => c.status === 'PUBLISHED');
 
   if (certFilter && certFilter !== 'ALL') {
     courses = courses.filter((c) => c.certificationType === certFilter);
@@ -16,16 +17,20 @@ export async function GET(request: Request) {
     courses = courses.filter((c) => c.deliveryModel === deliveryFilter);
   }
 
+  const allBatches = await db.getBatches();
+
   // Include lead instructor summary
-  const enriched = courses.map((course) => {
-    const instructor = db.users.get(course.leadInstructorId);
-    const batches = Array.from(db.batches.values()).filter((b) => b.courseId === course.id);
-    return {
-      ...course,
-      leadInstructor: instructor ? { name: instructor.name, avatar: instructor.avatarUrl } : null,
-      upcomingBatches: batches,
-    };
-  });
+  const enriched = await Promise.all(
+    courses.map(async (course) => {
+      const instructor = course.leadInstructorId ? await db.getUser(course.leadInstructorId) : null;
+      const batches = allBatches.filter((b) => b.courseId === course.id);
+      return {
+        ...course,
+        leadInstructor: instructor ? { name: instructor.name, avatar: instructor.avatarUrl } : null,
+        upcomingBatches: batches,
+      };
+    })
+  );
 
   return NextResponse.json({ courses: enriched });
 }

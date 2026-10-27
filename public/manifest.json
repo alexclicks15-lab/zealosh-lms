@@ -1,0 +1,26 @@
+{
+  "name": "Zealosh LMS — Enterprise HSE Learning Platform",
+  "short_name": "Zealosh LMS",
+  "description": "Authoritative occupational health, safety, and environmental certification training and examination platform for ASP, CSP, CRSP, and CIT.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#252c41",
+  "theme_color": "#4f8c4c",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/logo-round.png",
+      "sizes": "66x68 192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "320x94",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["education", "business", "productivity"]
+}

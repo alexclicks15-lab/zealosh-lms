@@ -1,0 +1,21 @@
+{{!
+    @template theme_zealosh/navbar
+
+    Zealosh Learning Engine Top Navigation Bar
+    Includes back-to-hub single-click navigation to Zealosh Core Hub
+}}
+<nav class="navbar fixed-top navbar-light bg-white navbar-expand border-bottom border-success shadow-sm" aria-label="{{#str}}sitemenu{{/str}}">
+    <div class="container-fluid">
+        <a href="{{{ config.wwwroot }}}" class="navbar-brand d-flex align-items-center gap-2">
+            <img src="{{{ config.wwwroot }}}/theme/image.php/zealosh/theme/1/logo" alt="Zealosh" height="32" class="d-inline-block align-text-top zealosh-nav-logo" onerror="this.onerror=null;this.src='/logo.png';" />
+            <span class="fw-bold text-dark d-none d-sm-inline">Zealosh <span class="text-success">Learning Engine</span></span>
+        </a>
+
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <a href="/student" class="btn btn-outline-success btn-sm fw-semibold zealosh-hub-link">
+                &larr; {{#str}}backtohub, theme_zealosh{{/str}}
+            </a>
+            {{{ output.user_menu }}}
+        </div>
+    </div>
+</nav>

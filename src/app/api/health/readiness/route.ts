@@ -2,7 +2,15 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/store/db';
 
 export async function GET() {
-  const isDbReady = db.courses.size > 0 && db.users.size > 0;
+  const [courses, batches, users, enrollments, examQuestions] = await Promise.all([
+    db.getCourses(),
+    db.getBatches(),
+    db.getUsers(),
+    db.getEnrollments(),
+    db.getExamQuestions(),
+  ]);
+
+  const isDbReady = courses.length > 0 && users.length > 0;
 
   if (!isDbReady) {
     return NextResponse.json(
@@ -15,11 +23,11 @@ export async function GET() {
     status: 'READY',
     timestamp: new Date().toISOString(),
     metrics: {
-      usersCount: db.users.size,
-      coursesCount: db.courses.size,
-      batchesCount: db.batches.size,
-      enrollmentsCount: db.enrollments.size,
-      examQuestionsCount: db.examQuestions.size,
+      usersCount: users.length,
+      coursesCount: courses.length,
+      batchesCount: batches.length,
+      enrollmentsCount: enrollments.length,
+      examQuestionsCount: examQuestions.length,
     },
   });
 }

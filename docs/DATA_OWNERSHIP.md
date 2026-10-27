@@ -1,55 +1,39 @@
 # Zealosh LMS — Data Ownership & Schema Boundary Specification
 
-**Document Version:** 1.0.0  
-**Status:** Architectural Authority Baseline  
-**Scope:** Application PostgreSQL vs Moodle vs BigBlueButton vs Object Storage.
+**Document Version:** 3.0.0 (Comprehensive Enterprise Persistence Baseline)  
+**Status:** **AUTHORITATIVE SCHEMA BOUNDARY** (Supersedes API-Client Only Model via ADR-001, ADR-002, and ADR-003)  
+**Scope:** Zealosh Core Store vs Self-Hosted Moodle Database vs BigBlueButton In-Memory State vs Proposed AI Tutor Boundary.
 
 ---
 
-## 1. Data Ownership Matrix
+## 1. Authoritative Data Ownership Matrix
 
-| Business Entity | Authoritative System | Primary Database / Store | Stable Identifier | Access API | Synchronization Flow | Deletion / Archival Policy |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **User Identity & Roles** | Zealosh Core | PostgreSQL (`users`, `user_roles`) | `UUIDv4` (`user_id`) | NestJS Auth API | Push to Moodle on create; account linking via verified email. | Soft delete (`deleted_at`), cascade to active sessions. |
-| **Courses & Offerings** | Zealosh Core | PostgreSQL (`courses`, `course_metadata`) | `UUIDv4` (`course_id`, `slug`) | NestJS Course API | Links to Moodle `course_id` where Moodle module is attached. | Soft archive (`archived_at`); existing enrolled cohorts retain access. |
-| **Batches & Cohorts** | Zealosh Core | PostgreSQL (`batches`, `batch_instructors`) | `UUIDv4` (`batch_id`) | NestJS Batch API | Direct relationship in Zealosh; mapped to Moodle course group. | Immutable audit trail. Never physically deleted once active. |
-| **Enrollments & Entitlements** | Zealosh Core | PostgreSQL (`enrollments`) | `UUIDv4` (`enrollment_id`) | NestJS Commerce API | Master source of truth. Triggers Moodle user enrolment webhook. | Expiration set by duration; revoked on refund. |
-| **HSE Question Bank & Blueprints** | Zealosh Core | PostgreSQL (`exam_questions`, `blueprints`) | `UUIDv4` (`question_id`) | NestJS Exam Service | Native to Zealosh; questions classified by BCSP/BCRSP domains. | Versioned (`version_number`); never update in-place if used in completed exams. |
-| **Exam Attempts & Results** | Zealosh Core | PostgreSQL (`exam_attempts`, `attempt_answers`) | `UUIDv4` (`attempt_id`) | NestJS Exam Service | Sealed upon submission. Immutable record of scores & timing. | Retained indefinitely for accreditation and dispute audits. |
-| **Live Meeting Rooms** | BigBlueButton | BBB Internal State & Redis | `VARCHAR` (`meeting_id`) | BBB REST API | Zealosh stores metadata (`sessions`); BBB manages real-time state. | Ephemeral meeting state purged post-session; recordings persisted. |
-| **Session Attendance** | Zealosh Core | PostgreSQL (`attendance_records`) | `UUIDv4` (`attendance_id`) | NestJS Batch API | Pulled from BBB post-session webhook or polling query. | Permanent record for certificate eligibility validation. |
-| **Detailed Moodle Lessons & SCORM** | Moodle Core | Moodle Database (PostgreSQL/MySQL) | `BIGINT` (`moodle_module_id`) | Moodle REST API | Pulled on-demand via REST API; cached in Redis with 15m TTL. | Governed by Moodle course maintenance policy. |
-| **Certificates & Verification** | Zealosh Core | PostgreSQL (`certificates`) | `UUIDv4` (`certificate_id`, `verify_code`) | NestJS Cert API | Validated against batch attendance and exam thresholds. | Permanent public verification record; revocation flag supported. |
-| **Orders & Payments** | Zealosh Core | PostgreSQL (`orders`, `transactions`) | `UUIDv4` (`order_id`, `payment_ref`) | NestJS Payment API | Webhook ingestion from Razorpay/Stripe with HMAC validation. | Immutable financial records; retained for tax/statutory requirements. |
-| **Audit Events** | Zealosh Core | PostgreSQL (`audit_logs`) | `BIGSERIAL` / `UUIDv4` | NestJS Audit Logger | Direct synchronous insert in critical transactions. | Append-only. Write once, read many (WORM). |
+To prevent data drift, split-brain conditions, and duplicate sources of truth, each entity has a single authoritative system of record:
 
----
-
-## 2. Key Foreign-Key Relationships & Integrity Rules
-
-```mermaid
-erDiagram
-    USERS ||--o{ ENROLLMENTS : holds
-    USERS ||--o{ BATCH_INSTRUCTORS : assigned_as
-    USERS ||--o{ EXAM_ATTEMPTS : completes
-    COURSES ||--o{ BATCHES : contains
-    COURSES ||--o{ EXAM_BLUEPRINTS : defines
-    BATCHES ||--o{ ENROLLMENTS : admits
-    BATCHES ||--o{ LIVE_SESSIONS : schedules
-    LIVE_SESSIONS ||--o{ ATTENDANCE_RECORDS : logs
-    EXAM_BLUEPRINTS ||--o{ EXAM_QUESTIONS : maps
-    EXAM_ATTEMPTS ||--o{ ATTEMPT_ANSWERS : includes
-    ENROLLMENTS ||--o{ CERTIFICATES : qualifies
-    ORDERS ||--o{ ENROLLMENTS : grants
-```
+| Business Entity | Authoritative System | Primary Database / Store | Stable Identifier | Access Protocol | Synchronization & Federation Strategy |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **User Identity & Auth** | **Zealosh Core** | PostgreSQL (`public.users`) | `UUIDv4` (`user_id`) | Next.js OIDC API | Master source of truth. Federated to Moodle via OIDC SSO (`auth_oauth2`) on login. |
+| **Course Offerings & Pricing** | **Zealosh Core** | PostgreSQL (`public.courses`) | `UUIDv4` (`course_id`, `slug`) | Next.js Course API | Public catalog, marketing syllabus, batch schedule, and commercial fees. |
+| **Batches & Cohort Capacity** | **Zealosh Core** | PostgreSQL (`public.batches`) | `UUIDv4` (`batch_id`) | Next.js Batch API | Master source of truth for seat caps, date windows, and lead/assistant tutors. Atomic concurrency via `enroll_student_atomic`. |
+| **Enrollments & Entitlements** | **Zealosh Core** | PostgreSQL (`public.enrollments`) | `UUIDv4` (`enrollment_id`) | Next.js Commerce API | Controls access to both Next.js exams and Moodle course modules. |
+| **Coursework & Rubrics** | **Zealosh Core** | PostgreSQL (`public.assignments`) | `UUIDv4` (`assignment_id`) | Next.js Assignments API | Multi-criteria rubrics stored as JSONB; course and cohort scoping. |
+| **Student Submissions & Grades** | **Zealosh Core** | PostgreSQL (`public.assignment_submissions`) | `UUIDv4` (`submission_id`) | Next.js Submission API | Enrolled student isolation, criterion-level grading scores and instructor feedback. |
+| **Detailed Lessons & SCORM** | **Zealosh Learning Engine** | Dedicated Supabase Project 2 PostgreSQL (`mdl_*`) | `BIGINT` (`moodle_cmid`) | Moodle Engine / REST | Governs interactive SCORM packs, chapter trees, and forum topics. |
+| **BCSP / BCRSP Question Bank** | **Zealosh Core** | PostgreSQL (`public.exam_questions`) | `UUIDv4` (`question_id`) | Next.js Exam Service | Proprietary HSE questions, BCSP blueprint domains, and explanations. Answer keys stripped on client delivery via `learner_exam_questions` view. |
+| **Exam Attempts & Scoring** | **Zealosh Core** | PostgreSQL (`public.exam_attempts`) | `UUIDv4` (`attempt_id`) | Next.js Exam Service | Server-authoritative timer, autosaved answers, and domain scoring. |
+| **Certificates & Verification** | **Zealosh Core** | PostgreSQL (`public.certificates`) | `UUIDv4` (`certificate_code`) | Next.js Cert API | Master registry for public tamper-proof credential verification (`/verify/[code]`). |
+| **Payment Orders & Invoices** | **Zealosh Core** | PostgreSQL (`public.payment_orders`, `public.invoices`) | `UUIDv4` (`order_id`, `invoice_id`) | Next.js Commerce API | Statutory Indian GST invoicing (`INV-2026-XXXX`), cryptographic webhook verification, and atomic fulfillment. |
+| **Class Recordings & Doubts** | **Zealosh Core** | PostgreSQL (`public.class_recordings`, 5 relation tables) | `UUIDv4` (`recording_id`) | Next.js Recordings API | Chapter highlights, attached resources, interactive learner doubts, and HMAC-SHA256 streaming tokens. |
+| **Live Classroom Sessions** | **Zealosh Live Classroom** | BBB In-Memory / Redis State | `VARCHAR` (`meeting_id`) | BBB REST / WebRTC | Ephemeral WebRTC audio/video/whiteboard conference state. |
+| **Session Attendance Records** | **Zealosh Core** | PostgreSQL (`public.attendance_records`) | `UUIDv4` (`attendance_id`) | Next.js Batch API | Pulled from BBB meeting status upon session conclusion. |
+| **Configuration & Branding** | **Zealosh Core** | PostgreSQL (`public.platform_settings`, `public.branding_theme`, `public.feature_flags`) | Key-Value / Singleton | Next.js Admin API | Dynamic tokens (`#4f8c4c`), feature toggles (including `ai_tutor_enabled: false`), and 1-click rollback history. |
+| **Proposed AI Tutor (Unapproved)** | **Zealosh Core Seam** | None (Disabled platform-wide) | N/A | `/api/ai-tutor/query` (403 Disabled) | Feature gated via `ai_tutor_enabled`. Zero background ingestion, zero student document leaks, zero unapproved spend. |
 
 ---
 
-## 3. Account-Linking & Identity Resolution Strategy
+## 2. Synchronization Invariants & Conflict Prevention
 
-1. **Email Authority:** Email addresses are the primary global identifier across Zealosh and Moodle.
-2. **Account Linking Policy:**
-   - When a student registers on Zealosh, their email is normalized (`lowercase`, `trimmed`).
-   - If an existing Moodle account exists with that email, the external Moodle ID is linked and stored in `users.external_learning_id`.
-   - Accounts are **never** automatically merged across different email addresses without explicit email verification challenge.
-   - Instructors have a single unified user record with granular role assignments in `user_roles`.
+1. **No Out-of-Band Enrollment:** Students cannot be manually enrolled in Moodle bypassing Zealosh Core. All enrollments originate in Zealosh Core upon verified payment or administrator grant.
+2. **Immutable Exam Scoring:** Examination answers are scored exclusively by Zealosh Core and sealed upon submission; Moodle gradebooks receive aggregated final course completion flags.
+3. **Single Identity Resolution:** Learners exist under normalized lowercase email addresses; OIDC tokens map `sub` directly to `zealosh_user_id`.
+4. **Firewalled Assessment Content:** The proposed AI Tutor is strictly prohibited from accessing restricted question banks (`exam_questions.correct_option_ids`) or operating during active examination sessions.

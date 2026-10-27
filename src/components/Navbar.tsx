@@ -56,10 +56,16 @@ export default function Navbar() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Ignore network failure on logout
+    }
     document.cookie = 'zealosh_token=; Max-Age=0; path=/;';
     setCurrentUser(null);
     router.push('/');
+    router.refresh();
   };
 
   return (

@@ -25,15 +25,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized: Invalid or expired token' }, { status: 401 });
     }
 
-    const user = db.users.get(payload.userId);
+    const user = await db.getUser(payload.userId);
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Get user active enrollments
-    const enrollments = Array.from(db.enrollments.values()).filter(
-      (e) => e.userId === user.id && e.status === 'ACTIVE'
-    );
+    const enrollments = await db.getUserEnrollments(user.id);
 
     return NextResponse.json({
       user: {

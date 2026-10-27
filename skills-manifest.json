@@ -1,0 +1,1481 @@
+{
+  "manifest_version": "1.0.0",
+  "export_timestamp": "2026-10-25T08:58:00+05:30",
+  "export_source_project": "CakeToHome ERP (Antigravity)",
+  "total_discovered_instances": 113,
+  "unique_canonical_skills": 61,
+  "portable_skills_packaged": 47,
+  "engine_requirements": {
+    "python": ">=3.8",
+    "node": ">=18.0",
+    "antigravity_customization_version": ">=1.0"
+  },
+  "skills": {
+    "agy-customizations": {
+      "id": "agy-customizations",
+      "name": "agy-customizations",
+      "folder_name": "agy-customizations",
+      "category": "Antigravity Built-in IDE Skills",
+      "primary_source_scope": "builtin-ide",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\builtin\\skills\\agy-customizations",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Builtin (Not Portable)",
+      "dependencies": [],
+      "sha256": "4f8b0eab3c1420a73eddc48d4041b62178b8ba552a7d6b00d2412deab3a39315",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "builtin-ide",
+          "path": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\builtin\\skills\\agy-customizations"
+        }
+      ]
+    },
+    "ai-agents-and-mcp": {
+      "id": "ai-agents-and-mcp",
+      "name": "ai-agents-and-mcp",
+      "folder_name": "ai-agents-and-mcp",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\ai-agents-and-mcp",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "a7c931f5e6cbab9dc7a2710e566f15f22cc470f1252a44dfd588916bc5773a6c",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\ai-agents-and-mcp"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\ai-agents-and-mcp"
+        }
+      ]
+    },
+    "analytics-and-cro": {
+      "id": "analytics-and-cro",
+      "name": "analytics-and-cro",
+      "folder_name": "analytics-and-cro",
+      "category": "SEO, Conversion & Web Vitals",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\analytics-and-cro",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "804c8e8d17d13b85ec820e9480e5762c6bdc1c20a38bc2ae3b34b9450aaf1d93",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\analytics-and-cro"
+        }
+      ]
+    },
+    "antigravity-guide": {
+      "id": "antigravity-guide",
+      "name": "antigravity-guide",
+      "folder_name": "antigravity_guide",
+      "category": "Antigravity Built-in IDE Skills",
+      "primary_source_scope": "builtin-ide",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\builtin\\skills\\antigravity_guide",
+      "entry_point": "SKILL.md",
+      "description": "Provides a comprehensive guide, quick reference, and sitemap for Google Antigravity (AGY), including the Antigravity CLI (agy), Antigravity 2.0, Antigravity IDE, Python SDK, slash commands, keybindings, and customizations (skills, rules, MCP, sidecars). Activate this skill when the user asks questions about how to use, configure, or customize Antigravity, AGY, the agy CLI, the Antigravity IDE, or Antigravity 2.0.",
+      "portability": "Builtin (Not Portable)",
+      "dependencies": [
+        "mcp_server",
+        "node>=18"
+      ],
+      "sha256": "0999fc13d3091e8c2833019cc9ac9c2cadbe0df356bdc80700cd7da49915e6e7",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "builtin-ide",
+          "path": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\builtin\\skills\\antigravity_guide"
+        }
+      ]
+    },
+    "api-design-and-security": {
+      "id": "api-design-and-security",
+      "name": "api-design-and-security",
+      "folder_name": "api-design-and-security",
+      "category": "Backend & Distributed Systems",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\api-design-and-security",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "c00aeb9233d4967fbc213020db93b2351c01e4efc66c4b7913d59121d80367ae",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\api-design-and-security"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\api-design-and-security"
+        }
+      ]
+    },
+    "arena": {
+      "id": "arena",
+      "name": "arena",
+      "folder_name": "arena",
+      "category": "Arena and Agent Orchestration",
+      "primary_source_scope": "workspace-root",
+      "primary_source_path": "E:\\vig\\.agents\\skills\\arena",
+      "entry_point": "SKILL.md",
+      "description": "Multi-agent tournament competition skill for complex coding, architectural, and algorithmic tasks. Spins up competing AI solutions, runs distinct reasoning strategy cards, conducts pairwise adversarial critiques and evidence-based defense, scores matches using an explicit weighted rubric, and selects the strongest solution in Google Antigravity.",
+      "portability": "Fully Portable",
+      "dependencies": [
+        "python>=3.8"
+      ],
+      "sha256": "89fb417123fa5e047e742c4cce2f39d1e3ed63f19bfaa8d4ed249765c248fc38",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "workspace-root",
+          "path": "E:\\vig\\.agents\\skills\\arena"
+        },
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\arena"
+        }
+      ]
+    },
+    "background-jobs-and-queues": {
+      "id": "background-jobs-and-queues",
+      "name": "background-jobs-and-queues",
+      "folder_name": "background-jobs-and-queues",
+      "category": "Backend & Distributed Systems",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\background-jobs-and-queues",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "2925001abac5427768fdd0d156ced4e47af7c16d143b0895448aaedafc87eebf",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\background-jobs-and-queues"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\background-jobs-and-queues"
+        }
+      ]
+    },
+    "backlink-and-offpage-seo": {
+      "id": "backlink-and-offpage-seo",
+      "name": "backlink-and-offpage-seo",
+      "folder_name": "backlink-and-offpage-seo",
+      "category": "SEO, Conversion & Web Vitals",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\backlink-and-offpage-seo",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "8a13a7691920501e3b035fe0b6a3e9c951ca02b7d0eef335a93400cd25aeccd1",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\backlink-and-offpage-seo"
+        }
+      ]
+    },
+    "bigbluebutton-integration": {
+      "id": "bigbluebutton-integration",
+      "name": "bigbluebutton-integration",
+      "folder_name": "bigbluebutton-integration",
+      "category": "Destination Native Skills (Zealosh LMS)",
+      "primary_source_scope": "destination-existing",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\scratch\\zealosh-lms\\.agents\\skills\\bigbluebutton-integration",
+      "entry_point": "SKILL.md",
+      "description": "Comprehensive runbook for integrating Zealosh LMS with BigBlueButton 2.7+ Live Classroom infrastructure. Use this skill when implementing WebRTC room provisioning, SHA-1 checksum calculation, moderator/student join token generation, attendance logging, or recording workflows.",
+      "portability": "Destination Native (Preserved)",
+      "dependencies": [],
+      "sha256": "4b31722ef04e442dacbdcb316f815736d21404a291f05d6c10e63f18a82788bd",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "destination-existing",
+          "path": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\scratch\\zealosh-lms\\.agents\\skills\\bigbluebutton-integration"
+        }
+      ]
+    },
+    "brainstorming-and-architecture": {
+      "id": "brainstorming-and-architecture",
+      "name": "brainstorming-and-architecture",
+      "folder_name": "brainstorming-and-architecture",
+      "category": "Software Architecture & Code Quality",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\brainstorming-and-architecture",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "775b102d4a718fc111e7a2ae560e4c083d7932226ad7483b69245199c5a4a2f0",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\brainstorming-and-architecture"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\brainstorming-and-architecture"
+        }
+      ]
+    },
+    "chrome-devtools-debugging": {
+      "id": "chrome-devtools-debugging",
+      "name": "chrome-devtools-debugging",
+      "folder_name": "chrome-devtools-debugging",
+      "category": "Testing, Playwright & QA Automation",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\chrome-devtools-debugging",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "a003de7a46b562d485473a22a898a72d8c71db542f39392e441ad6df0abae8eb",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\chrome-devtools-debugging"
+        }
+      ]
+    },
+    "clean-architecture": {
+      "id": "clean-architecture",
+      "name": "clean-architecture",
+      "folder_name": "clean-architecture",
+      "category": "Software Architecture & Code Quality",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\clean-architecture",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "89cd3d115a891f9583bc129f80a5de42499a1e18ac47f96393ee3e96b115bb64",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\clean-architecture"
+        }
+      ]
+    },
+    "clean-code-and-refactoring": {
+      "id": "clean-code-and-refactoring",
+      "name": "clean-code-and-refactoring",
+      "folder_name": "clean-code-and-refactoring",
+      "category": "Software Architecture & Code Quality",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\clean-code-and-refactoring",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "d2a7cb50cba518f2426aa0c4af2104860f577681ed3e1abadaab4b117976efe6",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\clean-code-and-refactoring"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\clean-code-and-refactoring"
+        }
+      ]
+    },
+    "cms-and-content-platform": {
+      "id": "cms-and-content-platform",
+      "name": "cms-and-content-platform",
+      "folder_name": "cms-and-content-platform",
+      "category": "CMS, E-Commerce & CRM Workflows",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\cms-and-content-platform",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "5ce80687b6abd0263ef78c532b411f3490f3827a959857e8846e8edc59e374c7",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\cms-and-content-platform"
+        }
+      ]
+    },
+    "code-to-design": {
+      "id": "code-to-design",
+      "name": "stitch::code-to-design",
+      "folder_name": "stitch-code-to-design",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-code-to-design",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Externally Managed (Stitch MCP)",
+      "dependencies": [
+        "mcp_server",
+        "node>=18"
+      ],
+      "sha256": "8902ad35aada9ccabd88be5beca6bfd88d373b38826655fafcb93e52968498d1",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-code-to-design"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\code-to-design"
+        },
+        {
+          "scope": "plugin-stitch-design",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-design\\skills\\code-to-design"
+        }
+      ]
+    },
+    "crm-and-workflow-automation": {
+      "id": "crm-and-workflow-automation",
+      "name": "crm-and-workflow-automation",
+      "folder_name": "crm-and-workflow-automation",
+      "category": "CMS, E-Commerce & CRM Workflows",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\crm-and-workflow-automation",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "38bb3e334a0f3a4e64ff4d0bda3eafcadf19d839e1efa8d63f0cce3777319fc9",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\crm-and-workflow-automation"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\crm-and-workflow-automation"
+        }
+      ]
+    },
+    "dead-code-and-static-analysis": {
+      "id": "dead-code-and-static-analysis",
+      "name": "dead-code-and-static-analysis",
+      "folder_name": "dead-code-and-static-analysis",
+      "category": "Software Architecture & Code Quality",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\dead-code-and-static-analysis",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "92c4b74ef1c4be33227cc1148b46c8d3b87338676e236407379120c18bcabea5",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\dead-code-and-static-analysis"
+        }
+      ]
+    },
+    "design-md": {
+      "id": "design-md",
+      "name": "design-md",
+      "folder_name": "design-md",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\design-md",
+      "entry_point": "SKILL.md",
+      "description": "Analyze Stitch projects and synthesize a semantic design system into DESIGN.md files",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "580d3345a30178bf5ebee8f552030d1cffe0f927818ccd27073d15d646e03887",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\design-md"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\design-md"
+        },
+        {
+          "scope": "plugin-stitch-utilities",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-utilities\\skills\\design-md"
+        }
+      ]
+    },
+    "devops-and-docker-deploy": {
+      "id": "devops-and-docker-deploy",
+      "name": "devops-and-docker-deploy",
+      "folder_name": "devops-and-docker-deploy",
+      "category": "DevOps, Deployment & Performance",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\devops-and-docker-deploy",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "6d0bd693cb45fb63dca151ad082bbc855a61a75e6d1a93600cf8af6edc1439f3",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\devops-and-docker-deploy"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\devops-and-docker-deploy"
+        }
+      ]
+    },
+    "ecommerce-and-medusa": {
+      "id": "ecommerce-and-medusa",
+      "name": "ecommerce-and-medusa",
+      "folder_name": "ecommerce-and-medusa",
+      "category": "CMS, E-Commerce & CRM Workflows",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\ecommerce-and-medusa",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "250206706fc74673459407c1e307eb8029e1da3b4eaaca31eddbceef53e7768c",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\ecommerce-and-medusa"
+        }
+      ]
+    },
+    "enhance-prompt": {
+      "id": "enhance-prompt",
+      "name": "enhance-prompt",
+      "folder_name": "enhance-prompt",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\enhance-prompt",
+      "entry_point": "SKILL.md",
+      "description": "Transforms vague UI ideas into polished, Stitch-optimized prompts. Enhances specificity, adds UI/UX keywords, injects design system context, and structures output for better generation results.",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "822e45444f6190b71fd095bfe9d36285167b22896e5e3ea01f7494eee50867aa",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\enhance-prompt"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\enhance-prompt"
+        },
+        {
+          "scope": "plugin-stitch-utilities",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-utilities\\skills\\enhance-prompt"
+        }
+      ]
+    },
+    "extract-design-md": {
+      "id": "extract-design-md",
+      "name": "stitch::extract-design-md",
+      "folder_name": "stitch-extract-design-md",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-extract-design-md",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Externally Managed (Stitch MCP)",
+      "dependencies": [
+        "mcp_server",
+        "node>=18"
+      ],
+      "sha256": "2a5f91b312e6cdcd3bac8158bcc85c40a7f6259b65c2ad98ca970857dbb0ef53",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-extract-design-md"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\extract-design-md"
+        },
+        {
+          "scope": "plugin-stitch-design",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-design\\skills\\extract-design-md"
+        }
+      ]
+    },
+    "extract-static-html": {
+      "id": "extract-static-html",
+      "name": "stitch::extract-static-html",
+      "folder_name": "stitch-extract-static-html",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-extract-static-html",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Externally Managed (Stitch MCP)",
+      "dependencies": [
+        "mcp_server",
+        "node>=18"
+      ],
+      "sha256": "8460d3d408a48d849979c75286df8d4a3291817efc139b7f139b611235ab936e",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-extract-static-html"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\extract-static-html"
+        },
+        {
+          "scope": "plugin-stitch-design",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-design\\skills\\extract-static-html"
+        }
+      ]
+    },
+    "frontend-design-system": {
+      "id": "frontend-design-system",
+      "name": "frontend-design-system",
+      "folder_name": "frontend-design-system",
+      "category": "Frontend & UI Engineering",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\frontend-design-system",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "d1ccefe71d97f34ea50fe431029f419b3650f321b40cfae13a5322bdc0efb3b8",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\frontend-design-system"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\frontend-design-system"
+        }
+      ]
+    },
+    "generate-design": {
+      "id": "generate-design",
+      "name": "stitch::generate-design",
+      "folder_name": "stitch-generate-design",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-generate-design",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Externally Managed (Stitch MCP)",
+      "dependencies": [
+        "mcp_server",
+        "node>=18"
+      ],
+      "sha256": "cda92e2df63bec22d3ae93aa42233a02398f10d08890a48fc86637293a525d28",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-generate-design"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\generate-design"
+        },
+        {
+          "scope": "plugin-stitch-design",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-design\\skills\\generate-design"
+        }
+      ]
+    },
+    "git-workflow-and-releases": {
+      "id": "git-workflow-and-releases",
+      "name": "git-workflow-and-releases",
+      "folder_name": "git-workflow-and-releases",
+      "category": "DevOps, Deployment & Performance",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\git-workflow-and-releases",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "3770d2cdda3f53366d53bd3b91371b7ac0b01419aa9058d55e23c343e64bd421",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\git-workflow-and-releases"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\git-workflow-and-releases"
+        }
+      ]
+    },
+    "hse-exam-engine": {
+      "id": "hse-exam-engine",
+      "name": "hse-exam-engine",
+      "folder_name": "hse-exam-engine",
+      "category": "Destination Native Skills (Zealosh LMS)",
+      "primary_source_scope": "destination-existing",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\scratch\\zealosh-lms\\.agents\\skills\\hse-exam-engine",
+      "entry_point": "SKILL.md",
+      "description": "Comprehensive runbook for the Zealosh High-Stakes HSE Certification Examination Engine. Use this skill when implementing certification blueprints (BCSP ASP/CSP, BCRSP, CIT), question banks, randomized question selection, server-enforced countdown deadlines, anti-cheat question projection, in-flight answer saving, or domain diagnostic scoring.",
+      "portability": "Destination Native (Preserved)",
+      "dependencies": [],
+      "sha256": "86b323d4f8915a8818df2abb7e700bfe96c5e0e592ecc67e5e707e083ab02d62",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "destination-existing",
+          "path": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\scratch\\zealosh-lms\\.agents\\skills\\hse-exam-engine"
+        }
+      ]
+    },
+    "image-and-media-optimization": {
+      "id": "image-and-media-optimization",
+      "name": "image-and-media-optimization",
+      "folder_name": "image-and-media-optimization",
+      "category": "DevOps, Deployment & Performance",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\image-and-media-optimization",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "6fe405fac40f0f341414950e7046000f1e29abf2a078b1a3160aedfb3b9171ef",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\image-and-media-optimization"
+        }
+      ]
+    },
+    "lazy-coder": {
+      "id": "lazy-coder",
+      "name": "lazy-coder",
+      "folder_name": "lazy-coder",
+      "category": "Software Architecture & Code Quality",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\lazy-coder",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "43a57805a5035a028b1b76f2636541def25818346227ec082aee93fb4adf4275",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\lazy-coder"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\lazy-coder"
+        }
+      ]
+    },
+    "loop": {
+      "id": "loop",
+      "name": "stitch-loop",
+      "folder_name": "stitch-loop",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-loop",
+      "entry_point": "SKILL.md",
+      "description": "Teaches agents to iteratively build websites using Stitch with an autonomous baton-passing loop pattern",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "5df1b0bb98ae27e70a8f06a5ec4be34ffa927f88608be207b10acc1e4e84d4b2",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-loop"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\stitch-loop"
+        },
+        {
+          "scope": "plugin-stitch-utilities",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-utilities\\skills\\stitch-loop"
+        }
+      ]
+    },
+    "manage-design-system": {
+      "id": "manage-design-system",
+      "name": "stitch::manage-design-system",
+      "folder_name": "stitch-manage-design-system",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-manage-design-system",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Externally Managed (Stitch MCP)",
+      "dependencies": [
+        "mcp_server",
+        "node>=18"
+      ],
+      "sha256": "729e353b2e420243adfe21dc1e07c3a69a5eae1a434cff1dd5a71a0f676fb70c",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-manage-design-system"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\manage-design-system"
+        },
+        {
+          "scope": "plugin-stitch-design",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-design\\skills\\manage-design-system"
+        }
+      ]
+    },
+    "master-orchestrator": {
+      "id": "master-orchestrator",
+      "name": "master-orchestrator",
+      "folder_name": "master-orchestrator",
+      "category": "Arena and Agent Orchestration",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\master-orchestrator",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "3b4de3edef85b38f6e27cc3badb53579df3bfaeac32ae8fbfc2969e18b04b4d9",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\master-orchestrator"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\master-orchestrator"
+        }
+      ]
+    },
+    "moodle-integration": {
+      "id": "moodle-integration",
+      "name": "moodle-integration",
+      "folder_name": "moodle-integration",
+      "category": "Destination Native Skills (Zealosh LMS)",
+      "primary_source_scope": "destination-existing",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\scratch\\zealosh-lms\\.agents\\skills\\moodle-integration",
+      "entry_point": "SKILL.md",
+      "description": "Comprehensive runbook for integrating Zealosh LMS with Moodle 4.x Core REST Web Services API. Use this skill when implementing user synchronization, course enrollment, module/section content retrieval, gradebook sync, or SCORM tracking.",
+      "portability": "Destination Native (Preserved)",
+      "dependencies": [],
+      "sha256": "5119e87cdf3fa573899600a482637a73102371b9430be545d340faa2d754acd4",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "destination-existing",
+          "path": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\scratch\\zealosh-lms\\.agents\\skills\\moodle-integration"
+        }
+      ]
+    },
+    "nextjs-fullstack-architecture": {
+      "id": "nextjs-fullstack-architecture",
+      "name": "nextjs-fullstack-architecture",
+      "folder_name": "nextjs-fullstack-architecture",
+      "category": "Frontend & UI Engineering",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\nextjs-fullstack-architecture",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [
+        "next>=14.0",
+        "react>=18.0"
+      ],
+      "sha256": "ce7c25d68e482f961bf97c6173bde3f08ed62c6b9bd047bedad5fe0e2f1a6dd7",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\nextjs-fullstack-architecture"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\nextjs-fullstack-architecture"
+        }
+      ]
+    },
+    "no-duplicator": {
+      "id": "no-duplicator",
+      "name": "no-duplicator",
+      "folder_name": "no-duplicator",
+      "category": "Software Architecture & Code Quality",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\no-duplicator",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "c564e774201ca0f35edab2e081e341dc094b663dd885ff31759c30a057df9774",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\no-duplicator"
+        }
+      ]
+    },
+    "nodejs-backend-architecture": {
+      "id": "nodejs-backend-architecture",
+      "name": "nodejs-backend-architecture",
+      "folder_name": "nodejs-backend-architecture",
+      "category": "Backend & Distributed Systems",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\nodejs-backend-architecture",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "aa471d50e8bb6b1fd19a2b67494e3a647788bf644876ef09c171ce2c9949c41d",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\nodejs-backend-architecture"
+        }
+      ]
+    },
+    "performance-engineering": {
+      "id": "performance-engineering",
+      "name": "performance-engineering",
+      "folder_name": "performance-engineering",
+      "category": "DevOps, Deployment & Performance",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\performance-engineering",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "a67f501635b96fb988eebd492fc069e80d56e76355aae48ca96c065a747579c6",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\performance-engineering"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\performance-engineering"
+        }
+      ]
+    },
+    "permissioned-github": {
+      "id": "permissioned-github",
+      "name": "permissioned-github",
+      "folder_name": "permissioned-github",
+      "category": "Antigravity Built-in IDE Skills",
+      "primary_source_scope": "builtin-ide",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\builtin\\skills\\permissioned-github",
+      "entry_point": "SKILL.md",
+      "description": "Guidelines for interacting with GitHub and request permissions from the user when commands fail due to restrictions in the agent environment.",
+      "portability": "Builtin (Not Portable)",
+      "dependencies": [],
+      "sha256": "25b1849d73ab81dce8495a7080169cf3f6686abb74797cc8512f6b837a1ff727",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "builtin-ide",
+          "path": "C:\\Users\\alexc\\.gemini\\antigravity-ide\\builtin\\skills\\permissioned-github"
+        }
+      ]
+    },
+    "playwright-and-qa-automation": {
+      "id": "playwright-and-qa-automation",
+      "name": "playwright-and-qa-automation",
+      "folder_name": "playwright-and-qa-automation",
+      "category": "Testing, Playwright & QA Automation",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\playwright-and-qa-automation",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [
+        "@playwright/test",
+        "chromium"
+      ],
+      "sha256": "3cfd4bab9a4c9c7292ebcd04fd7370fae068bf9317705ba8e4deef31d7556503",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\playwright-and-qa-automation"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\playwright-and-qa-automation"
+        }
+      ]
+    },
+    "postgresql-and-supabase": {
+      "id": "postgresql-and-supabase",
+      "name": "postgresql-and-supabase",
+      "folder_name": "postgresql-and-supabase",
+      "category": "Database & PostgreSQL Engineering",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\postgresql-and-supabase",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [
+        "pg",
+        "postgresql-client"
+      ],
+      "sha256": "3599f34b1b51f842354baa56f8e9c9d2c0d5f82c395f7e716d8712bb214aeb04",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\postgresql-and-supabase"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\postgresql-and-supabase"
+        }
+      ]
+    },
+    "python-development": {
+      "id": "python-development",
+      "name": "python-development",
+      "folder_name": "python-development",
+      "category": "Backend & Distributed Systems",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\python-development",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "91541999f74ef517b37d4d6fcd99d875ee1ec271f2ef0ae47f15c196ab061dcc",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\python-development"
+        }
+      ]
+    },
+    "react-components": {
+      "id": "react-components",
+      "name": "stitch::react-components",
+      "folder_name": "stitch-react-components",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-react-components",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Externally Managed (Stitch MCP)",
+      "dependencies": [
+        "mcp_server",
+        "node>=18"
+      ],
+      "sha256": "18af5c0556da52765aa9eb5a899805bb6a94831011a4800ee221de02617b3f0e",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-react-components"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\react-components"
+        },
+        {
+          "scope": "plugin-stitch-build",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-build\\skills\\react-components"
+        }
+      ]
+    },
+    "react-development": {
+      "id": "react-development",
+      "name": "react-development",
+      "folder_name": "react-development",
+      "category": "Frontend & UI Engineering",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\react-development",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "9351e8b116fb2fe9e058a19add4a95d28359fecd45003fbc923b29c70fbd4cf1",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\react-development"
+        }
+      ]
+    },
+    "react-native": {
+      "id": "react-native",
+      "name": "stitch::react-native",
+      "folder_name": "stitch-react-native",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-react-native",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Externally Managed (Stitch MCP)",
+      "dependencies": [
+        "mcp_server",
+        "node>=18"
+      ],
+      "sha256": "9cb0371d8b45fc90bca53fab2c5b525b12a3cfa099e2c06308184e2738bd1fd1",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-react-native"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\react-native"
+        },
+        {
+          "scope": "plugin-stitch-build",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-build\\skills\\react-native"
+        }
+      ]
+    },
+    "react-vite-dashboard": {
+      "id": "react-vite-dashboard",
+      "name": "react-vite-dashboard",
+      "folder_name": "react-vite-dashboard",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\react-vite-dashboard",
+      "entry_point": "SKILL.md",
+      "description": "Convert Stitch designs into production React + Vite dashboards with TanStack Query, accessible tokens from DESIGN.md, and Web3-ready patterns (ethers/viem).",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "136e05587c76633e6033817b1b3c9e50a8e11765aa9f82df32b991f550a78a51",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\react-vite-dashboard"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\react-vite-dashboard"
+        },
+        {
+          "scope": "plugin-stitch-build",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-build\\skills\\react-vite-dashboard"
+        }
+      ]
+    },
+    "remotion": {
+      "id": "remotion",
+      "name": "remotion",
+      "folder_name": "remotion",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\remotion",
+      "entry_point": "SKILL.md",
+      "description": "Generate walkthrough videos from Stitch projects using Remotion with smooth transitions, zooming, and text overlays",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "bf3e280ee4a88132c4ed8e16a1ba6a3ce1b8af38977f6907ce11d22e5d2a4c3d",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\remotion"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\remotion"
+        },
+        {
+          "scope": "plugin-stitch-build",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-build\\skills\\remotion"
+        }
+      ]
+    },
+    "saas-multi-tenant-architecture": {
+      "id": "saas-multi-tenant-architecture",
+      "name": "saas-multi-tenant-architecture",
+      "folder_name": "saas-multi-tenant-architecture",
+      "category": "Backend & Distributed Systems",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\saas-multi-tenant-architecture",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "ce4001f394efae0979616ca23374f2887be35ed04d5fe00534c3ce3f0b0f6805",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\saas-multi-tenant-architecture"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\saas-multi-tenant-architecture"
+        }
+      ]
+    },
+    "search-and-relevance-engineering": {
+      "id": "search-and-relevance-engineering",
+      "name": "search-and-relevance-engineering",
+      "folder_name": "search-and-relevance-engineering",
+      "category": "Database & PostgreSQL Engineering",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\search-and-relevance-engineering",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "bc712eaace335501456e6eb74881331fc557e1229cdc9dc20d1eb3de7aaeb7f5",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\search-and-relevance-engineering"
+        }
+      ]
+    },
+    "security-audit": {
+      "id": "security-audit",
+      "name": "security-audit",
+      "folder_name": "security-audit",
+      "category": "Security & Vulnerability Auditing",
+      "primary_source_scope": "workspace-root",
+      "primary_source_path": "E:\\vig\\.agents\\skills\\security-audit",
+      "entry_point": "SKILL.md",
+      "description": "Security guidance and vulnerability review for codebases, APIs, services, CLI tools, libraries, and daemons. Use for security questions, focused reviews, vulnerability research, security audits, or pen tests. Run the complete workflow only for explicit codebase audit or pen-test requests, full/comprehensive/end-to-end reviews, or requested report artifacts.",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "2a68ab5531dfccedac2b054e0814f2b6517daae9887b3ee40afcc5d8a7063c3a",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "workspace-root",
+          "path": "E:\\vig\\.agents\\skills\\security-audit"
+        }
+      ]
+    },
+    "security-auditing-and-owasp": {
+      "id": "security-auditing-and-owasp",
+      "name": "security-auditing-and-owasp",
+      "folder_name": "security-auditing-and-owasp",
+      "category": "Security & Vulnerability Auditing",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\security-auditing-and-owasp",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "d6e2e0db10413f11460b0f29a2c39f6e03504a8a1e6d476ff3be62900d4c208f",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\security-auditing-and-owasp"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\security-auditing-and-owasp"
+        }
+      ]
+    },
+    "seo-and-web-vitals": {
+      "id": "seo-and-web-vitals",
+      "name": "seo-and-web-vitals",
+      "folder_name": "seo-and-web-vitals",
+      "category": "SEO, Conversion & Web Vitals",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\seo-and-web-vitals",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "7fffc250e680891d1df096c5820f7a121fc3d5f5c2172b83f7ea8d9341da1a55",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\seo-and-web-vitals"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\seo-and-web-vitals"
+        }
+      ]
+    },
+    "shadcn-ui": {
+      "id": "shadcn-ui",
+      "name": "shadcn-ui",
+      "folder_name": "shadcn-ui",
+      "category": "Frontend & UI Engineering",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\shadcn-ui",
+      "entry_point": "SKILL.md",
+      "description": "Expert guidance for integrating and building applications with shadcn/ui components, including component discovery, installation, customization, and best practices.",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "d4d76696c3ecead8ffb6d03fb0d8905391bc621337a547c4781a8c4986ad5c18",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\shadcn-ui"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\shadcn-ui"
+        },
+        {
+          "scope": "plugin-stitch-build",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-build\\skills\\shadcn-ui"
+        }
+      ]
+    },
+    "site-md": {
+      "id": "site-md",
+      "name": "site-md",
+      "folder_name": "site-md",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\site-md",
+      "entry_point": "SKILL.md",
+      "description": "Analyze a project description or site requirements and synthesize a project constitution into SITE.md for the Stitch Build Loop",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "fed568e9bf559f293330c895da42a8c3c8d870c9f2dc84f64712ba88421e2c32",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\site-md"
+        },
+        {
+          "scope": "plugin-stitch-utilities",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-utilities\\skills\\site-md"
+        }
+      ]
+    },
+    "smart-coder": {
+      "id": "smart-coder",
+      "name": "smart-coder",
+      "folder_name": "smart-coder",
+      "category": "Software Architecture & Code Quality",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\smart-coder",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "001ec13027e1f08d9652fabc0f7e7546e98367b93c4e7f7689fcc8d5048fa78b",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\smart-coder"
+        }
+      ]
+    },
+    "systematic-debugging": {
+      "id": "systematic-debugging",
+      "name": "systematic-debugging",
+      "folder_name": "systematic-debugging",
+      "category": "Testing, Playwright & QA Automation",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\systematic-debugging",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "de255065b987304563505cab47ee492b8f0cbdd395fb4a8206bd7d38fdae6f99",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\systematic-debugging"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\systematic-debugging"
+        }
+      ]
+    },
+    "taste-design": {
+      "id": "taste-design",
+      "name": "taste-design",
+      "folder_name": "taste-design",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\taste-design",
+      "entry_point": "SKILL.md",
+      "description": "Semantic Design System Skill for Google Stitch. Generates agent-friendly DESIGN.md files that enforce premium, anti-generic UI standards \u2014 strict typography, calibrated color, asymmetric layouts, perpetual micro-motion, and hardware-accelerated performance.",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "b8d06276272de59118801915ef8121519756273162534bba0c84f8a0d9b5e0cc",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\taste-design"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\taste-design"
+        },
+        {
+          "scope": "plugin-stitch-utilities",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-utilities\\skills\\taste-design"
+        }
+      ]
+    },
+    "technical-documentation": {
+      "id": "technical-documentation",
+      "name": "technical-documentation",
+      "folder_name": "technical-documentation",
+      "category": "CMS, E-Commerce & CRM Workflows",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\technical-documentation",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "b252204942a72dafc67119ce6473c38a7a064514169bc79745a490b8082c16e9",
+      "total_instances_found": 2,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\technical-documentation"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\technical-documentation"
+        }
+      ]
+    },
+    "typescript-development": {
+      "id": "typescript-development",
+      "name": "typescript-development",
+      "folder_name": "typescript-development",
+      "category": "Frontend & UI Engineering",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\typescript-development",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "257f5a468bd74ee4d472d1134ccf6bdd9301d62fc9277931c46acab7f24ab34c",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\typescript-development"
+        }
+      ]
+    },
+    "upload-to-stitch": {
+      "id": "upload-to-stitch",
+      "name": "stitch::upload-to-stitch",
+      "folder_name": "stitch-upload-to-stitch",
+      "category": "Design System & Google Stitch Tools",
+      "primary_source_scope": "project-local",
+      "primary_source_path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-upload-to-stitch",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Externally Managed (Stitch MCP)",
+      "dependencies": [
+        "mcp_server",
+        "node>=18"
+      ],
+      "sha256": "7c0f9bb3b468668bf87b7213cbc6942e46f69655dedc1793b0b7a60d7a831f79",
+      "total_instances_found": 3,
+      "all_instances": [
+        {
+          "scope": "project-local",
+          "path": "E:\\vig\\cakes2home-main\\cakes2home-main\\.agents\\skills\\stitch-upload-to-stitch"
+        },
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\upload-to-stitch"
+        },
+        {
+          "scope": "plugin-stitch-design",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\plugins\\stitch-design\\skills\\upload-to-stitch"
+        }
+      ]
+    },
+    "web-animation-and-motion": {
+      "id": "web-animation-and-motion",
+      "name": "web-animation-and-motion",
+      "folder_name": "web-animation-and-motion",
+      "category": "Frontend & UI Engineering",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\web-animation-and-motion",
+      "entry_point": "SKILL.md",
+      "description": ">-",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "ed85d9385421a467174df0ab90d74a8e9323304dc4fb4e993958a6d3557e9cdc",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\web-animation-and-motion"
+        }
+      ]
+    },
+    "website-audit": {
+      "id": "website-audit",
+      "name": "website-audit",
+      "folder_name": "website-audit",
+      "category": "SEO, Conversion & Web Vitals",
+      "primary_source_scope": "global-user",
+      "primary_source_path": "C:\\Users\\alexc\\.gemini\\config\\skills\\website-audit",
+      "entry_point": "SKILL.md",
+      "description": "|",
+      "portability": "Fully Portable",
+      "dependencies": [],
+      "sha256": "1308585441672e0031108a198f459f9d536f43de93f9b393acff279bb99a079a",
+      "total_instances_found": 1,
+      "all_instances": [
+        {
+          "scope": "global-user",
+          "path": "C:\\Users\\alexc\\.gemini\\config\\skills\\website-audit"
+        }
+      ]
+    }
+  }
+}

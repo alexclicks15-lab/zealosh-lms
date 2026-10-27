@@ -1,0 +1,1275 @@
+{
+  "users": {
+    "usr-admin-01": {
+      "id": "usr-admin-01",
+      "name": "Dr. K. Ravindran (Super Admin)",
+      "email": "admin@zealosh.com",
+      "passwordHash": "$2a$10$6UqYKeRH/UZISds4eKiT2OQb77Jhz.VugXHK2SyA6riJTILMeW97e",
+      "role": "SUPER_ADMIN",
+      "organizationId": "org-zealosh-main",
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-01T00:00:00Z"
+    },
+    "usr-inst-01": {
+      "id": "usr-inst-01",
+      "name": "Vishnu Rajendran, CSP, CRSP",
+      "email": "vishnu@zealosh.com",
+      "passwordHash": "$2a$10$6UqYKeRH/UZISds4eKiT2OQb77Jhz.VugXHK2SyA6riJTILMeW97e",
+      "role": "INSTRUCTOR",
+      "organizationId": "org-zealosh-main",
+      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-01T00:00:00Z"
+    },
+    "usr-std-01": {
+      "id": "usr-std-01",
+      "name": "Arjun Menon",
+      "email": "student@zealosh.com",
+      "passwordHash": "$2a$10$6UqYKeRH/UZISds4eKiT2OQb77Jhz.VugXHK2SyA6riJTILMeW97e",
+      "role": "STUDENT",
+      "organizationId": "org-zealosh-main",
+      "externalLearningId": "mdl-user-501",
+      "createdAt": "2026-01-10T00:00:00Z",
+      "updatedAt": "2026-01-10T00:00:00Z"
+    },
+    "usr-student-01": {
+      "id": "usr-student-01",
+      "name": "Arjun Menon",
+      "email": "arjun.menon@example.com",
+      "passwordHash": "$2a$10$6UqYKeRH/UZISds4eKiT2OQb77Jhz.VugXHK2SyA6riJTILMeW97e",
+      "role": "STUDENT",
+      "organizationId": "org-zealosh-main",
+      "createdAt": "2026-01-10T00:00:00Z",
+      "updatedAt": "2026-01-10T00:00:00Z"
+    }
+  },
+  "courses": {
+    "crs-asp-01": {
+      "id": "crs-asp-01",
+      "title": "ASP — Associate Safety Professional Comprehensive Prep",
+      "slug": "asp-examination-prep",
+      "certificationType": "ASP",
+      "deliveryModel": "HYBRID",
+      "status": "PUBLISHED",
+      "headline": "Master the BCSP Associate Safety Professional examination with authoritative domain mastery, calculation workshops, and mock simulations.",
+      "description": "Comprehensive 10-week preparatory program covering all 9 BCSP ASP blueprint domains: Mathematics & Sciences, Emergency Response, Industrial Hygiene, Occupational Health, Environmental Management, and Professional Ethics.",
+      "learningObjectives": [
+        "Master complex safety math, radiation physics, and ventilation airflow equations",
+        "Evaluate industrial hygiene hazards and permissible exposure limits (PEL/TLV)",
+        "Design robust emergency response and incident command systems",
+        "Analyze hazard communication, GHS classifications, and chemical storage compatibility"
+      ],
+      "prerequisites": [
+        "Bachelor degree or 1 year safety experience",
+        "Basic algebra and scientific calculator familiarity"
+      ],
+      "priceInr": 34999,
+      "priceUsd": 499,
+      "durationWeeks": 10,
+      "coverImage": "https://images.unsplash.com/photo-1581092335397-9583fe92d232?w=800&auto=format&fit=crop&q=80",
+      "leadInstructorId": "usr-inst-01",
+      "coInstructorIds": [],
+      "moodleCourseId": 101,
+      "modulesCount": 6,
+      "totalLessons": 32,
+      "totalHours": 65,
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-01T00:00:00Z"
+    },
+    "crs-csp-01": {
+      "id": "crs-csp-01",
+      "title": "CSP — Certified Safety Professional Masterclass",
+      "slug": "csp-examination-masterclass",
+      "certificationType": "CSP",
+      "deliveryModel": "HYBRID",
+      "status": "PUBLISHED",
+      "headline": "The pinnacle gold-standard safety credential prep. Strategic risk assessment, safety leadership, and advanced ergonomics.",
+      "description": "Master BCSP CSP blueprint domains with expert faculty holding CSP and CRSP designations. Features scenario-based diagnostic evaluations and simulated computerized examinations.",
+      "learningObjectives": [
+        "Lead risk management frameworks and ISO 45001 safety management systems",
+        "Execute qualitative and quantitative fault-tree and Bowtie risk analyses",
+        "Assess biomechanics, NIOSH lifting equations, and musculoskeletal ergonomics",
+        "Evaluate environmental toxicology, dispersion modeling, and emission controls"
+      ],
+      "prerequisites": [
+        "Valid ASP, GSP, CIH, or eligible prerequisite credential",
+        "Minimum 4 years professional safety experience"
+      ],
+      "priceInr": 44999,
+      "priceUsd": 649,
+      "durationWeeks": 12,
+      "coverImage": "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?w=800&auto=format&fit=crop&q=80",
+      "leadInstructorId": "usr-inst-01",
+      "coInstructorIds": [],
+      "moodleCourseId": 102,
+      "modulesCount": 8,
+      "totalLessons": 45,
+      "totalHours": 90,
+      "createdAt": "2026-01-05T00:00:00Z",
+      "updatedAt": "2026-01-05T00:00:00Z"
+    },
+    "crs-crsp-01": {
+      "id": "crs-crsp-01",
+      "title": "CRSP — Canadian Registered Safety Professional Fast-Track",
+      "slug": "crsp-examination-fast-track",
+      "certificationType": "CRSP",
+      "deliveryModel": "LIVE",
+      "status": "PUBLISHED",
+      "headline": "Authoritative Canadian safety law, hazard identification, and occupational hygiene for BCRSP certification candidates.",
+      "description": "Targeted preparation for the Board of Canadian Registered Safety Professionals examination. Covers federal, provincial, and territorial jurisdictional health and safety frameworks.",
+      "learningObjectives": [
+        "Navigate Canada Labour Code Part II, WHMIS 2015/GHS, and provincial Acts",
+        "Implement proactive safety culture transformation and due diligence defenses",
+        "Design noise conservation programs and indoor air quality monitoring protocols"
+      ],
+      "prerequisites": [
+        "Canadian or international post-secondary credential",
+        "4 years Canadian/equivalent safety experience"
+      ],
+      "priceInr": 39999,
+      "priceUsd": 549,
+      "durationWeeks": 8,
+      "coverImage": "https://images.unsplash.com/photo-1541888946425-d0fbb186f5f8?w=800&auto=format&fit=crop&q=80",
+      "leadInstructorId": "usr-inst-01",
+      "coInstructorIds": [],
+      "moodleCourseId": 103,
+      "modulesCount": 5,
+      "totalLessons": 24,
+      "totalHours": 50,
+      "createdAt": "2026-01-08T00:00:00Z",
+      "updatedAt": "2026-01-08T00:00:00Z"
+    },
+    "crs-cit-01": {
+      "id": "crs-cit-01",
+      "title": "CIT — Certified Instructional Trainer in HSE",
+      "slug": "cit-instructional-trainer",
+      "certificationType": "CIT",
+      "deliveryModel": "RECORDED",
+      "status": "PUBLISHED",
+      "headline": "Master adult learning theories, training program design (ADDIE), and high-impact safety delivery.",
+      "description": "Accelerated self-paced masterclass preparing safety professionals for BCSP Certified Instructional Trainer certification. Includes downloadable lesson plans and assessment rubrics.",
+      "learningObjectives": [
+        "Apply Knowles andragogy principles to high-consequence safety instruction",
+        "Construct measurable Bloom taxonomy learning objectives for industrial workers",
+        "Evaluate safety training effectiveness using Kirkpatrick 4-Level evaluation"
+      ],
+      "prerequisites": [
+        "135 hours safety training delivery experience"
+      ],
+      "priceInr": 19999,
+      "priceUsd": 299,
+      "durationWeeks": 4,
+      "coverImage": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop&q=80",
+      "leadInstructorId": "usr-inst-01",
+      "coInstructorIds": [],
+      "moodleCourseId": 104,
+      "modulesCount": 4,
+      "totalLessons": 18,
+      "totalHours": 35,
+      "createdAt": "2026-01-12T00:00:00Z",
+      "updatedAt": "2026-01-12T00:00:00Z"
+    },
+    "crs-csp-02": {
+      "id": "crs-csp-02",
+      "title": "CSP — Comprehensive Safety Practice & Management Systems",
+      "slug": "csp-practice-management",
+      "certificationType": "CSP",
+      "deliveryModel": "HYBRID",
+      "status": "PUBLISHED",
+      "headline": "Advanced BCSP CSP curriculum covering risk management and ISO 45001 safety systems.",
+      "description": "Detailed modular coverage of safety management systems, industrial hygiene, and ergonomics.",
+      "learningObjectives": [
+        "Lead safety management systems",
+        "Execute Bowtie risk analyses"
+      ],
+      "prerequisites": [
+        "ASP or equivalent"
+      ],
+      "priceInr": 44999,
+      "priceUsd": 649,
+      "durationWeeks": 12,
+      "coverImage": "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?w=800&auto=format&fit=crop&q=80",
+      "leadInstructorId": "usr-inst-01",
+      "coInstructorIds": [],
+      "moodleCourseId": 102,
+      "modulesCount": 8,
+      "totalLessons": 45,
+      "totalHours": 90,
+      "createdAt": "2026-01-05T00:00:00Z",
+      "updatedAt": "2026-01-05T00:00:00Z"
+    }
+  },
+  "batches": {
+    "btc-asp-nov26": {
+      "id": "btc-asp-nov26",
+      "courseId": "crs-asp-01",
+      "name": "Cohort 26-A — Weekend Intensive",
+      "startDate": "2026-11-07T00:00:00Z",
+      "endDate": "2027-01-17T00:00:00Z",
+      "scheduleDescription": "Every Sat & Sun 7:00 PM – 9:30 PM IST (WebRTC Live Classroom)",
+      "capacity": 35,
+      "enrolledCount": 1,
+      "leadInstructorId": "usr-inst-01",
+      "status": "ACTIVE"
+    },
+    "btc-asp-weekday": {
+      "id": "btc-asp-weekday",
+      "courseId": "crs-asp-01",
+      "name": "Cohort 26-B — Weekday Evening",
+      "startDate": "2026-12-01T00:00:00Z",
+      "endDate": "2027-02-15T00:00:00Z",
+      "scheduleDescription": "Tue & Thu 8:00 PM – 10:00 PM IST",
+      "capacity": 30,
+      "enrolledCount": 0,
+      "leadInstructorId": "usr-inst-01",
+      "status": "ACTIVE"
+    },
+    "btc-asp-dec26": {
+      "id": "btc-asp-dec26",
+      "courseId": "crs-asp-01",
+      "name": "Cohort 26-B — Weekday Evening (Upcoming)",
+      "startDate": "2026-12-01T00:00:00Z",
+      "endDate": "2027-02-15T00:00:00Z",
+      "scheduleDescription": "Tue & Thu 8:00 PM – 10:00 PM IST",
+      "capacity": 30,
+      "enrolledCount": 0,
+      "leadInstructorId": "usr-inst-01",
+      "status": "UPCOMING"
+    },
+    "btc-asp-full": {
+      "id": "btc-asp-full",
+      "courseId": "crs-asp-01",
+      "name": "Cohort 25-C — Full Capacity Batch",
+      "startDate": "2026-10-01T00:00:00Z",
+      "endDate": "2026-12-15T00:00:00Z",
+      "scheduleDescription": "Mon & Wed 6:00 PM – 8:00 PM IST",
+      "capacity": 10,
+      "enrolledCount": 10,
+      "leadInstructorId": "usr-inst-01",
+      "status": "ACTIVE"
+    },
+    "btc-csp-nov26": {
+      "id": "btc-csp-nov26",
+      "courseId": "crs-csp-02",
+      "name": "Cohort 18 — Weekend Masterclass",
+      "startDate": "2026-11-14T00:00:00Z",
+      "endDate": "2027-02-06T00:00:00Z",
+      "scheduleDescription": "Sundays 10:00 AM – 2:00 PM IST",
+      "capacity": 25,
+      "enrolledCount": 0,
+      "leadInstructorId": "usr-inst-01",
+      "status": "ACTIVE"
+    },
+    "btc-crsp-jan27": {
+      "id": "btc-crsp-jan27",
+      "courseId": "crs-crsp-01",
+      "name": "Cohort 09 — Canada Evening Cohort",
+      "startDate": "2027-01-09T00:00:00Z",
+      "endDate": "2027-03-06T00:00:00Z",
+      "scheduleDescription": "Sat & Sun 8:30 PM – 11:00 PM IST (EST Friendly)",
+      "capacity": 20,
+      "enrolledCount": 0,
+      "leadInstructorId": "usr-inst-01",
+      "status": "UPCOMING"
+    }
+  },
+  "enrollments": {
+    "enr-std-01-asp": {
+      "id": "enr-std-01-asp",
+      "userId": "usr-std-01",
+      "courseId": "crs-asp-01",
+      "batchId": "btc-asp-nov26",
+      "status": "ACTIVE",
+      "enrolledAt": "2026-01-10T00:00:00Z",
+      "expiresAt": "2027-01-10T00:00:00Z",
+      "progressPercent": 35,
+      "completedLessonIds": [
+        "lsn-asp-01",
+        "lsn-asp-02"
+      ],
+      "idempotencyKey": "enrol_btc-asp-nov26_usr-std-01"
+    },
+    "enr-seed-01": {
+      "id": "enr-seed-01",
+      "userId": "usr-student-01",
+      "courseId": "crs-asp-01",
+      "batchId": "btc-asp-nov26",
+      "status": "ACTIVE",
+      "enrolledAt": "2026-01-10T09:05:00Z",
+      "expiresAt": "2027-01-10T09:05:00Z",
+      "progressPercent": 35,
+      "completedLessonIds": [
+        "lsn-asp-01",
+        "lsn-asp-02"
+      ],
+      "idempotencyKey": "enrol_btc-asp-nov26_usr-student-01"
+    }
+  },
+  "lessons": {
+    "crs-asp-01": [
+      {
+        "id": "lsn-asp-01",
+        "courseId": "crs-asp-01",
+        "moduleTitle": "Module 1: Advanced Safety Sciences & Calculations",
+        "title": "Safety Calculus & Radiation Inverse Square Law",
+        "durationMinutes": 45,
+        "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        "downloadableMaterials": [
+          {
+            "title": "ASP Math & Formula Reference Sheet",
+            "type": "PDF",
+            "size": "2.4 MB",
+            "url": "/downloads/asp-math-sheet.pdf"
+          },
+          {
+            "title": "Radiation Inverse Square Calculation Worksheet",
+            "type": "PDF",
+            "size": "1.1 MB",
+            "url": "/downloads/radiation-worksheet.pdf"
+          }
+        ],
+        "isFreePreview": true
+      },
+      {
+        "id": "lsn-asp-02",
+        "courseId": "crs-asp-01",
+        "moduleTitle": "Module 1: Advanced Safety Sciences & Calculations",
+        "title": "Ventilation Engineering: Dilution vs Local Exhaust (Q = V x A)",
+        "durationMinutes": 55,
+        "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        "downloadableMaterials": [
+          {
+            "title": "Industrial Ventilation Engineering Handbook (ACGIH)",
+            "type": "PDF",
+            "size": "3.8 MB",
+            "url": "/downloads/ventilation-handbook.pdf"
+          }
+        ]
+      },
+      {
+        "id": "lsn-asp-03",
+        "courseId": "crs-asp-01",
+        "moduleTitle": "Module 2: Industrial Hygiene & Environmental Controls",
+        "title": "Noise Decibel Addition, TWA, and 3dB/5dB Exchange Rates",
+        "durationMinutes": 50,
+        "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        "downloadableMaterials": [
+          {
+            "title": "OSHA vs NIOSH Noise Measurement Guide",
+            "type": "PDF",
+            "size": "1.9 MB",
+            "url": "/downloads/noise-guide.pdf"
+          }
+        ]
+      },
+      {
+        "id": "lsn-asp-04",
+        "courseId": "crs-asp-01",
+        "moduleTitle": "Module 2: Industrial Hygiene & Environmental Controls",
+        "title": "GHS Chemical Hazard Classifications & SDS Management",
+        "durationMinutes": 40,
+        "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+      }
+    ]
+  },
+  "liveSessions": {
+    "sess-asp-01": {
+      "id": "sess-asp-01",
+      "batchId": "btc-asp-nov26",
+      "courseId": "crs-asp-01",
+      "title": "ASP Live Workshop: Complex Rigging & Crane Load Charts",
+      "scheduledStartTime": "2026-11-08T13:30:00Z",
+      "durationMinutes": 120,
+      "instructorId": "usr-inst-01",
+      "meetingId": "zealosh-live-asp-001",
+      "status": "SCHEDULED"
+    }
+  },
+  "attendance": {},
+  "examQuestions": {
+    "q-asp-01": {
+      "id": "q-asp-01",
+      "certificationType": "ASP",
+      "domain": "Advanced Sciences and Math",
+      "topic": "Radiation Protection",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": "HARD",
+      "stem": "A gamma radiation source exhibits an exposure rate of 160 mR/hr measured at a distance of 2 meters. If a worker must remain at 8 meters from the unshielded source for 30 minutes, what total radiation dose will the worker receive?",
+      "options": [
+        {
+          "id": "opt-a",
+          "text": "10.0 mR/hr"
+        },
+        {
+          "id": "opt-b",
+          "text": "13.3 mR/hr"
+        },
+        {
+          "id": "opt-c",
+          "text": "20.0 mR/hr"
+        },
+        {
+          "id": "opt-d",
+          "text": "40.0 mR/hr"
+        }
+      ],
+      "correctOptionIds": [
+        "opt-b"
+      ],
+      "explanation": "Inverse Square Law calculation with scattering factors.",
+      "referenceSource": "BCSP ASP Blueprint — Sciences and Math"
+    },
+    "q-asp-02": {
+      "id": "q-asp-02",
+      "certificationType": "ASP",
+      "domain": "Advanced Sciences and Math",
+      "topic": "Occupational Noise Exposure",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": "HARD",
+      "stem": "Two operating industrial air compressors produce noise levels of 85 dBA and 85 dBA simultaneously at a worker position. What is the combined resultant sound pressure level?",
+      "options": [
+        {
+          "id": "opt-a",
+          "text": "85 dBA"
+        },
+        {
+          "id": "opt-b",
+          "text": "88 dBA"
+        },
+        {
+          "id": "opt-c",
+          "text": "90 dBA"
+        },
+        {
+          "id": "opt-d",
+          "text": "170 dBA"
+        }
+      ],
+      "correctOptionIds": [
+        "opt-b"
+      ],
+      "explanation": "Decibels are logarithmic: adding two identical noise sources adds 3 dBA (85 + 3 = 88 dBA).",
+      "referenceSource": "OSHA Technical Manual (OTM) Section III: Chapter 5 Noise"
+    },
+    "q-asp-03": {
+      "id": "q-asp-03",
+      "certificationType": "ASP",
+      "domain": "Advanced Sciences and Math",
+      "topic": "Industrial Ventilation",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": "MODERATE",
+      "stem": "Which ventilation engineering control is most effective for capturing toxic airborne contaminants directly at the generation boundary before entering the worker breathing zone?",
+      "options": [
+        {
+          "id": "opt-a",
+          "text": "General Dilution Fans"
+        },
+        {
+          "id": "opt-b",
+          "text": "Roof Gravity Ventilators"
+        },
+        {
+          "id": "opt-c",
+          "text": "LEV"
+        },
+        {
+          "id": "opt-d",
+          "text": "Air Recirculation"
+        }
+      ],
+      "correctOptionIds": [
+        "opt-c"
+      ],
+      "explanation": "Local Exhaust Ventilation (LEV) captures contaminants at the point of origin.",
+      "referenceSource": "ACGIH Industrial Ventilation Manual / BCSP Mathematics Reference"
+    },
+    "q-asp-04": {
+      "id": "q-asp-04",
+      "certificationType": "ASP",
+      "domain": "Environmental Management Systems",
+      "topic": "Combustible Metals Fire Protection",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": "MODERATE",
+      "stem": "According to NFPA 10, which fire classification and specialized extinguishing agent is required for combustible metal fires such as magnesium, titanium, and zirconium?",
+      "options": [
+        {
+          "id": "opt-a",
+          "text": "Class A"
+        },
+        {
+          "id": "opt-b",
+          "text": "Class B"
+        },
+        {
+          "id": "opt-c",
+          "text": "Class C"
+        },
+        {
+          "id": "opt-d",
+          "text": "Class D"
+        }
+      ],
+      "correctOptionIds": [
+        "opt-d"
+      ],
+      "explanation": "Class D fires involve combustible metals and require specialized dry powder agents.",
+      "referenceSource": "NFPA 10 Standard for Portable Fire Extinguishers"
+    },
+    "q-asp-05": {
+      "id": "q-asp-05",
+      "certificationType": "ASP",
+      "domain": "Environmental Management Systems",
+      "topic": "Hazardous Waste Characteristics",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": "MODERATE",
+      "stem": "Under US EPA RCRA regulations (40 CFR Part 261), what four distinct physical and chemical characteristics define a regulated hazardous waste?",
+      "options": [
+        {
+          "id": "opt-a",
+          "text": "Ignitability, Corrosivity, Reactivity, Toxicity"
+        },
+        {
+          "id": "opt-b",
+          "text": "Flammability, Volatility, Corrosivity, Acidity"
+        },
+        {
+          "id": "opt-c",
+          "text": "Radioactivity, Toxicity, Biohazard, Mutagenicity"
+        },
+        {
+          "id": "opt-d",
+          "text": "Combustibility, Persistence, Leachability, Bioaccumulation"
+        }
+      ],
+      "correctOptionIds": [
+        "opt-a"
+      ],
+      "explanation": "RCRA defines characteristic hazardous wastes as exhibiting Ignitability, Corrosivity, Reactivity, or Toxicity (ICRT).",
+      "referenceSource": "EPA RCRA 40 CFR Part 261"
+    },
+    "q-asp-001": {
+      "id": "q-asp-001",
+      "certificationType": "ASP",
+      "domain": "Advanced Safety Sciences & Math",
+      "topic": "Radiation Protection",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": "HARD",
+      "stem": "A gamma radiation source exhibits an exposure rate of 160 mR/hr measured at a distance of 2 meters. If a worker must remain at 8 meters from the unshielded source for 30 minutes, what total radiation dose will the worker receive?",
+      "options": [
+        {
+          "id": "opt-a",
+          "text": "5.0 mR"
+        },
+        {
+          "id": "opt-b",
+          "text": "10.0 mR"
+        },
+        {
+          "id": "opt-c",
+          "text": "20.0 mR"
+        },
+        {
+          "id": "opt-d",
+          "text": "40.0 mR"
+        }
+      ],
+      "correctOptionIds": [
+        "opt-a"
+      ],
+      "explanation": "Apply the Inverse Square Law: I1 x (D1)^2 = I2 x (D2)^2. (160 mR/hr) x (2m)^2 = I2 x (8m)^2 => 640 = 64 x I2 => I2 = 10 mR/hr at 8 meters. For 30 minutes (0.5 hours), total dose = 10 mR/hr x 0.5 hr = 5.0 mR.",
+      "referenceSource": "BCSP ASP Blueprint — Domain 1 (Sciences and Math)"
+    },
+    "q-asp-002": {
+      "id": "q-asp-002",
+      "certificationType": "ASP",
+      "domain": "Advanced Safety Sciences & Math",
+      "topic": "Industrial Ventilation",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": "MODERATE",
+      "stem": "A circular exhaust ventilation duct has an internal diameter of 12 inches. If the measured average air velocity inside the duct is 4,000 feet per minute (fpm), what is the total volumetric airflow rate in cubic feet per minute (cfm)?",
+      "options": [
+        {
+          "id": "opt-a",
+          "text": "2,540 cfm"
+        },
+        {
+          "id": "opt-b",
+          "text": "3,142 cfm"
+        },
+        {
+          "id": "opt-c",
+          "text": "4,000 cfm"
+        },
+        {
+          "id": "opt-d",
+          "text": "12,560 cfm"
+        }
+      ],
+      "correctOptionIds": [
+        "opt-b"
+      ],
+      "explanation": "Airflow equation: Q = V x A. Radius = 6 inches = 0.5 feet. Area A = pi x r^2 = 3.1416 x (0.5)^2 = 0.7854 sq ft. Airflow Q = 4,000 fpm x 0.7854 sq ft = 3,141.6 cfm (~3,142 cfm).",
+      "referenceSource": "ACGIH Industrial Ventilation Manual / BCSP Mathematics Reference"
+    },
+    "q-asp-003": {
+      "id": "q-asp-003",
+      "certificationType": "ASP",
+      "domain": "Emergency Response & Fire Safety",
+      "topic": "Combustible Dust & Deflagration",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": "MODERATE",
+      "stem": "According to NFPA 652 and NFPA 68, which parameter signifies the maximum rate of pressure rise during a closed-vessel dust explosion, used to calculate required deflagration vent areas?",
+      "options": [
+        {
+          "id": "opt-a",
+          "text": "Minimum Explosible Concentration (MEC)"
+        },
+        {
+          "id": "opt-b",
+          "text": "Deflagration Index (Kst value)"
+        },
+        {
+          "id": "opt-c",
+          "text": "Limiting Oxygen Concentration (LOC)"
+        },
+        {
+          "id": "opt-d",
+          "text": "Minimum Ignition Energy (MIE)"
+        }
+      ],
+      "correctOptionIds": [
+        "opt-b"
+      ],
+      "explanation": "Kst is the deflagration index for combustible dusts, normalized to a 1 m^3 sphere. It measures the maximum rate of pressure rise and directly dictates deflagration venting calculations.",
+      "referenceSource": "NFPA 652 Standard on Fundamentals of Combustible Dust"
+    },
+    "q-asp-004": {
+      "id": "q-asp-004",
+      "certificationType": "ASP",
+      "domain": "Industrial Hygiene & Environmental",
+      "topic": "Occupational Noise Exposure",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": "HARD",
+      "stem": "Two operating industrial air compressors produce noise levels of 87 dBA and 87 dBA simultaneously at a worker position. What is the combined resultant sound pressure level?",
+      "options": [
+        {
+          "id": "opt-a",
+          "text": "87 dBA"
+        },
+        {
+          "id": "opt-b",
+          "text": "90 dBA"
+        },
+        {
+          "id": "opt-c",
+          "text": "93 dBA"
+        },
+        {
+          "id": "opt-d",
+          "text": "174 dBA"
+        }
+      ],
+      "correctOptionIds": [
+        "opt-b"
+      ],
+      "explanation": "Decibels are logarithmic: dB_total = 10 x log10(10^(L1/10) + 10^(L2/10)). Adding two identical noise sources adds exactly 3.01 dBA to the original level. 87 + 3 = 90 dBA.",
+      "referenceSource": "OSHA Technical Manual (OTM) Section III: Chapter 5 Noise"
+    },
+    "q-asp-005": {
+      "id": "q-asp-005",
+      "certificationType": "ASP",
+      "domain": "Occupational Health & Ergonomics",
+      "topic": "NIOSH Lifting Equation",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": "MODERATE",
+      "stem": "Under the Revised NIOSH Lifting Equation (RNLE), what is the fundamental Load Constant (LC) representing the maximum recommended weight for lifting under ideal conditions?",
+      "options": [
+        {
+          "id": "opt-a",
+          "text": "15 kg (33 lbs)"
+        },
+        {
+          "id": "opt-b",
+          "text": "23 kg (51 lbs)"
+        },
+        {
+          "id": "opt-c",
+          "text": "32 kg (70 lbs)"
+        },
+        {
+          "id": "opt-d",
+          "text": "45 kg (100 lbs)"
+        }
+      ],
+      "correctOptionIds": [
+        "opt-b"
+      ],
+      "explanation": "The standard NIOSH Lifting Equation Load Constant (LC) is 23 kg (51 pounds). Multipliers (horizontal, vertical, distance, asymmetric, frequency, coupling) reduce this constant.",
+      "referenceSource": "Applications Manual for the Revised NIOSH Lifting Equation (PB94-176930)"
+    }
+  },
+  "examBlueprints": {
+    "bp-asp-bcsp-v10": {
+      "id": "bp-asp-bcsp-v10",
+      "certificationType": "ASP",
+      "title": "BCSP ASP Comprehensive Diagnostic Simulation v10",
+      "totalQuestions": 5,
+      "durationMinutes": 60,
+      "passingScorePercent": 70,
+      "domains": [
+        {
+          "name": "Advanced Sciences and Math",
+          "weightPercent": 60,
+          "questionCount": 3
+        },
+        {
+          "name": "Environmental Management Systems",
+          "weightPercent": 40,
+          "questionCount": 2
+        }
+      ]
+    },
+    "bp-asp-mock": {
+      "id": "bp-asp-mock",
+      "certificationType": "ASP",
+      "title": "BCSP ASP Comprehensive Diagnostic Simulation",
+      "totalQuestions": 5,
+      "durationMinutes": 60,
+      "passingScorePercent": 70,
+      "domains": [
+        {
+          "name": "Advanced Safety Sciences & Math",
+          "weightPercent": 35,
+          "questionCount": 2
+        },
+        {
+          "name": "Emergency Response & Fire Safety",
+          "weightPercent": 25,
+          "questionCount": 1
+        },
+        {
+          "name": "Industrial Hygiene & Environmental",
+          "weightPercent": 20,
+          "questionCount": 1
+        },
+        {
+          "name": "Occupational Health & Ergonomics",
+          "weightPercent": 20,
+          "questionCount": 1
+        }
+      ]
+    }
+  },
+  "examAttempts": {
+    "att-seed-01": {
+      "id": "att-seed-01",
+      "userId": "usr-student-01",
+      "blueprintId": "bp-asp-bcsp-v10",
+      "certificationType": "ASP",
+      "startTime": "2026-01-24T14:00:00Z",
+      "deadlineTime": "2026-01-24T15:00:00Z",
+      "completedTime": "2026-01-24T14:52:00Z",
+      "assignedQuestionIds": [
+        "q-asp-01",
+        "q-asp-02",
+        "q-asp-03",
+        "q-asp-04",
+        "q-asp-05"
+      ],
+      "bookmarkedQuestionIds": [],
+      "answers": {
+        "q-asp-01": [
+          "opt-b"
+        ],
+        "q-asp-02": [
+          "opt-b"
+        ],
+        "q-asp-03": [
+          "opt-c"
+        ],
+        "q-asp-04": [
+          "opt-d"
+        ],
+        "q-asp-05": [
+          "opt-a"
+        ]
+      },
+      "status": "COMPLETED",
+      "totalScore": 92,
+      "passingScorePercent": 70,
+      "passed": true
+    }
+  },
+  "assignments": {
+    "asg-asp-01": {
+      "id": "asg-asp-01",
+      "courseId": "crs-asp-01",
+      "batchId": "btc-asp-nov26",
+      "title": "ASP Industrial Hygiene & Ventilation Calculation Report",
+      "description": "Submit an engineering calculation report analyzing dilution ventilation vs local exhaust ventilation for an enclosed chemical handling bay.",
+      "instructionsHtml": "<p>Using ACGIH formulas, calculate required volumetric airflow (CFM) to maintain solvent vapor concentrations below OSHA PEL (50 ppm). Provide duct sizing recommendations and fan static pressure calculations.</p>",
+      "dueDate": "2026-12-15T23:59:59Z",
+      "maxScore": 100,
+      "status": "PUBLISHED",
+      "rubric": {
+        "id": "rub-asp-01",
+        "title": "Industrial Ventilation Technical Rubric",
+        "totalPoints": 100,
+        "criteria": [
+          {
+            "id": "crit-1",
+            "title": "Ventilation & Airflow Calculations (Q = V x A)",
+            "description": "Accuracy of volumetric airflow, transport velocity, and capture velocity formulas",
+            "maxPoints": 35
+          },
+          {
+            "id": "crit-2",
+            "title": "Contaminant Exposure & TLV/PEL Evaluation",
+            "description": "Correct application of ACGIH TLV and OSHA PEL standards to determine safety margins",
+            "maxPoints": 35
+          },
+          {
+            "id": "crit-3",
+            "title": "Duct Layout & Engineering Controls Synthesis",
+            "description": "Feasibility of local exhaust hood design and recommended hierarchy of controls",
+            "maxPoints": 30
+          }
+        ]
+      },
+      "createdAt": "2026-01-15T00:00:00Z",
+      "updatedAt": "2026-01-15T00:00:00Z"
+    },
+    "asg-csp-01": {
+      "id": "asg-csp-01",
+      "courseId": "crs-csp-02",
+      "batchId": "btc-csp-nov26",
+      "title": "CSP Advanced Risk Assessment & HAZOP Matrix",
+      "description": "Develop a comprehensive Hazard and Operability (HAZOP) node study and Layer of Protection Analysis (LOPA) for a flammable liquid distillation column.",
+      "instructionsHtml": "<p>Define parameter deviations (High Pressure, Low Flow), identify consequence scenarios, evaluate existing independent protection layers (IPLs), and calculate required Safety Integrity Level (SIL).</p>",
+      "dueDate": "2027-01-10T23:59:59Z",
+      "maxScore": 100,
+      "status": "PUBLISHED",
+      "rubric": {
+        "id": "rub-csp-01",
+        "title": "HAZOP & LOPA Engineering Rubric",
+        "totalPoints": 100,
+        "criteria": [
+          {
+            "id": "crit-csp-1",
+            "title": "HAZOP Node & Deviation Analysis",
+            "description": "Thoroughness of guide word application and consequence identification",
+            "maxPoints": 40
+          },
+          {
+            "id": "crit-csp-2",
+            "title": "LOPA & Risk Reduction Factor (RRF)",
+            "description": "Rigorous calculation of initiated event frequency and independent protection layers",
+            "maxPoints": 35
+          },
+          {
+            "id": "crit-csp-3",
+            "title": "Executive Risk Mitigation Recommendations",
+            "description": "Practicality, cost-effectiveness, and compliance with ISO 45001 / OSHA PSM",
+            "maxPoints": 25
+          }
+        ]
+      },
+      "createdAt": "2026-01-15T00:00:00Z",
+      "updatedAt": "2026-01-15T00:00:00Z"
+    }
+  },
+  "submissions": {
+    "sub-std-01-asp-01": {
+      "id": "sub-std-01-asp-01",
+      "assignmentId": "asg-asp-01",
+      "courseId": "crs-asp-01",
+      "batchId": "btc-asp-nov26",
+      "userId": "usr-std-01",
+      "studentName": "Arjun Menon",
+      "studentEmail": "student@zealosh.com",
+      "submissionText": "Attached technical report analyzing chemical bay LEV requirements. Calculation results show minimum required exhaust airflow is 3,450 CFM at 2,000 FPM duct velocity.",
+      "attachmentUrl": "/uploads/arjun-menon-asp-ventilation-report.pdf",
+      "attachmentFilename": "arjun-menon-asp-ventilation-report.pdf",
+      "submittedAt": "2026-01-20T10:30:00Z",
+      "status": "GRADED",
+      "score": 92,
+      "feedback": "Excellent airflow calculations and proper application of ACGIH Industrial Ventilation Manual equations. Great job specifying slot velocity at the tank rim.",
+      "rubricScores": [
+        {
+          "criterionId": "crit-1",
+          "score": 34,
+          "comment": "Flawless volumetric calculation"
+        },
+        {
+          "criterionId": "crit-2",
+          "score": 32,
+          "comment": "Correct PEL margin evaluated"
+        },
+        {
+          "criterionId": "crit-3",
+          "score": 26,
+          "comment": "Good hood design recommendations"
+        }
+      ],
+      "gradedByUserId": "usr-inst-01",
+      "gradedAt": "2026-01-22T14:00:00Z",
+      "createdAt": "2026-01-20T10:30:00Z",
+      "updatedAt": "2026-01-22T14:00:00Z"
+    }
+  },
+  "paymentOrders": {
+    "ord_asp_seed01": {
+      "id": "ord_asp_seed01",
+      "userId": "usr-student-01",
+      "userEmail": "arjun.menon@example.com",
+      "userName": "Arjun Menon",
+      "courseId": "crs-asp-01",
+      "batchId": "btc-asp-nov26",
+      "currency": "INR",
+      "amount": 34999,
+      "status": "PAID",
+      "gateway": "RAZORPAY",
+      "gatewayOrderId": "order_RZP_asp_98124",
+      "gatewayPaymentId": "pay_RZP_asp_77182",
+      "invoiceId": "inv-2026-001",
+      "enrollmentId": "enr-seed-01",
+      "createdAt": "2026-01-10T09:00:00Z",
+      "paidAt": "2026-01-10T09:05:00Z"
+    }
+  },
+  "invoices": {
+    "inv-2026-001": {
+      "id": "inv-2026-001",
+      "invoiceNumber": "INV-2026-1001",
+      "orderId": "ord_asp_seed01",
+      "userId": "usr-student-01",
+      "userName": "Arjun Menon",
+      "userEmail": "arjun.menon@example.com",
+      "billingAddress": {
+        "companyName": "PetroChem Safety Solutions Ltd",
+        "street": "14 Marine Drive, Infopark Area",
+        "city": "Kochi",
+        "state": "Kerala",
+        "postalCode": "682042",
+        "country": "India",
+        "taxId": "32AABCP9988K1Z2"
+      },
+      "courseId": "crs-asp-01",
+      "courseTitle": "Associate Safety Professional (ASP) Masterclass",
+      "batchId": "btc-asp-nov26",
+      "batchName": "Weekend Live Cohort — Nov 2026",
+      "subtotal": 29660.17,
+      "taxRatePercent": 18,
+      "taxAmount": 5338.83,
+      "totalAmount": 34999,
+      "currency": "INR",
+      "status": "PAID",
+      "issuedAt": "2026-01-10T09:05:00Z",
+      "paidAt": "2026-01-10T09:05:00Z",
+      "hsnCode": "999293",
+      "providerGstin": "32AABCZ1234F1Z5",
+      "paymentMethod": "UPI / NetBanking (Razorpay)",
+      "transactionRef": "pay_RZP_asp_77182"
+    }
+  },
+  "auditLogs": [
+    {
+      "id": "aud-1793081230581-9zq2",
+      "timestamp": "2026-10-27T06:07:10.581Z",
+      "actorUserId": "usr-admin-01",
+      "actorEmail": "admin@zealosh.com",
+      "actorRole": "SUPER_ADMIN",
+      "action": "PLATFORM_DATA_STORE_INITIALIZED",
+      "entityType": "STORE",
+      "entityId": "zealosh-primary",
+      "details": {
+        "version": "2.0-SUPERADMIN-PERSISTENT",
+        "mode": "ACID_DURABLE"
+      }
+    }
+  ],
+  "platformSettings": {
+    "platformName": "Zealosh LMS — Enterprise HSE Learning Platform",
+    "organizationName": "Zealosh Training & Consultants",
+    "organizationEmail": "contact@zealosh.com",
+    "supportEmail": "support@zealosh.com",
+    "supportPhone": "+91 949 600 0000",
+    "defaultLanguage": "en-US",
+    "defaultTimezone": "Asia/Kolkata",
+    "defaultCurrency": "INR",
+    "dateFormat": "DD/MM/YYYY",
+    "timeFormat": "12h",
+    "maintenanceMode": false,
+    "registrationMode": "PUBLIC",
+    "sessionTimeoutMinutes": 1440,
+    "maxLoginAttempts": 5,
+    "termsOfServiceUrl": "/terms",
+    "privacyPolicyUrl": "/privacy",
+    "notificationPreferences": {
+      "emailAlerts": true,
+      "smsAlerts": false,
+      "inAppAlerts": true
+    }
+  },
+  "brandingTheme": {
+    "primaryGreen": "#4f8c4c",
+    "deepGreen": "#3a7536",
+    "accentGreen": "#2ea033",
+    "darkNeutral": "#252c41",
+    "surfaceColor": "#ffffff",
+    "lightSurfaceColor": "#f7f9fc",
+    "secondarySurface": "#eaedf5",
+    "fontFamily": "Inter",
+    "borderRadius": "md",
+    "layoutDensity": "comfortable",
+    "buttonStyle": "rounded",
+    "cardStyle": "bordered",
+    "logoUrl": "/logo.png",
+    "faviconUrl": "/logo-round.png"
+  },
+  "navigationConfig": [
+    {
+      "id": "nav-home",
+      "label": "Home",
+      "href": "/",
+      "iconName": "Home",
+      "order": 1,
+      "isVisible": true,
+      "isSystem": true
+    },
+    {
+      "id": "nav-courses",
+      "label": "Programs & Courses",
+      "href": "/courses",
+      "iconName": "BookOpen",
+      "order": 2,
+      "isVisible": true,
+      "isSystem": true
+    },
+    {
+      "id": "nav-exams",
+      "label": "Mock Exam Engine",
+      "href": "/exams",
+      "iconName": "Award",
+      "order": 3,
+      "isVisible": true,
+      "isSystem": true
+    },
+    {
+      "id": "nav-student",
+      "label": "Student Hub",
+      "href": "/student",
+      "iconName": "User",
+      "requiredRole": [
+        "STUDENT",
+        "SUPER_ADMIN"
+      ],
+      "order": 4,
+      "isVisible": true,
+      "isSystem": true
+    },
+    {
+      "id": "nav-instructor",
+      "label": "Instructor Hub",
+      "href": "/instructor",
+      "iconName": "GraduationCap",
+      "requiredRole": [
+        "INSTRUCTOR",
+        "SUPER_ADMIN"
+      ],
+      "order": 5,
+      "isVisible": true,
+      "isSystem": true
+    },
+    {
+      "id": "nav-admin",
+      "label": "Superadmin Center",
+      "href": "/admin",
+      "iconName": "ShieldCheck",
+      "requiredRole": [
+        "SUPER_ADMIN"
+      ],
+      "order": 6,
+      "isVisible": true,
+      "isSystem": true
+    }
+  ],
+  "featureFlags": {
+    "courseCatalog": true,
+    "cohortManagement": true,
+    "instructorPortal": true,
+    "studentPortal": true,
+    "recordedLearning": true,
+    "liveClassrooms": true,
+    "practiceAssessments": true,
+    "formalExaminations": true,
+    "certificateIssuance": true,
+    "attendanceTracking": true,
+    "assignmentSubmissions": true,
+    "announcements": true,
+    "messaging": true,
+    "reportsAnalytics": true,
+    "paymentGateway": true,
+    "pwaOfflineSupport": true,
+    "moodleSync": true,
+    "bbbIntegration": true,
+    "aiTutorEnabled": false
+  },
+  "roles": {
+    "role-super-admin": {
+      "id": "role-super-admin",
+      "name": "Super Administrator",
+      "description": "Unrestricted master governance over all configuration, courses, exams, and financials",
+      "isSystem": true,
+      "permissions": [
+        "courses.read",
+        "courses.create",
+        "courses.update",
+        "courses.publish",
+        "cohorts.manage",
+        "enrollments.manage",
+        "students.read",
+        "progress.read",
+        "assessments.manage",
+        "exams.publish",
+        "exams.grade",
+        "certificates.issue",
+        "payments.read",
+        "payments.refund",
+        "reports.export",
+        "settings.manage",
+        "integrations.manage",
+        "users.manage",
+        "roles.manage",
+        "audit.read"
+      ],
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-01T00:00:00Z"
+    },
+    "role-instructor": {
+      "id": "role-instructor",
+      "name": "Certified Lead Instructor",
+      "description": "Manage assigned cohorts, live classroom moderation, grading, and syllabus materials",
+      "isSystem": true,
+      "permissions": [
+        "courses.read",
+        "cohorts.manage",
+        "students.read",
+        "progress.read",
+        "assessments.manage",
+        "exams.grade"
+      ],
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-01T00:00:00Z"
+    },
+    "role-student": {
+      "id": "role-student",
+      "name": "HSE Certification Candidate",
+      "description": "Access enrolled lessons, live classroom sessions, and timed exam simulators",
+      "isSystem": true,
+      "permissions": [
+        "courses.read",
+        "progress.read"
+      ],
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-01T00:00:00Z"
+    }
+  },
+  "configAudits": [],
+  "workflows": {
+    "wf-001": {
+      "id": "wf-001",
+      "title": "Automated Post-Exam Certificate Issuance",
+      "description": "Triggered when a learner completes and passes an HSE certification diagnostic examination",
+      "trigger": "EXAM_PASSED",
+      "conditions": [
+        {
+          "field": "totalScore",
+          "operator": "GREATER_THAN",
+          "value": 69
+        }
+      ],
+      "actions": [
+        {
+          "type": "SEND_IN_APP_NOTIFICATION",
+          "parameters": {
+            "title": "Exam Passed! Certificate Issued",
+            "channel": "IN_APP"
+          }
+        },
+        {
+          "type": "LOG_COMPLIANCE_EVENT",
+          "parameters": {
+            "complianceTag": "ISO_AUDIT_EXAM_PASS"
+          }
+        }
+      ],
+      "isEnabled": true,
+      "createdAt": "2026-01-01T00:00:00Z",
+      "updatedAt": "2026-01-01T00:00:00Z"
+    }
+  },
+  "notificationTemplates": {},
+  "certificates": {
+    "BCSP-ASP-2026-08912": {
+      "id": "cert-seed-01",
+      "certificateCode": "BCSP-ASP-2026-08912",
+      "userId": "usr-student-01",
+      "userEmail": "arjun.menon@example.com",
+      "userName": "Arjun Menon",
+      "courseId": "crs-asp-01",
+      "courseTitle": "Associate Safety Professional (ASP) Comprehensive Prep",
+      "certificationType": "ASP",
+      "issueDate": "2026-01-25T10:00:00Z",
+      "scorePercent": 92,
+      "status": "ISSUED",
+      "qrVerificationUrl": "https://zealosh.com/verify/BCSP-ASP-2026-08912",
+      "issuedBy": "Dr. K. Ravindran, Superadmin Registrar"
+    }
+  },
+  "integrationConfigs": {
+    "Moodle": {
+      "name": "Moodle",
+      "enabled": true,
+      "status": "CONNECTED",
+      "endpointUrl": "https://moodle.zealosh.com/webservice/rest/server.php",
+      "lastCheckedAt": "2026-10-27T06:07:10.581Z",
+      "isMockMode": true,
+      "syncIntervalMinutes": 30
+    },
+    "BigBlueButton": {
+      "name": "BigBlueButton",
+      "enabled": true,
+      "status": "CONNECTED",
+      "endpointUrl": "https://live.zealosh.com/bigbluebutton/api",
+      "lastCheckedAt": "2026-10-27T06:07:10.581Z",
+      "isMockMode": true,
+      "syncIntervalMinutes": 15
+    },
+    "Razorpay": {
+      "name": "Razorpay",
+      "enabled": true,
+      "status": "SIMULATED",
+      "endpointUrl": "https://api.razorpay.com/v1",
+      "lastCheckedAt": "2026-10-27T06:07:10.581Z",
+      "isMockMode": true
+    },
+    "Supabase": {
+      "name": "Supabase",
+      "enabled": true,
+      "status": "CONNECTED",
+      "endpointUrl": "postgresql://authoritative-store:5432/zealosh",
+      "lastCheckedAt": "2026-10-27T06:07:10.581Z",
+      "isMockMode": false
+    },
+    "EmailSMTP": {
+      "name": "EmailSMTP",
+      "enabled": true,
+      "status": "CONNECTED",
+      "endpointUrl": "smtp://smtp.zealosh.com:587",
+      "lastCheckedAt": "2026-10-27T06:07:10.581Z",
+      "isMockMode": true
+    }
+  },
+  "lastPersistedAt": "2026-10-27T06:07:10.582Z"
+}

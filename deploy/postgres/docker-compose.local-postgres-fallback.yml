@@ -1,0 +1,30 @@
+version: '3.8'
+# ==============================================================================
+# Zealosh Platform — Offline Local PostgreSQL 17 Fallback Container Stack
+# USE ONLY FOR LOCAL OFFLINE DEVELOPMENT WITHOUT INTERNET ACCESS
+# In production and staging, both Zealosh Core Hub and Moodle use Supabase!
+# ==============================================================================
+
+services:
+  zealosh-postgres-fallback:
+    image: postgres:17-alpine
+    container_name: zealosh-postgres-fallback
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=zealosh_admin
+      - POSTGRES_PASSWORD=${POSTGRES_ROOT_PASSWORD:-zealosh_pg_master_secret_2026}
+      - POSTGRES_DB=zealosh_core
+    volumes:
+      - postgres_fallback_data:/var/lib/postgresql/data
+      - ./init-moodle-db.sql:/docker-entrypoint-initdb.d/init-moodle-db.sql:ro
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zealosh_admin -d zealosh_core"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_fallback_data:

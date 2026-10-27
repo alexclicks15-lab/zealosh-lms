@@ -26,7 +26,7 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid or expired session' }, { status: 401 });
     }
 
-    const session = db.liveSessions.get(params.sessionId);
+    const session = await db.getLiveSession(params.sessionId);
     if (!session) {
       return NextResponse.json({ error: 'Live session not found' }, { status: 404 });
     }
@@ -36,9 +36,8 @@ export async function POST(
 
     if (!isModerator) {
       // Check active enrollment
-      const isEnrolled = Array.from(db.enrollments.values()).some(
-        (e) => e.userId === payload.userId && e.batchId === session.batchId && e.status === 'ACTIVE'
-      );
+      const userEnrollments = await db.getEnrollments(payload.userId, session.batchId);
+      const isEnrolled = userEnrollments.some((e) => e.status === 'ACTIVE');
 
       if (!isEnrolled) {
         return NextResponse.json(
@@ -66,8 +65,7 @@ export async function POST(
     });
 
     // Record attendance entry
-    const existing = db.attendance.get(session.id) || [];
-    existing.push({
+    await db.recordAttendance({
       id: `att-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       sessionId: session.id,
       userId: payload.userId,
@@ -75,9 +73,8 @@ export async function POST(
       durationMinutes: 0,
       attended: true,
     });
-    db.attendance.set(session.id, existing);
 
-    db.recordAudit({
+    await db.recordAudit({
       actorUserId: payload.userId,
       actorEmail: payload.email,
       actorRole: payload.role,

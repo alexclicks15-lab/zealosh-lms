@@ -32,7 +32,7 @@ export async function PUT(
     }
 
     // Persist answers with server deadline enforcement
-    const updated = db.saveExamAnswers(attemptId, payload.userId, answers || {}, bookmarks);
+    const updated = await db.saveExamAnswers(attemptId, payload.userId, answers || {}, bookmarks);
 
     return NextResponse.json({
       success: true,

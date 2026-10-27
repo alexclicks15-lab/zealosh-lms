@@ -1,0 +1,18 @@
+# Copy to terraform.tfvars in your staging environment directory
+# Set DIGITALOCEAN_TOKEN in environment: export DIGITALOCEAN_TOKEN="your_api_token"
+
+environment          = "staging"
+region               = "blr1" # Bangalore, India
+app_instance_size    = "s-4vcpu-16gb"
+media_instance_size  = "c-8" # 8 Dedicated vCPUs for BigBlueButton WebRTC
+domain_name          = "staging.zealosh.com"
+
+# Authorized SSH key fingerprints in your DigitalOcean account
+ssh_key_fingerprints = [
+  # "aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99"
+]
+
+# Restrict SSH access to your office / VPN IP ranges
+allowed_admin_ips = [
+  "0.0.0.0/0" # Change to "YOUR_OFFICE_IP/32"
+]

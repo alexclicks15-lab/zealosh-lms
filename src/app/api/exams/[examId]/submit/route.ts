@@ -31,11 +31,22 @@ export async function POST(
     }
 
     // Submit and score authoritative attempt
-    const completedAttempt = db.submitExamAttempt(attemptId, payload.userId);
+    const completedAttempt = await db.submitExamAttempt(attemptId, payload.userId);
 
     // Build comprehensive review breakdown with official explanations
+    const allQuestions = await db.getExamQuestions(completedAttempt.certificationType);
+    const questionsMap = new Map(allQuestions.map((q) => [q.id, q]));
+
+    // If any assigned question wasn't found in filtered bank, load full question bank asynchronously
+    const hasMissing = completedAttempt.assignedQuestionIds.some((qId) => !questionsMap.has(qId));
+    if (hasMissing) {
+      const fullBank = await db.getExamQuestions();
+      fullBank.forEach((q) => questionsMap.set(q.id, q));
+    }
+
     const questionReviews = completedAttempt.assignedQuestionIds.map((qId) => {
-      const q = db.examQuestions.get(qId)!;
+      const q = questionsMap.get(qId);
+      if (!q) return null;
       const userSelected = completedAttempt.answers[qId] || [];
       const isCorrect =
         userSelected.length === q.correctOptionIds.length &&
@@ -53,7 +64,16 @@ export async function POST(
         explanation: q.explanation,
         referenceSource: q.referenceSource,
       };
-    });
+    }).filter(Boolean);
+
+    let certificate: any = null;
+    if (completedAttempt.passed) {
+      const userCerts = await db.getCertificates(payload.userId);
+      certificate =
+        userCerts.find(
+          (c) => c.certificationType === completedAttempt.certificationType && c.status === 'ISSUED'
+        ) || null;
+    }
 
     return NextResponse.json({
       success: true,
@@ -65,6 +85,17 @@ export async function POST(
         domainBreakdown: completedAttempt.domainBreakdown,
         completedTime: completedAttempt.completedTime,
         questions: questionReviews,
+        certificate: certificate
+          ? {
+              id: certificate.id,
+              certificateCode: certificate.certificateCode,
+              courseTitle: certificate.courseTitle,
+              certificationType: certificate.certificationType,
+              scorePercent: certificate.scorePercent,
+              issueDate: certificate.issueDate,
+              verificationUrl: `/verify/${encodeURIComponent(certificate.certificateCode)}`,
+            }
+          : null,
       },
     });
   } catch (err: any) {

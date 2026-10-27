@@ -10,9 +10,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    const user = Array.from(db.users.values()).find(
-      (u) => u.email.toLowerCase() === email.toLowerCase().trim()
-    );
+    const user = await db.getUserByEmail(email);
 
     if (!user || !comparePassword(password, user.passwordHash)) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
@@ -20,7 +18,7 @@ export async function POST(request: Request) {
 
     const token = signToken(user);
 
-    db.recordAudit({
+    await db.recordAudit({
       actorUserId: user.id,
       actorEmail: user.email,
       actorRole: user.role,

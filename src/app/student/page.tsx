@@ -14,15 +14,26 @@ import {
   ArrowRight, 
   CheckCircle2, 
   PlayCircle,
-  FileText
+  FileText,
+  Receipt,
+  Bookmark,
+  Download,
+  Lock,
+  Play
 } from 'lucide-react';
-import { Enrollment, Course, LiveSession } from '@/types';
+import { Enrollment, Course, LiveSession, ClassRecording } from '@/types';
+
 
 export default function StudentDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [enrollments, setEnrollments] = useState<any[]>([]);
+  const [certificates, setCertificates] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [recordings, setRecordings] = useState<ClassRecording[]>([]);
   const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -47,9 +58,50 @@ export default function StudentDashboard() {
               setEnrollments(enrolled);
               setLoading(false);
             });
+
+          // Fetch student certificates
+          fetch('/api/certificates')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((certData) => {
+              if (certData?.certificates) {
+                setCertificates(certData.certificates);
+              }
+            })
+            .catch(() => {});
+
+          // Fetch assignments
+          fetch('/api/assignments')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((asgData) => {
+              if (asgData?.assignments) {
+                setAssignments(asgData.assignments);
+              }
+            })
+            .catch(() => {});
+
+          // Fetch invoices
+          fetch('/api/invoices')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((invData) => {
+              if (invData?.invoices) {
+                setInvoices(invData.invoices);
+              }
+            })
+            .catch(() => {});
+
+          // Fetch authorized class recordings
+          fetch('/api/recordings')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((recData) => {
+              if (recData?.recordings) {
+                setRecordings(recData.recordings);
+              }
+            })
+            .catch(() => {});
         }
       })
       .catch(() => setLoading(false));
+
   }, [router]);
 
   const handleJoinLive = async (sessionId: string) => {
@@ -177,6 +229,210 @@ export default function StudentDashboard() {
               ))}
             </div>
           )}
+
+          {/* Coursework & Practice Assignments */}
+          <div className="pt-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-[#252c41] flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#4f8c4c]" />
+                Coursework & Practice Assignments
+              </h2>
+              <span className="text-xs text-gray-500 font-semibold">
+                {assignments.length} Projects Assigned
+              </span>
+            </div>
+
+            {assignments.length === 0 ? (
+              <div className="bg-white rounded-xl border border-[#eaedf5] p-6 text-center text-xs text-gray-500">
+                No active assignments assigned to your cohorts.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {assignments.map((asg) => (
+                  <div
+                    key={asg.id}
+                    className="card-elevated p-5 flex flex-col justify-between border-l-4 border-l-[#252c41]"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold text-[#4f8c4c] bg-green-50 px-2 py-0.5 rounded">
+                          Max: {asg.maxScore} pts
+                        </span>
+                        {asg.submission ? (
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                              asg.submission.status === 'GRADED'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-amber-100 text-amber-800'
+                            }`}
+                          >
+                            {asg.submission.status === 'GRADED'
+                              ? `Score: ${asg.submission.score}/${asg.maxScore}`
+                              : 'Under Review'}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded">
+                            PENDING
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-bold text-sm text-[#252c41] mb-1">
+                        {asg.title}
+                      </h4>
+                      <p className="text-[11px] text-gray-500 line-clamp-2 mb-3">
+                        {asg.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                      <span className="text-[10px] text-gray-400">
+                        Due: {new Date(asg.dueDate).toLocaleDateString()}
+                      </span>
+                      <Link
+                        href={`/learn/${asg.courseId}`}
+                        className="text-xs font-bold text-[#4f8c4c] hover:underline flex items-center gap-1"
+                      >
+                        <span>{asg.submission ? 'View Feedback' : 'Submit Solution'}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Recorded Masterclasses & Topic Revisions */}
+          <div className="pt-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-[#252c41] flex items-center gap-2">
+                <Bookmark className="w-5 h-5 text-[#4f8c4c]" />
+                Recorded Classes & Revision Highlights
+              </h2>
+              <span className="text-xs text-gray-500 font-semibold">
+                {recordings.length} Recordings Available
+              </span>
+            </div>
+
+            {recordings.length === 0 ? (
+              <div className="bg-white rounded-xl border border-[#eaedf5] p-6 text-center text-xs text-gray-500">
+                No recorded sessions published for your cohorts yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recordings.map((rec) => (
+                  <div
+                    key={rec.id}
+                    className="card-elevated p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-l-4 border-l-[#4f8c4c]"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="bg-[#e1f0df] text-[#3a7536] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          {rec.batchId}
+                        </span>
+                        <span className="text-[10px] text-gray-500 font-mono">
+                          {Math.round(rec.durationSeconds / 60)} Mins
+                        </span>
+                        {rec.isDownloadable ? (
+                          <span className="text-[10px] font-bold text-[#4f8c4c] bg-green-50 px-2 py-0.5 rounded flex items-center gap-1">
+                            <Download className="w-2.5 h-2.5" /> Downloadable
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded flex items-center gap-1">
+                            <Lock className="w-2.5 h-2.5" /> Streaming Only
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="font-bold text-sm text-[#252c41] mb-1">{rec.title}</h3>
+                      {rec.description && (
+                        <p className="text-xs text-gray-500 line-clamp-1 max-w-xl">{rec.description}</p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                      <Link
+                        href={`/recordings/${rec.id}`}
+                        className="btn-primary text-xs py-2 px-4 flex items-center gap-1.5 w-full sm:w-auto justify-center"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                        <span>Watch Class</span>
+                      </Link>
+
+                      {rec.isDownloadable && (
+                        <a
+                          href={`/api/recordings/${rec.id}/stream?download=1`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 border border-gray-200 hover:border-[#4f8c4c] text-gray-600 hover:text-[#4f8c4c] rounded-lg transition-colors"
+                          title="Download MP4"
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Earned Accreditations & Certificates */}
+          <div className="pt-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-[#252c41] flex items-center gap-2">
+                <Award className="w-5 h-5 text-[#4f8c4c]" />
+                Earned Accreditations & Verified Certificates
+              </h2>
+            </div>
+
+            {certificates.length === 0 ? (
+              <div className="bg-white rounded-xl border border-[#eaedf5] p-6 text-center">
+                <p className="text-gray-500 text-xs">
+                  Pass your official examination simulation with 70%+ score to earn a blockchain-verifiable Zealosh Accreditation Certificate.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {certificates.map((cert) => (
+                  <div
+                    key={cert.id}
+                    className="card-elevated p-5 flex flex-col justify-between border-l-4 border-l-[#4f8c4c]"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="badge-green text-[10px]">
+                          {cert.certificationType || 'HSE'} CERTIFIED
+                        </span>
+                        <span className="text-[11px] font-bold text-[#3a7536]">
+                          Score: {cert.scorePercent}%
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-sm text-[#252c41] mb-1">
+                        {cert.courseTitle}
+                      </h4>
+                      <p className="text-[11px] font-mono text-gray-500 mb-3">
+                        {cert.certificateCode}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                      <span className="text-[10px] text-gray-400">
+                        Issued: {new Date(cert.issueDate).toLocaleDateString()}
+                      </span>
+                      <Link
+                        href={`/verify/${encodeURIComponent(cert.certificateCode)}`}
+                        className="text-xs font-bold text-[#4f8c4c] hover:underline flex items-center gap-1"
+                      >
+                        <span>Verify Credential</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Sidebar: Upcoming Live Classroom & Resources */}
@@ -227,6 +483,41 @@ export default function StudentDashboard() {
                 <span className="text-[11px] font-bold text-[#4f8c4c]">PDF</span>
               </li>
             </ul>
+          </div>
+
+          {/* Tuition Invoices & Payment Receipts */}
+          <div className="bg-white rounded-xl border border-[#eaedf5] p-5 shadow-xs">
+            <h3 className="font-bold text-sm text-[#252c41] mb-3 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-[#4f8c4c]" />
+                Tax Invoices & Receipts
+              </span>
+              <span className="text-[10px] font-bold bg-[#e1f0df] text-[#3a7536] px-2 py-0.5 rounded-full">
+                GST VERIFIED
+              </span>
+            </h3>
+
+            {invoices.length === 0 ? (
+              <p className="text-xs text-gray-400">No payment records found.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {invoices.map((inv) => (
+                  <div key={inv.id} className="p-2.5 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-between">
+                    <div>
+                      <div className="font-mono font-bold text-xs text-[#252c41]">{inv.invoiceNumber}</div>
+                      <div className="text-[10px] text-gray-500">{inv.courseTitle} • ₹{inv.totalAmount.toLocaleString()}</div>
+                    </div>
+                    <Link
+                      href={`/invoices/${encodeURIComponent(inv.id)}`}
+                      className="text-xs font-bold text-[#4f8c4c] hover:underline flex items-center gap-1"
+                    >
+                      <span>View</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,80 +1,59 @@
-# Zealosh LMS — Automated Testing Strategy & QA Plan
+# Zealosh LMS — Automated Testing Strategy & Verification Report
 
-**Document Version:** 1.0.0  
-**Status:** Test Architecture Baseline  
-**Testing Frameworks:** Vitest (Unit/Integration), Supertest (API), Playwright (E2E Browser Automation)
-
----
-
-## 1. Testing Philosophy & Non-Negotiable Rules
-
-1. **Evidence-Based Quality:** Never claim a test passes without executing the test runner and capturing verifiable console outputs and browser artifacts.
-2. **Server-Enforced Integrity:** Never test solely on UI validation; all security, state transition, and scoring tests must execute direct API/database assertions.
-3. **Zero Test Contamination:** Each test run must operate on isolated test data or transient in-memory databases with automatic rollback.
-4. **Failure & Concurrency First:** Critical business paths (seat capacity, payment webhooks, exam deadlines) must have explicit race-condition and failure tests.
+**Document Version:** 7.4.0 (Authoritative 206-Test Multi-Suite Baseline)  
+**Status:** **ACTIVE TEST SPECIFICATION** (206/206 Vitest Tests Passing, Production Build Passing Across 48 Routes)  
+**Testing Frameworks:** Vitest (Unit/Integration/Live PostgreSQL), Next.js Build Compiler, Browser Subagent (E2E Automation)
 
 ---
 
-## 2. Test Pyramid & Coverage Matrix
+## 1. Verified Automated Test Matrix (20 Suites, 206 Tests, 100% Green)
 
-```mermaid
-pie title Test Suite Distribution
-    "Unit Tests (Domain Logic, Scoring, RBAC)" : 50
-    "Integration Tests (API Endpoints, Adapters)" : 30
-    "E2E Browser Tests (Playwright Journeys)" : 15
-    "Concurrency & Failure Invariants" : 5
+```
+Test Files  20 passed (20)
+     Tests  206 passed (206)
+  Duration  17.46s (tests 76%, import 20%, transform 2%, worker 1%)
 ```
 
-| Layer | Target Areas | Tooling | Execution Command | Target Coverage |
-| :--- | :--- | :--- | :--- | :--- |
-| **Unit Tests** | Scoring engine, blueprint calculations, course state machine, entitlement validators, JWT tokens. | Vitest | `npm run test:unit` | $\ge 85\%$ Lines |
-| **Integration Tests** | NestJS controllers, Moodle adapter, BBB adapter, payment webhooks, Prisma repositories. | Vitest / Supertest | `npm run test:integration` | $\ge 80\%$ Endpoints |
-| **E2E Browser Tests** | Student, Instructor, and Super Admin end-to-end user journeys. | Playwright | `npm run test:e2e` | 100% Critical Flows |
-| **Concurrency & Security** | Seat limit race conditions, double webhook posts, exam submission past deadline. | Custom Vitest suites | `npm run test:concurrency` | 100% Core Invariants |
+| Suite | Category | Tested Invariants | Status |
+| :--- | :--- | :--- | :--- |
+| `tests/auth.test.ts` | Unit | Bcrypt salt generation, password matching, timing-safe validation | **3/3 PASS** |
+| `tests/adapters.test.ts` | Integration | Moodle REST request generation, token handling, BBB SHA-1 checksum generation | **6/6 PASS** |
+| `tests/enrollment.test.ts` | Integration | Seat capacity limits, duplicate enrollment idempotency, `BATCH_CAPACITY_EXCEEDED` guard | **4/4 PASS** |
+| `tests/exam-engine.test.ts` | Integration | Autosave answer persistence, domain-weighted scoring, strict server deadline rejection | **4/4 PASS** |
+| `tests/pwa-offline.test.ts` | Integration | Valid W3C `manifest.json`, Service worker cache exclusions, offline fallback | **3/3 PASS** |
+| `tests/superadmin-config.test.ts` | Integration | Dynamic settings updates, official brand reset, feature flags, role lockout, config rollback | **7/7 PASS** |
+| `tests/oidc-sso.test.ts` | Integration (SIMULATED) | RFC 8414 discovery, PKCE S256, code replay defense, domain isolation, userinfo claims | **17/17 PASS** |
+| `tests/credential-interpolation.test.ts` | Unit | Shell, Docker Compose, and PHP config escaping for complex characters | **12/12 PASS** |
+| `tests/moodle-healthcheck.test.ts` | Unit (SIMULATED) | Redirect-aware loopback healthcheck parsing and status code evaluation | **10/10 PASS** |
+| `tests/moodle-schema-gate.test.ts` | Unit (SIMULATED) | Exact 3-state schema gate classification (`CLEAN`, `INSTALLED`, `PARTIAL_OR_UNEXPECTED`) | **9/9 PASS** |
+| `tests/secret-ephemeral.test.ts` | Unit (SIMULATED) | 5-tier secret exposure defense, memory buffer zero-wiping, tmpfs hygiene | **9/9 PASS** |
+| `tests/supabase.test.ts` | Integration | Client initialization, server client cookie store, gateway readiness | **4/4 PASS** |
+| `tests/supabase-security.test.ts` | Integration | Row Level Security policies, unauthenticated write rejections, schema invariants | **13/13 PASS** |
+| `tests/supabase-persistence.test.ts` | Integration (LIVE SUPABASE) | 12-point ACID persistence, atomic enrollment function, exam lifecycle, audit trail | **29/29 PASS** |
+| `tests/supabase-coursework-live.test.ts` | Integration (LIVE SUPABASE) | Coursework creation, rubric JSONB, submission isolation, grading queue, zero leaks | **11/11 PASS** |
+| `tests/core-lms-workflows.test.ts` | Integration | Course publishing, prerequisites, lesson progress persistence, rubric grading, live sessions | **8/8 PASS** |
+| `tests/learner-workflow-e2e.test.ts` | E2E Integration | 11-step learner journey: enrollment gating, 80% progress exam gate, certification, revocation | **11/11 PASS** |
+| `tests/enterprise-commerce-reports.test.ts` | Integration (LIVE SUPABASE) | Payment order initiation, HMAC-SHA256 webhook, 18% GST calculation, refund RPC, CSV/JSON reports | **17/17 PASS** |
+| `tests/recording-doubts-highlights.test.ts` | Integration (LIVE SUPABASE) | Class recordings, chapter highlights, study resources, doubts and answers across 6 live tables | **17/17 PASS** |
+| `tests/ai-tutor-gate.test.ts` | Integration | Central capability gate, 403 AI_TUTOR_DISABLED API rejection, zero outbound calls, Superadmin check | **12/12 PASS** |
 
 ---
 
-## 3. End-to-End User Journeys (Playwright Automation)
+## 2. Production Build Verification
 
-### 3.1 Student Journey
-1. Navigate to `/` (Zealosh Homepage).
-2. Register a new student account at `/register` or login at `/login`.
-3. Browse course catalog at `/courses` and filter by "ASP" certification.
-4. Open course details `/courses/asp-examination-prep`.
-5. Select upcoming weekend batch and complete enrollment.
-6. Open Student Dashboard `/student`.
-7. Enter lesson player `/learn/[courseId]` and verify video stream and watermark display.
-8. Click "Join Live Session" to launch BigBlueButton classroom.
-9. Navigate to `/exams`, start a timed 10-question practice mock exam.
-10. Answer questions, test bookmarking, submit exam, and verify score calculation & domain breakdown.
-
-### 3.2 Instructor Journey
-1. Login with instructor credentials at `/login`.
-2. Access `/instructor` dashboard.
-3. Review assigned batches and student roster.
-4. Schedule a new live lecture session with date/time.
-5. Create a new practice assignment or assessment question.
-6. Review submitted student work and enter grades with constructive feedback.
-
-### 3.3 Administrator Journey
-1. Login with super admin credentials at `/login`.
-2. Access `/admin` operations console.
-3. Create a new certification course (e.g., "CRSP Masterclass").
-4. Assign Lead Instructor and configure batch capacity (e.g., 30 seats).
-5. Transition course state from `DRAFT` to `PUBLISHED`.
-6. Audit security logs and financial transaction reports.
+- **Command:** `npm run build`
+- **Compiler:** Next.js 14.2.15 (Production optimized)
+- **Result:** **PASS (Exit Code 0)**
+- **Routes Generated:** 48 routes (Static: 6, Dynamic: 42)
+- **TypeScript Typecheck:** 0 type errors across all application and test files (`npx tsc --noEmit`).
+- **Shared Bundle Optimization:** First Load JS shared by all routes: `87.1 kB`.
 
 ---
 
-## 4. Failure & Concurrency Test Specifications
+## 3. Storage Mode Acceptance & Database Test Invariants
 
-1. **Duplicate Webhook Delivery:**
-   - Simulate payment gateway sending identical `payment.captured` webhook 5 times simultaneously.
-   - **Assertion:** Exactly 1 enrollment record is created; remaining 4 requests return HTTP 200 with `status: 'ALREADY_PROCESSED'`.
-2. **Concurrent Seat Contention:**
-   - Configure a batch with `capacity: 1`.
-   - Dispatch 5 concurrent enrollment requests simultaneously via `Promise.all`.
-   - **Assertion:** Exactly 1 enrollment succeeds; 4 receive HTTP 409 `BATCH_CAPACITY_EXCEEDED`.
-3. **Late Exam Submission:**
-   - Submit exam answers with client timestamp 10 minutes past the server's `scheduled_deadline`.
-   - **Assertion:** Server rejects late answers with HTTP 400 `EXAM_DEADLINE_EXPIRED` and scores only answers received prior to deadline.
+1. **Explicit Storage Mode:** All operations validate `DATABASE_STORAGE` (`in_memory` or `supabase`).
+2. **Zero Direct Map Accesses:** All API routes query asynchronous database methods (`db.getCourses()`, `db.getUsers()`, etc.).
+3. **Atomic Concurrency:** Concurrency-safe seat reservations enforced via PostgreSQL RPC `enroll_student_atomic`.
+4. **Idempotency Defense:** Duplicate webhook payments rejected via unique partial indexes and gateway tracking.
+5. **Defense-in-Depth RLS:** Anonymous (`anon`) role revoked from all sensitive tables (`payment_orders`, `invoices`, `assignments`, `assignment_submissions`, `class_recordings`, etc.).

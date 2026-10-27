@@ -1,0 +1,46 @@
+/* Zealosh Live Classroom Custom Branding Skin */
+:root {
+  --color-primary: #4f8c4c;
+  --color-primary-dark: #3a7536;
+  --color-accent: #2ea033;
+  --color-dark: #252c41;
+  --color-surface: #ffffff;
+  --color-surface-light: #f7f9fc;
+}
+
+/* Header & Navigation Bar */
+header[role="banner"] {
+  background-color: var(--color-dark) !important;
+  border-bottom: 2px solid var(--color-primary) !important;
+}
+
+/* Brand Button Accents */
+button[class*="button--"]:focus,
+button[class*="button--"]:hover,
+button[class*="primary"] {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary-dark) !important;
+}
+
+/* User List & Chat Panels */
+aside[aria-label="Users and messages"] {
+  background-color: var(--color-surface-light) !important;
+  border-right: 1px solid #eaedf5 !important;
+}
+
+/* Custom Watermark Overlay */
+.zealosh-classroom-watermark {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: 100;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--color-primary);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 4px 10px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}

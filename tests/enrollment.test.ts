@@ -1,7 +1,21 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, afterAll } from 'vitest';
 import { db } from '../src/lib/store/db';
 
 describe('Transactional Enrollment & Batch Capacity Invariants', () => {
+  const originalStorage = process.env.DATABASE_STORAGE;
+
+  beforeAll(() => {
+    process.env.DATABASE_STORAGE = 'in_memory';
+  });
+
+  afterAll(() => {
+    process.env.DATABASE_STORAGE = originalStorage;
+  });
+
+  beforeEach(() => {
+    db.resetToSeed();
+  });
+
   it('should successfully enroll student into an active batch with available seats', async () => {
     const res = await db.enrollStudent({
       userId: 'usr-admin-01',

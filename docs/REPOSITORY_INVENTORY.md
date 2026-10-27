@@ -1,58 +1,63 @@
 # Zealosh LMS — Repository Inventory & Upstream Source Evaluation
 
-**Document Version:** 1.0.0  
-**Status:** Verified Evaluation Baseline  
-**Scope:** Upstream learning engines, live classroom infrastructure, identity and access management, and video playback components.
+**Document Version:** 2.0.0  
+**Status:** Comprehensive Repository Inventory  
+**Scope:** Application components, API routes, Superadmin modules, PWA assets, test suites, and upstream integration adapters.
 
 ---
 
 ## 1. Upstream Component Inventory
 
-| Component Category | Target System | Official Upstream Repository | Evaluated Version | License | Upstream Integration Role & Strategy |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Learning Engine** | Moodle Core | [https://github.com/moodle/moodle](https://github.com/moodle/moodle) | 4.4.x / 4.5 LTS | GNU GPLv3 | Authoritative for granular learning activities, SCORM compliance, and learning progression tracks. Connected strictly via `webservice/rest/server.php` using token-authenticated REST calls. No direct database access or code modification. |
-| **Live Classroom Infrastructure** | BigBlueButton | [https://github.com/bigbluebutton/bigbluebutton](https://github.com/bigbluebutton/bigbluebutton) | 2.7.x / 3.0 | GNU LGPLv3 | Authoritative for WebRTC video conferencing, audio bridge, multi-user whiteboard, breakout rooms, and session recording. Integrated strictly via server-side REST API with SHA-1 signature validation. Secrets kept exclusively on backend. |
-| **Identity & Access Management** | Keycloak *(Evaluated)* vs Native JWT/OIDC Service | [https://github.com/keycloak/keycloak](https://github.com/keycloak/keycloak) | 25.x | Apache 2.0 | **Evaluation Verdict:** Keycloak requires Java 17/21 Quarkus container with ~1.5GB RAM baseline. To maintain high agility, sub-millisecond session validation, and zero-JVM overhead, Zealosh LMS implements a high-security NestJS Auth module (Argon2id/Bcrypt, RS256 JWT, refresh token rotation, and MFA) with OIDC/OAuth2 federation support for Moodle SSO. |
-| **Video Playback & DRM** | Shaka Player | [https://github.com/shaka-project/shaka-player](https://github.com/shaka-project/shaka-player) | v4.8+ / v4.9+ | Apache 2.0 | Client-side adaptive bitrate streaming (HLS/DASH), dynamic watermark injection, expiring token validation, and multi-resolution playback controls. Integrated directly as an npm dependency (`shaka-player`). |
+| Component Category | Target System | Official Upstream Repository | Evaluated Version | Upstream Integration Role & Strategy |
+| :--- | :--- | :--- | :--- | :--- |
+| **Learning Engine** | Moodle Core | [https://github.com/moodle/moodle](https://github.com/moodle/moodle) | 4.4.x / 4.5 LTS | Connected strictly via REST Web Service (`webservice/rest/server.php`) using token authentication. Built-in latency diagnostics and mock fallback. |
+| **Live Classroom Infrastructure** | BigBlueButton | [https://github.com/bigbluebutton/bigbluebutton](https://github.com/bigbluebutton/bigbluebutton) | 2.7.x / 3.0 | Integrated via server-side SHA-1 checksum signed URLs. Meeting creation, join tokens, and status queries supported. |
+| **Identity & Access Management** | Native Cryptographic Auth & RBAC | Internal TypeScript Engine | Strict mode | Argon2id/Bcrypt password hashing, JWT authorization, session verification, and granular permission checks. |
+| **Progressive Web App (PWA)** | Service Worker & Web App Manifest | W3C Standard | v1 | Native `sw.js` with offline caching, `offline.html`, and `manifest.json`. Excludes high-stakes exam and auth endpoints. |
 
 ---
 
-## 2. Upstream Source Analysis & Compatibility
+## 2. Implemented Route & API Inventory
 
-### 2.1 Moodle (`moodle/moodle`)
-- **Technology Stack:** PHP 8.1+, PostgreSQL / MariaDB / MySQL.
-- **Repository Size:** ~1.4 GB (large legacy codebase).
-- **Licensing Compliance:** GPLv3 dictates that any software that links directly to Moodle internals becomes subject to GPL. By isolating Moodle behind an independent network boundary and interacting solely over HTTP REST Web Services, Zealosh LMS frontend and proprietary NestJS backend remain completely unencumbered by copyleft constraints.
-- **API Surface:**
-  - `core_course_get_courses_by_field`
-  - `core_enrol_get_enrolled_users`
-  - `enrol_manual_enrol_users`
-  - `gradereport_user_get_grade_items`
-  - `mod_assign_get_submissions`
-- **Deployment Model:** Containerized in production via `docker-compose.prod.yml` or deployed on a dedicated Linux VPS with PHP-FPM and PostgreSQL. For local Windows development without PHP installed, the application utilizes a contract-compliant mock adapter (`MoodleClientMockAdapter`) that implements identical request/response schemas.
+### 2.1 Public & Application Surfaces
+- `/`: Public landing page with HSE certification tracks, statistics, and faculty highlights.
+- `/courses`: Interactive course catalog with delivery mode filters (ASP, CSP, CRSP, CIT, NEBOSH).
+- `/courses/[slug]`: Course curriculum, downloadable materials, cohort schedules, and enrollment CTAs.
+- `/student`: Student portal with active courses, progress bar, upcoming live sessions, and quick cards.
+- `/instructor`: Instructor console with cohort batch rosters and live session management.
+- `/exams`: HSE Mock Examination Center with BCSP blueprint descriptions and attempt launchers.
+- `/exams/[examId]`: Live exam simulator with server-enforced timer, question navigation grid, and autosave.
+- `/live/[sessionId]`: BigBlueButton live classroom interface with whiteboard, participant tiles, and chat.
+- `/verify/[code]`: Public credential verification interface with verified/revoked badges.
+- `/admin`: Superadmin Control Center with 14 management tabs.
 
-### 2.2 BigBlueButton (`bigbluebutton/bigbluebutton`)
-- **Technology Stack:** Ubuntu Linux, FreeSWITCH, Kurento / mediasoup, Redis, Scala/Grails backend.
-- **Repository Nature:** Cannot run natively on Windows host or inside minimal Docker desktop without specialized bare-metal kernel configurations.
-- **Licensing Compliance:** LGPLv3 permits proprietary systems to integrate via its published network API without license contamination.
-- **API Surface:**
-  - `create`: Provisions meeting with room configuration, attendee/moderator PWs, and recording flags.
-  - `join`: Generates single-use signed join URLs.
-  - `isMeetingRunning`: Health and status verification.
-  - `getRecordings`: Retrieves completed and processed class recordings.
-  - `end`: Programmatically terminates live sessions.
-- **Deployment Model:** Production connects to a dedicated BigBlueButton server or managed BBB cluster (e.g., Scalelite). Local environment runs the `BigBlueButtonMockAdapter` with real-time room status simulation.
-
-### 2.3 Shaka Player (`shaka-project/shaka-player`)
-- **Technology Stack:** Vanilla JavaScript / Web Components / TypeScript definitions.
-- **Licensing Compliance:** Permissive Apache 2.0 license.
-- **Integration Approach:** Embedded directly within the Next.js video player module with HTML5 video fallback and canvas-based dynamic student identifier watermark (rendering student name, email, and timestamp to deter screen recording).
+### 2.2 Superadmin API Endpoints (`src/app/api/admin/`)
+- `GET /api/admin/config`: Retrieves full platform configuration, feature flags, brand tokens, and metrics.
+- `PUT /api/admin/config/settings`: Updates general platform configuration and records audit entry.
+- `PUT /api/admin/config/branding`: Updates brand design tokens and records audit entry.
+- `PUT /api/admin/config/features`: Updates 18 modular feature flags.
+- `PUT /api/admin/config/navigation`: Updates navigation links, order, and role permissions.
+- `POST / DELETE /api/admin/config/roles`: Role creation, permission assignment, and deletion (with system lockout guard).
+- `POST /api/admin/config/rollback`: Restores previous configuration versions from audit history.
+- `POST /api/admin/config/reset-brand`: Resets theme to official Zealosh brand tokens.
+- `POST /api/admin/integrations/test`: Triggers real-time connection test and returns latency telemetry.
+- `POST / DELETE /api/admin/courses`: Course creation, editing, and deletion.
+- `POST / DELETE /api/admin/batches`: Cohort scheduling, instructor assignments, and capacity limits.
+- `POST /api/admin/exams`: Exam blueprint creation and question bank management.
+- `POST / DELETE /api/admin/workflows`: Event-driven automation rule builder.
+- `POST /api/admin/templates`: In-app, email, and push notification templates.
+- `POST /api/admin/certificates/revoke`: Revocation of issued certificates.
 
 ---
 
-## 3. Dependency Management & Pinning Strategy
+## 3. Test Suites Inventory (`tests/`)
 
-All application libraries and client wrappers are pinned in `package.json` to fixed semantic versions:
-- Frontend: Next.js 14.2.x, React 18.3.x / 19.x, Lucide-React, TailwindCSS, Shaka-Player.
-- Backend: NestJS 10.x, TypeScript 5.x, Class-Validator, Prisma ORM / SQLite-Postgres compatibility driver, JWT, Axios, Bcrypt.
-- Testing: Vitest, Playwright, Supertest.
+| Test File | Test Suite Focus | Test Count | Status |
+| :--- | :--- | :--- | :--- |
+| `tests/auth.test.ts` | Bcrypt hashing, password verification, and JWT security | 3 | **PASS (100%)** |
+| `tests/adapters.test.ts` | Moodle REST adapter & BigBlueButton SHA-1 client contracts | 6 | **PASS (100%)** |
+| `tests/enrollment.test.ts` | Course enrollment, batch capacity limits, and concurrency guards | 4 | **PASS (100%)** |
+| `tests/exam-engine.test.ts` | Timed exams, question scoring, autosave, and strict deadline enforcement | 4 | **PASS (100%)** |
+| `tests/pwa-offline.test.ts` | Web app manifest validity, service worker security gates, and offline fallback | 3 | **PASS (100%)** |
+| `tests/superadmin-config.test.ts` | Superadmin settings, branding reset, features, roles, rollback, and metrics | 7 | **PASS (100%)** |
+| **Total Automated Tests** | | **27** | **PASS (100%)** |

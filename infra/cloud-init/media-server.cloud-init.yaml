@@ -1,0 +1,57 @@
+#cloud-config
+# Zealosh Live Classroom — Server 2 (BigBlueButton Media Server) Cloud-Init Configuration
+# Target OS: Clean Ubuntu 24.04 LTS (x86_64, 8 Dedicated vCPUs, 16GB RAM, 500GB Disk for Recordings)
+# Baseline: BigBlueButton 4.0 Production Media Node
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - git
+  - ufw
+  - wget
+  - htop
+  - systemd-timesyncd
+
+timezone: Asia/Kolkata
+
+write_files:
+  # Linux Kernel Tuning for High-Concurrency WebRTC Audio & Video Streams
+  - path: /etc/sysctl.d/99-bigbluebutton.conf
+    content: |
+      net.core.rmem_max = 16777216
+      net.core.wmem_max = 16777216
+      net.core.rmem_default = 262144
+      net.core.wmem_default = 262144
+      net.core.optmem_max = 2048576
+      net.ipv4.udp_rmem_min = 16384
+      net.ipv4.udp_wmem_min = 16384
+      fs.file-max = 2097152
+
+runcmd:
+  # 1. Apply Sysctl Tuning
+  - sysctl --system
+
+  # 2. Allocate 8GB Swapfile (Mandatory for BBB 4.0 stability on Ubuntu 24.04)
+  - fallocate -l 8G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=8192
+  - chmod 600 /swapfile
+  - mkswap /swapfile
+  - swapon /swapfile
+  - echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+  # 3. Configure Time Synchronization
+  - timedatectl set-ntp on
+  - systemctl restart systemd-timesyncd
+
+  # 4. Configure Firewall Ports for WebRTC RTP & Media Streams
+  - ufw allow OpenSSH
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw allow 16384:32768/udp
+  - ufw --force enable
+
+final_message: "Zealosh BigBlueButton Media Host Cloud-Init Initialized Successfully."

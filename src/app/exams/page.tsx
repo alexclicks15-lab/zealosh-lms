@@ -11,8 +11,10 @@ import {
   PlayCircle, 
   CheckCircle2, 
   XCircle, 
-  ChevronRight,
-  BookOpen
+  ChevronRight, 
+  BookOpen,
+  Lock,
+  ArrowRight
 } from 'lucide-react';
 import { ExamBlueprint } from '@/types';
 
@@ -85,54 +87,161 @@ export default function ExamsHubPage() {
           </h2>
 
           <div className="space-y-5">
-            {blueprints.map((bp) => (
-              <div
-                key={bp.id}
-                className="card-elevated p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
-              >
-                <div className="space-y-3 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="bg-[#252c41] text-white text-xs font-bold px-2.5 py-0.5 rounded">
-                      {bp.certificationType}
-                    </span>
-                    <span className="badge-green text-[11px]">
-                      Passing Score: {bp.passingScorePercent}%
-                    </span>
+            {blueprints.map((bp: any) => {
+              const isPassed = Boolean(bp.passedAttempt?.passed);
+              const isLocked = !bp.isUnlocked;
+
+              return (
+                <div
+                  key={bp.id}
+                  className={`card-elevated p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all ${
+                    isPassed
+                      ? 'border-l-4 border-l-[#4f8c4c]'
+                      : isLocked
+                      ? 'border-l-4 border-l-amber-400 bg-gray-50/50'
+                      : 'border-l-4 border-l-[#252c41]'
+                  }`}
+                >
+                  <div className="space-y-3 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="bg-[#252c41] text-white text-xs font-bold px-2.5 py-0.5 rounded">
+                        {bp.certificationType}
+                      </span>
+                      <span className="badge-green text-[11px]">
+                        Passing Threshold: {bp.passingScorePercent}%
+                      </span>
+
+                      {/* Gating & Status Badges */}
+                      {isPassed ? (
+                        <span className="bg-green-100 text-[#2e5e2b] text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#4f8c4c]" />
+                          <span>PASSED ({bp.passedAttempt.totalScore}%) • CREDENTIAL ISSUED</span>
+                        </span>
+                      ) : isLocked ? (
+                        <span className="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          <Lock className="w-3.5 h-3.5 text-amber-600" />
+                          <span>
+                            {bp.lockReason === 'UNENROLLED'
+                              ? 'LOCKED: ENROLLMENT REQUIRED'
+                              : bp.lockReason === 'PROGRESS_INSUFFICIENT'
+                              ? `LOCKED: ${bp.currentProgressPercent}% / ${bp.requiredProgressPercent}% COURSEWORK COMPLETED`
+                              : 'LOGIN REQUIRED'}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="bg-emerald-50 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>ELIGIBLE • COURSEWORK UNLOCKED</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="font-bold text-lg text-[#252c41]">
+                      {bp.title}
+                    </h3>
+
+                    {/* Lock Context / Guidance */}
+                    {isLocked && bp.lockReason === 'PROGRESS_INSUFFICIENT' && (
+                      <div className="p-3 bg-amber-50/80 rounded-xl border border-amber-200/60 text-xs text-amber-900 space-y-1.5">
+                        <div className="font-semibold flex items-center justify-between text-[11px]">
+                          <span>Prerequisite Lesson Progression</span>
+                          <span>{bp.currentProgressPercent}% / {bp.requiredProgressPercent}% Minimum</span>
+                        </div>
+                        <div className="w-full bg-amber-200 h-2 rounded-full overflow-hidden">
+                          <div
+                            className="bg-[#4f8c4c] h-2 rounded-full transition-all"
+                            style={{ width: `${Math.min(100, (bp.currentProgressPercent / bp.requiredProgressPercent) * 100)}%` }}
+                          />
+                        </div>
+                        <p className="text-[11px] text-amber-800">
+                          Complete at least 80% of module lessons in <strong>{bp.courseTitle || 'the course'}</strong> to unlock the authoritative examination simulation.
+                        </p>
+                      </div>
+                    )}
+
+                    {isLocked && bp.lockReason === 'UNENROLLED' && (
+                      <p className="text-xs text-gray-500 bg-white p-2.5 rounded-lg border border-gray-200">
+                        Enrollment in <strong>{bp.courseTitle || 'the masterclass'}</strong> is required before sitting for the official mock certification exam.
+                      </p>
+                    )}
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-gray-600 pt-2 border-t border-[#eaedf5]">
+                      <div>
+                        <span className="text-gray-400 block text-[10px] uppercase font-bold">Questions</span>
+                        <span className="font-bold text-gray-800">{bp.totalQuestions} Questions</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block text-[10px] uppercase font-bold">Time Limit</span>
+                        <span className="font-bold text-gray-800">{bp.durationMinutes} Minutes</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block text-[10px] uppercase font-bold">Scoring</span>
+                        <span className="font-bold text-gray-800">Domain Weighted</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block text-[10px] uppercase font-bold">Integrity</span>
+                        <span className="font-bold text-[#3a7536]">Server Enforced</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <h3 className="font-bold text-lg text-[#252c41]">
-                    {bp.title}
-                  </h3>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-gray-600 pt-2 border-t border-[#eaedf5]">
-                    <div>
-                      <span className="text-gray-400 block text-[10px] uppercase font-bold">Questions</span>
-                      <span className="font-bold text-gray-800">{bp.totalQuestions} Questions</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px] uppercase font-bold">Time Limit</span>
-                      <span className="font-bold text-gray-800">{bp.durationMinutes} Minutes</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px] uppercase font-bold">Scoring</span>
-                      <span className="font-bold text-gray-800">Domain Weighted</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px] uppercase font-bold">Integrity</span>
-                      <span className="font-bold text-[#3a7536]">Server Enforced</span>
-                    </div>
+                  {/* Actions Column */}
+                  <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0 w-full md:w-auto">
+                    {isPassed ? (
+                      <>
+                        {bp.certificate && (
+                          <Link
+                            href={`/verify/${encodeURIComponent(bp.certificate.certificateCode)}`}
+                            className="btn-primary text-xs py-2.5 px-5 shadow flex items-center justify-center gap-1.5"
+                          >
+                            <Award className="w-4 h-4" />
+                            <span>View Credential</span>
+                          </Link>
+                        )}
+                        <button
+                          onClick={() => handleStartExam(bp.id)}
+                          className="btn-outline text-xs py-2 px-4 flex items-center justify-center gap-1.5"
+                        >
+                          <PlayCircle className="w-4 h-4 text-[#4f8c4c]" />
+                          <span>Retake Mock Exam</span>
+                        </button>
+                      </>
+                    ) : bp.isUnlocked ? (
+                      <button
+                        onClick={() => handleStartExam(bp.id)}
+                        className="btn-primary text-xs py-3 px-6 shadow flex items-center justify-center gap-1.5"
+                      >
+                        <PlayCircle className="w-4 h-4" />
+                        <span>Start Timed Exam</span>
+                      </button>
+                    ) : bp.lockReason === 'PROGRESS_INSUFFICIENT' ? (
+                      <Link
+                        href={`/learn/${bp.courseSlug || bp.courseId || 'asp-examination-prep'}`}
+                        className="btn-primary text-xs py-2.5 px-5 shadow flex items-center justify-center gap-1.5"
+                      >
+                        <span>Continue Lessons</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    ) : bp.lockReason === 'UNENROLLED' ? (
+                      <Link
+                        href={`/courses/${bp.courseSlug || 'asp-examination-prep'}`}
+                        className="btn-primary text-xs py-2.5 px-5 shadow flex items-center justify-center gap-1.5"
+                      >
+                        <span>Enroll in Course</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/login"
+                        className="btn-outline text-xs py-2.5 px-5 flex items-center justify-center gap-1.5"
+                      >
+                        <span>Log In to Unlock</span>
+                      </Link>
+                    )}
                   </div>
                 </div>
-
-                <button
-                  onClick={() => handleStartExam(bp.id)}
-                  className="btn-primary text-xs py-3 px-6 shrink-0 w-full md:w-auto shadow"
-                >
-                  <PlayCircle className="w-4 h-4" />
-                  <span>Start Timed Exam</span>
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

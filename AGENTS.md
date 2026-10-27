@@ -34,3 +34,63 @@ This workspace provides the following specialized Antigravity skills in `.agents
 - Ensure `npx vitest run` passes with 100% test success.
 - Ensure `npm run build` compiles with zero Webpack or TypeScript errors.
 - Never claim completion without providing empirical evidence from test runners or browser recordings.
+
+<!-- BEGIN:IMPORTED-SKILLS -->
+
+## Imported Engineering & Architecture Skills
+The following cross-project capabilities are installed locally in `.agents/skills/`:
+
+| Skill | Description |
+| :--- | :--- |
+| `ai-agents-and-mcp` | >- |
+| `analytics-and-cro` | >- |
+| `api-design-and-security` | >- |
+| `arena` | Multi-agent tournament competition skill for complex coding, architectural, and algorithmi |
+| `background-jobs-and-queues` | >- |
+| `backlink-and-offpage-seo` | >- |
+| `bigbluebutton-integration` | Comprehensive runbook for integrating Zealosh LMS with BigBlueButton 2.7+ Live Classroom i |
+| `brainstorming-and-architecture` | >- |
+| `chrome-devtools-debugging` | >- |
+| `clean-architecture` | >- |
+| `clean-code-and-refactoring` | >- |
+| `cms-and-content-platform` | >- |
+| `crm-and-workflow-automation` | >- |
+| `dead-code-and-static-analysis` | >- |
+| `design-md` | Analyze Stitch projects and synthesize a semantic design system into DESIGN.md files |
+| `devops-and-docker-deploy` | >- |
+| `ecommerce-and-medusa` | >- |
+| `enhance-prompt` | Transforms vague UI ideas into polished, Stitch-optimized prompts. Enhances specificity, a |
+| `frontend-design-system` | >- |
+| `git-workflow-and-releases` | >- |
+| `hse-exam-engine` | Comprehensive runbook for the Zealosh High-Stakes HSE Certification Examination Engine. Us |
+| `image-and-media-optimization` | >- |
+| `lazy-coder` | >- |
+| `master-orchestrator` | >- |
+| `moodle-integration` | Comprehensive runbook for integrating Zealosh LMS with Moodle 4.x Core REST Web Services A |
+| `nextjs-fullstack-architecture` | >- |
+| `no-duplicator` | >- |
+| `nodejs-backend-architecture` | >- |
+| `performance-engineering` | >- |
+| `playwright-and-qa-automation` | >- |
+| `postgresql-and-supabase` | >- |
+| `python-development` | >- |
+| `react-development` | >- |
+| `react-vite-dashboard` | Convert Stitch designs into production React + Vite dashboards with TanStack Query, access |
+| `remotion` | Generate walkthrough videos from Stitch projects using Remotion with smooth transitions, z |
+| `saas-multi-tenant-architecture` | >- |
+| `search-and-relevance-engineering` | >- |
+| `security-audit` | Security guidance and vulnerability review for codebases, APIs, services, CLI tools, libra |
+| `security-auditing-and-owasp` | >- |
+| `seo-and-web-vitals` | >- |
+| `shadcn-ui` | Expert guidance for integrating and building applications with shadcn/ui components, inclu |
+| `site-md` | Analyze a project description or site requirements and synthesize a project constitution i |
+| `smart-coder` | >- |
+| `stitch-loop` | Specialist Antigravity skill |
+| `systematic-debugging` | >- |
+| `taste-design` | Semantic Design System Skill for Google Stitch. Generates agent-friendly DESIGN.md files t |
+| `technical-documentation` | >- |
+| `typescript-development` | >- |
+| `web-animation-and-motion` | >- |
+| `website-audit` | | |
+
+<!-- END:IMPORTED-SKILLS -->

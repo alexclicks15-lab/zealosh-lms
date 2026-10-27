@@ -1,78 +1,26 @@
-# Zealosh LMS — Security Architecture & Threat Model
+# Zealosh LMS — Security Architecture & Threat Model: Self-Hosted Platform
 
-**Document Version:** 1.0.0  
-**Status:** Security Baseline (OWASP ASVS 4.0 Level 2 Aligned)  
-**Target Platform:** Zealosh LMS
+**Document Version:** 2.0.0 (Self-Hosted Architecture)  
+**Status:** **ACTIVE SECURITY BASELINE** (OWASP ASVS 4.0 Level 2 Aligned)  
+**Scope:** Zealosh Core Hub, Self-Hosted Moodle Container, BigBlueButton Media Server, and OIDC SSO Gateway.
 
 ---
 
-## 1. Threat Modeling & Attack Surface Analysis
+## 1. Security Architecture & Threat Mitigation Matrix
 
-| Threat / Attack Vector | Vulnerable Surface | Countermeasure / Security Control |
+| Threat Vector | Affected Surface | Security Architecture & Countermeasure |
 | :--- | :--- | :--- |
-| **Broken Object Level Authorization (BOLA/IDOR)** | `/api/exams/attempts/:id`<br>`/api/courses/:id/lessons` | Server-side ownership verification: verify `attempt.userId === authenticatedUser.id` and user holds active enrollment for the parent course. |
-| **Exam Integrity Tampering** | Client-side timer manipulation; inspecting network payloads for answer keys | Answers & scoring logic stored strictly on server. Exam duration calculated via `server_start_time` + `duration_minutes`. Auto-submit job triggers on server at expiration. Correct answer keys stripped from test delivery payloads. |
-| **Session Hijacking & Token Theft** | JWT storage in browser | Access tokens (short-lived, 15m) and Refresh tokens (7 days, rotated on use) stored in `httpOnly`, `Secure`, `SameSite=Strict` cookies. |
-| **Privileged Credential Exposure** | BigBlueButton shared secret, Moodle web service token, payment webhook keys | Zero exposure in frontend code or Git repositories. Managed via environment variables and backend config service. |
-| **Cross-Site Scripting (XSS)** | Instructor course descriptions, question stems, forum posts | React JSX auto-escaping, HTML sanitization with DOMPurify on any permitted rich-text stems, strict Content Security Policy (CSP). |
-| **SQL & NoSQL Injection** | Search inputs, course filters, exam grading queries | Parameterized queries via Prisma ORM and TypeORM; strictly typed DTO validation with `class-validator`. |
-| **Media Piracy & Screen Recording** | Recorded lessons, video lectures | Signed, expiring CloudFront/CDN URLs (TTL 120m). Canvas-injected dynamic student watermark overlay (User Name + Email + Dynamic UTC timestamp) rendered during playback. |
-| **Payment Spoofing & Replay Attacks** | Webhook listener `/api/payments/webhook` | Webhook signature verification via HMAC-SHA256 with timestamp tolerance window (300s). Enforced idempotency on transaction IDs. |
+| **SSO Token Spoofing / Replay** | `/api/oauth/token`, `/api/oauth/userinfo` | Cryptographically signed RS256/HS256 JWTs with nonces, short expiration (300s), and strict `client_id` / `client_secret` validation. |
+| **GPL / LGPL Copyleft Contamination** | Proprietary Next.js Codebase | Strict physical and network process separation. Next.js communicates with Moodle and BigBlueButton exclusively over network protocols (HTTP/TLS and OIDC). |
+| **Exam Integrity Tampering** | Exam simulator (`/api/exams/*`) | Stored server-side, deadlines enforced by server clock, autosaved with write locks, stripped of answer keys, and **strictly excluded from PWA Service Worker caching**. |
+| **Media Stream Hijacking / Leaks** | WebRTC Classroom & Recorded Lessons | BigBlueButton shared salt never exposed to client; signed URLs generated server-side with expiring timestamps. Canvas dynamic watermark overlays for video streams. |
+| **Container & Process Privilege Escalation** | Dockerized Moodle / PHP-FPM / Redis | Containers run under unprivileged service users (`www-data`, `redis`), non-root user namespaces, and read-only root filesystems where applicable. |
+| **BOLA / IDOR Across Services** | `/api/batches/:id`, `/learn-engine/*` | Server-side authorization check verifying user holds active enrollment for the requested cohort before granting course access or meeting tokens. |
 
 ---
 
-## 2. Server-Side Role-Based Access Control (RBAC)
+## 2. OpenID Connect (OIDC) Single Sign-On Security Rules
 
-The system implements strict server-side authorization decorators and middleware. Role hierarchy:
-
-```mermaid
-graph TD
-    SuperAdmin["SUPER_ADMIN (Full Platform Authority)"]
-    OrgAdmin["ORG_ADMIN (Zealosh Academy Operations)"]
-    CourseManager["COURSE_MANAGER (Curriculum & Publication)"]
-    Instructor["INSTRUCTOR (Assigned Batches & Grading)"]
-    SupportStaff["SUPPORT_STAFF (Audited Read-Only Learner Support)"]
-    Student["STUDENT (Enrolled Courses, Exams & Progress)"]
-
-    SuperAdmin --> OrgAdmin
-    OrgAdmin --> CourseManager
-    CourseManager --> Instructor
-    Instructor --> Student
-    OrgAdmin --> SupportStaff
-```
-
-### Authorization Rules:
-1. **Instructors:** Can only access and grade students in batches where they are assigned as Lead Instructor, Co-Instructor, or Teaching Assistant in `batch_instructors`.
-2. **Students:** Can only access lessons, live sessions, and exams for courses in which they have an active status in `enrollments` (`status = 'ACTIVE'` and `expires_at > NOW()`).
-3. **High-Stakes Examination Protection:** Support staff cannot view active examination answer sheets or answers prior to exam submission.
-
----
-
-## 3. High-Stakes Examination Security Specification
-
-1. **Attempt Initialization:**
-   - Validates that the student has not exceeded the maximum permitted attempts (`attempts_used < max_attempts`).
-   - Generates an immutable snapshot of question IDs and randomized option order (`attempt_questions`).
-   - Server registers `start_time = NOW()` and `scheduled_deadline = NOW() + INTERVAL 'duration_minutes'`.
-2. **In-Flight Answer Saving:**
-   - Client sends partial answers every 30 seconds or on question navigation via `PUT /api/exams/attempts/:id/answers`.
-   - Each answer update is saved with an `updated_at` server timestamp.
-3. **Server-Enforced Deadline & Auto-Submission:**
-   - Submission is triggered either by student explicit click or by server cron/worker when `NOW() > scheduled_deadline + grace_period (60s)`.
-   - Any answer sent after `scheduled_deadline + grace_period` is rejected.
-4. **Scoring & Integrity Sealing:**
-   - Scoring algorithm runs on server: compares selected option IDs against authoritative `exam_questions.correct_options`.
-   - Results record is written to `exam_attempts` with `status = 'COMPLETED'`, `score`, `passed`, and `completed_at`.
-   - Post-completion, the attempt record becomes read-only.
-
----
-
-## 4. Comprehensive Audit Trail
-
-All sensitive operations write an immutable entry to `audit_logs`:
-- User authentication events (Login, MFA challenge, Logout, Failed attempts).
-- Course publication and pricing adjustments.
-- Manual grade adjustments and instructor feedback overrides.
-- Certificate generation and revocation.
-- Administrative role grants and revocations.
-- Payment refunds and enrollment cancellations.
+1. **Authorization Code Flow with PKCE:** Web applications and client plugins use standard OAuth 2.0 Authorization Code flow with Proof Key for Code Exchange (PKCE) where supported.
+2. **Strict Audience Binding:** JWT access tokens contain explicit `aud` matching the requesting client (e.g. `zealosh-moodle-client`).
+3. **Session Revocation:** Triggering logout in the Zealosh Core Hub invalidates the session in `ZealoshDatabase`, triggering back-channel logout to federated Moodle sessions.

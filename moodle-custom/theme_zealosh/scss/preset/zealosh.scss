@@ -1,0 +1,49 @@
+// Official Zealosh Brand Palette SCSS Tokens
+$primary: #4f8c4c !default;       // Official Zealosh Green
+$primary-dark: #3a7536 !default;  // Deep Green
+$success: #2ea033 !default;       // Accent Green
+$dark: #252c41 !default;          // Dark Neutral / Deep Slate
+$body-bg: #f7f9fc !default;       // Light Surface
+$card-border-color: #eaedf5 !default;
+
+// Typography & Font Stack
+$font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !default;
+$headings-font-family: $font-family-base !default;
+$headings-font-weight: 700 !default;
+
+// Buttons & Radii
+$btn-border-radius: 8px !default;
+$card-border-radius: 12px !default;
+
+// Navbar Styling
+.navbar-bootswatch, .navbar-light {
+    background-color: #ffffff !default;
+    border-bottom: 2px solid $primary !default;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-brand {
+    font-weight: 800;
+    color: $dark !important;
+    letter-spacing: -0.02em;
+}
+
+// Custom Top Navigation link back to Zealosh Core Hub
+.zealosh-hub-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background-color: rgba(79, 140, 76, 0.1);
+    color: $primary !important;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    
+    &:hover {
+        background-color: $primary;
+        color: #ffffff !important;
+    }
+}

@@ -1,0 +1,26 @@
+{
+  "public": {
+    "app": {
+      "brandName": "Zealosh Live Classroom",
+      "helpLink": "https://lms.zealosh.com/support",
+      "feedback": {
+        "enabled": false
+      },
+      "customLogo": "/var/bigbluebutton/playback/presentation/2.3/logo.png",
+      "favicon": "/var/bigbluebutton/playback/presentation/2.3/favicon.png"
+    },
+    "presentation": {
+      "defaultPresentationFile": "/var/bigbluebutton/playback/presentation/2.3/default.pdf",
+      "allowDownload": true
+    },
+    "kurento": {
+      "enableListenOnly": true
+    },
+    "whiteboard": {
+      "multiUser": true
+    },
+    "chat": {
+      "systemMessage": "Welcome to Zealosh Live Classroom. Professional HSE mentorship session."
+    }
+  }
+}

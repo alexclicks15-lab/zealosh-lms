@@ -25,24 +25,71 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid or expired session' }, { status: 401 });
     }
 
+    // Prerequisite & Lesson Progression Gating (Milestone 5)
+    const blueprint = await db.getExamBlueprint(params.examId);
+    if (!blueprint) {
+      return NextResponse.json({ error: 'Exam blueprint not found' }, { status: 404 });
+    }
+
+    let requestBody: any = {};
+    try {
+      requestBody = await request.clone().json();
+    } catch {
+      // empty body is expected for standard start requests
+    }
+
+    const isAdmin = payload.role === 'SUPER_ADMIN' || payload.role === 'ORG_ADMIN';
+    const isOverride = isAdmin && requestBody.bypassPrerequisites === true;
+
+    if (!isAdmin && !isOverride) {
+      const courses = await db.getCourses();
+      const relatedCourse = courses.find((c) => c.certificationType === blueprint.certificationType);
+      if (relatedCourse) {
+        const enrollments = await db.getUserEnrollments(payload.userId);
+        const activeEnrollment = enrollments.find(
+          (e) =>
+            (e.courseId === relatedCourse.id || e.courseId === relatedCourse.slug) &&
+            e.status === 'ACTIVE'
+        );
+
+        if (!activeEnrollment) {
+          return NextResponse.json(
+            {
+              error: `Enrollment Required: You must be actively enrolled in "${relatedCourse.title}" before attempting this official certification simulation.`,
+              code: 'EXAM_UNENROLLED',
+              courseId: relatedCourse.id,
+              courseSlug: relatedCourse.slug,
+            },
+            { status: 403 }
+          );
+        }
+
+        const requiredProgress = 80;
+        const currentProgress = activeEnrollment.progressPercent || 0;
+        if (currentProgress < requiredProgress) {
+          return NextResponse.json(
+            {
+              error: `Coursework Prerequisite Incomplete: You must complete at least ${requiredProgress}% of course lessons (Current: ${currentProgress}%) before unlocking this official examination simulation.`,
+              code: 'EXAM_PROGRESS_INSUFFICIENT',
+              currentProgressPercent: currentProgress,
+              requiredProgressPercent: requiredProgress,
+              courseSlug: relatedCourse.slug,
+            },
+            { status: 403 }
+          );
+        }
+      }
+    }
+
     // Start authoritative attempt
-    const attempt = db.startExamAttempt(payload.userId, params.examId);
-    const blueprint = db.examBlueprints.get(params.examId);
+    const attempt = await db.startExamAttempt(payload.userId, params.examId);
 
     // Securely project questions without correctOptionIds or explanations
-    const clientQuestions = attempt.assignedQuestionIds.map((qId, index) => {
-      const q = db.examQuestions.get(qId)!;
-      return {
-        id: q.id,
-        index: index + 1,
-        domain: q.domain,
-        topic: q.topic,
-        stem: q.stem,
-        type: q.type,
-        difficulty: q.difficulty,
-        options: q.options,
-      };
-    });
+    const rawQuestions = await db.getQuestionsForClient(attempt.assignedQuestionIds);
+    const clientQuestions = rawQuestions.map((q, index) => ({
+      ...q,
+      index: index + 1,
+    }));
 
     return NextResponse.json({
       attemptId: attempt.id,

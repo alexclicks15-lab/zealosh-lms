@@ -20,6 +20,10 @@
 # Local env files
 .env*.local
 .env
+.env.staging
+.env.production
+!.env.staging.example
+!.env.production.example
 
 # Vercel
 .vercel
@@ -27,3 +31,9 @@
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Ephemeral and production secrets
+/secrets/*.txt
+!/secrets/moodle_admin_password.txt.example
+!/secrets/.gitkeep
+

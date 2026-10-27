@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { db } from '../src/lib/store/db';
 
 describe('HSE Certification Examination Engine Invariants', () => {
-  it('should initialize a timed attempt with assigned blueprint questions', () => {
-    const attempt = db.startExamAttempt('usr-std-01', 'bp-asp-bcsp-v10');
+  it('should initialize a timed attempt with assigned blueprint questions', async () => {
+    const attempt = await db.startExamAttempt('usr-std-01', 'bp-asp-bcsp-v10');
 
     expect(attempt).toBeDefined();
     expect(attempt.status).toBe('IN_PROGRESS');
@@ -11,30 +11,30 @@ describe('HSE Certification Examination Engine Invariants', () => {
     expect(new Date(attempt.deadlineTime).getTime()).toBeGreaterThan(new Date(attempt.startTime).getTime());
   });
 
-  it('should auto-save answers and bookmarks during an active attempt', () => {
-    const attempt = db.startExamAttempt('usr-std-01', 'bp-asp-bcsp-v10');
+  it('should auto-save answers and bookmarks during an active attempt', async () => {
+    const attempt = await db.startExamAttempt('usr-std-01', 'bp-asp-bcsp-v10');
     const qId = attempt.assignedQuestionIds[0];
 
-    const updated = db.saveExamAnswers(attempt.id, 'usr-std-01', { [qId]: ['opt-b'] }, [qId]);
+    const updated = await db.saveExamAnswers(attempt.id, 'usr-std-01', { [qId]: ['opt-b'] }, [qId]);
 
     expect(updated.answers[qId]).toEqual(['opt-b']);
     expect(updated.bookmarkedQuestionIds).toContain(qId);
   });
 
-  it('should reject answer updates after exam deadline has expired', () => {
-    const attempt = db.startExamAttempt('usr-std-01', 'bp-asp-bcsp-v10');
+  it('should reject answer updates after exam deadline has expired', async () => {
+    const attempt = await db.startExamAttempt('usr-std-01', 'bp-asp-bcsp-v10');
     // Artificially simulate passed deadline
     attempt.deadlineTime = new Date(Date.now() - 60000).toISOString();
 
-    expect(() => {
-      db.saveExamAnswers(attempt.id, 'usr-std-01', { 'q-asp-01': ['opt-b'] });
-    }).toThrow('EXAM_DEADLINE_EXPIRED');
+    await expect(
+      db.saveExamAnswers(attempt.id, 'usr-std-01', { 'q-asp-01': ['opt-b'] })
+    ).rejects.toThrow('EXAM_DEADLINE_EXPIRED');
 
     expect(attempt.status).toBe('EXPIRED');
   });
 
-  it('should calculate authoritative scores, passing thresholds, and domain breakdowns upon submission', () => {
-    const attempt = db.startExamAttempt('usr-std-01', 'bp-asp-bcsp-v10');
+  it('should calculate authoritative scores, passing thresholds, and domain breakdowns upon submission', async () => {
+    const attempt = await db.startExamAttempt('usr-std-01', 'bp-asp-bcsp-v10');
 
     // Answer with known correct options:
     // q-asp-01 correct is 'opt-b' (13.3 mR/hr)
@@ -42,7 +42,7 @@ describe('HSE Certification Examination Engine Invariants', () => {
     // q-asp-03 correct is 'opt-c' (LEV)
     // q-asp-04 correct is 'opt-d' (Class D)
     // q-asp-05 correct is 'opt-a' (Ignitability, Corrosivity...)
-    db.saveExamAnswers(attempt.id, 'usr-std-01', {
+    await db.saveExamAnswers(attempt.id, 'usr-std-01', {
       'q-asp-01': ['opt-b'],
       'q-asp-02': ['opt-b'],
       'q-asp-03': ['opt-c'],
@@ -50,7 +50,7 @@ describe('HSE Certification Examination Engine Invariants', () => {
       'q-asp-05': ['opt-a'],
     });
 
-    const result = db.submitExamAttempt(attempt.id, 'usr-std-01');
+    const result = await db.submitExamAttempt(attempt.id, 'usr-std-01');
 
     expect(result.status).toBe('COMPLETED');
     expect(result.totalScore).toBe(100);

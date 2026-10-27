@@ -12,9 +12,10 @@ export interface TokenPayload {
   name: string;
 }
 
-export function signToken(user: User): string {
+export function signToken(user: User | TokenPayload | { id?: string; userId?: string; email: string; role: UserRole; name: string }): string {
+  const uid = ('id' in user && user.id) ? user.id : ('userId' in user && user.userId) ? user.userId : '';
   const payload: TokenPayload = {
-    userId: user.id,
+    userId: uid,
     email: user.email,
     role: user.role,
     name: user.name,

@@ -18,9 +18,11 @@ export class BigBlueButtonAdapter {
   private isMockMode: boolean;
 
   constructor(baseUrl?: string, salt?: string) {
-    this.baseUrl = baseUrl || process.env.BIGBLUEBUTTON_BASE_URL || 'https://bbb.internal.zealosh.com/bigbluebutton/api';
-    this.salt = salt || process.env.BIGBLUEBUTTON_SALT || 'mock_bbb_secret_salt_12345';
-    this.isMockMode = process.env.BIGBLUEBUTTON_MODE !== 'remote';
+    this.baseUrl = baseUrl || process.env.BBB_BASE_URL || process.env.BIGBLUEBUTTON_BASE_URL || 'https://media.staging.zealosh.com/bigbluebutton/api';
+    this.salt = salt || process.env.BBB_SECURITY_SALT || process.env.BIGBLUEBUTTON_SALT || 'zealosh_bbb_shared_salt_2026';
+    const isExplicitRemote = process.env.BBB_MODE === 'remote' || process.env.BIGBLUEBUTTON_MODE === 'remote';
+    const hasConfiguredRemote = Boolean(process.env.BBB_BASE_URL || process.env.BIGBLUEBUTTON_BASE_URL);
+    this.isMockMode = !isExplicitRemote && (!hasConfiguredRemote || process.env.NODE_ENV === 'test');
   }
 
   /**
@@ -106,7 +108,7 @@ export class BigBlueButtonAdapter {
     const url = `${this.baseUrl}/isMeetingRunning?${query}&checksum=${checksum}`;
 
     const res = await fetch(url);
-    const text = await res.json();
+    const text = await res.text();
     return text.includes('<running>true</running>');
   }
 }

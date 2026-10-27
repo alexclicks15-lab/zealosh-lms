@@ -1,7 +1,16 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import ThemeProvider from '@/components/ThemeProvider';
+import PwaProvider from '@/components/PwaProvider';
+
+export const viewport: Viewport = {
+  themeColor: '#4f8c4c',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   title: 'Zealosh LMS — Enterprise HSE Certification Learning & Examination Platform',
@@ -18,9 +27,11 @@ export const metadata: Metadata = {
     'HSE training',
     'safety exam mock',
   ],
+  manifest: '/manifest.json',
   authors: [{ name: 'Zealosh Training & Consultants' }],
   icons: {
     icon: '/logo-round.png',
+    apple: '/logo-round.png',
   },
 };
 
@@ -33,11 +44,19 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="icon" href="/logo-round.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Zealosh LMS" />
       </head>
       <body className="min-h-screen flex flex-col bg-[#f7f9fc] text-[#252c41] antialiased">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <ThemeProvider>
+          <PwaProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </PwaProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
