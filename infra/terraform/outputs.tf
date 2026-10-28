@@ -13,10 +13,16 @@ output "media_server_public_ip" {
   description = "Public IPv4 address of Server 2 (BigBlueButton Live Classroom)"
 }
 
+output "media_server_hostname" {
+  value       = "media.${var.domain_name}"
+  description = "Canonical FQDN for Server 2 (BigBlueButton Live Classroom)"
+}
+
 output "dns_records_required" {
   value = {
     lms_record       = "Create A record for lms.${var.domain_name} pointing to ${digitalocean_droplet.app_host.ipv4_address}"
-    classroom_record = "Create A record for classroom.${var.domain_name} pointing to ${digitalocean_droplet.media_host.ipv4_address}"
+    media_record     = "Create A record for media.${var.domain_name} pointing to ${digitalocean_droplet.media_host.ipv4_address}"
+    classroom_record = "Create A record for media.${var.domain_name} pointing to ${digitalocean_droplet.media_host.ipv4_address}"
   }
   description = "Required DNS A-records to point to the created droplets"
 }

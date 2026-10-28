@@ -84,6 +84,7 @@ gantt
 - **OIDC SSO Implementation:**
   - Core Hub Identity Provider (`/.well-known/openid-configuration`, `/api/oauth/authorize`, `/api/oauth/token`, `/api/oauth/userinfo`).
   - Tested: PKCE S256 verification, single-use code replay rejection, `application/x-www-form-urlencoded` token exchange.
+  - **OAuth Secret Model Reality:** Current runtime implementation enforces RFC 7636 PKCE (`code_verifier`) and does NOT validate `client_secret` at runtime. `JWT_SECRET` must NEVER be shared with Moodle. Dedicated `OAUTH_CLIENT_SECRET` validation is scheduled in Step B operational fixes.
 - **Verification Evidence:**
   - Automated OIDC protocol suite (`tests/oidc-sso.test.ts`): **PASS (SIMULATED)** (12/12 tests).
   - End-to-end journey script (`scripts/verify-oidc-sso-journey.ts`): **PASS (SIMULATED)** (10/10 invariants).
@@ -94,8 +95,8 @@ gantt
 
 ### Milestone 4: BigBlueButton Deployment & Live Classroom Media
 - **Scope:** Dedicated WebRTC audio/video conferencing server with custom Zealosh branding skin.
-- **Infrastructure Requirement:** Dedicated Server 2 (Ubuntu 22.04 LTS, 8 vCPU, 16GB RAM, public IP, ports 80/443/UDP open).
-- **Automation:** [`deploy/bbb-staging-setup.sh`](file:///C:/Users/alexc/.gemini/antigravity-ide/scratch/zealosh-lms/deploy/bbb-staging-setup.sh) and [`bbb-custom/apply-branding.sh`](file:///C:/Users/alexc/.gemini/antigravity-ide/scratch/zealosh-lms/bbb-custom/apply-branding.sh).
+- **Infrastructure Requirement:** Dedicated Server 2 (Ubuntu 24.04 LTS 64-bit, BigBlueButton 4.0 `noble-400`, 8 vCPU, 16GB RAM, 500GB NVMe SSD, public IP, canonical hostname: `media.staging.zealosh.com`, ports 80/443/TCP and 16384-32768/UDP open).
+- **Automation:** [`deploy/bbb-staging-setup.sh`](file:///C:/Users/alexc/.gemini/antigravity-ide/scratch/zealosh-lms/deploy/bbb-staging-setup.sh) and [`bbb-custom/apply-branding.sh`](file:///C:/Users/alexc/.gemini/antigravity-ide/scratch/zealosh-lms/bbb-custom/apply-branding.sh). *(Note: bbb-staging-setup.sh defaults will be aligned from classroom.staging to media.staging in Step B).*
 - **Status:** **PREPARED / SCRIPTS VALIDATED (Blocked pending dedicated media host)**.
 
 ---

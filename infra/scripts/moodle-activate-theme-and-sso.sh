@@ -22,25 +22,25 @@ fi
 
 # 2. Check if custom theme directory is mounted
 echo "[1/4] Verifying theme_zealosh mount..."
-docker exec -u www-data "$CONTAINER_NAME" test -f /bitnami/moodle/theme/zealosh/config.php || {
-    echo "ERROR: theme_zealosh is not mounted at /bitnami/moodle/theme/zealosh."
+docker exec -u www-data "$CONTAINER_NAME" sh -c 'test -f /var/www/html/theme/zealosh/config.php || test -f /var/www/html/public/theme/zealosh/config.php' || {
+    echo "ERROR: theme_zealosh is not mounted at /var/www/html/theme/zealosh or /var/www/html/public/theme/zealosh."
     exit 1
 }
 echo "theme_zealosh verified in container."
 
 # 3. Set default theme to 'zealosh' via Moodle CLI
 echo "[2/4] Activating theme_zealosh as default theme..."
-docker exec -u www-data "$CONTAINER_NAME" php /bitnami/moodle/admin/cli/cfg.php --name=theme --set=zealosh
+docker exec -u www-data "$CONTAINER_NAME" php /var/www/html/admin/cli/cfg.php --name=theme --set=zealosh
 echo "Moodle default theme successfully set to 'zealosh'."
 
 # 4. Enable OAuth 2 Authentication Plugin
 echo "[3/4] Enabling Moodle OAuth 2 authentication plugin..."
-docker exec -u www-data "$CONTAINER_NAME" php /bitnami/moodle/admin/cli/cfg.php --name=auth --set=manual,oauth2
+docker exec -u www-data "$CONTAINER_NAME" php /var/www/html/admin/cli/cfg.php --name=auth --set=manual,oauth2
 echo "OAuth 2 authentication enabled."
 
 # 5. Purge Moodle Caches to compile SCSS assets
 echo "[4/4] Purging Moodle compiled theme and string caches..."
-docker exec -u www-data "$CONTAINER_NAME" php /bitnami/moodle/admin/cli/purge_caches.php
+docker exec -u www-data "$CONTAINER_NAME" php /var/www/html/admin/cli/purge_caches.php
 echo "Moodle caches successfully purged."
 
 echo "=========================================================="

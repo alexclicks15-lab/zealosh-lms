@@ -13,7 +13,7 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-DOMAIN="${1:-classroom.staging.zealosh.com}"
+DOMAIN="${1:-media.staging.zealosh.com}"
 ADMIN_EMAIL="${2:-admin@zealosh.com}"
 BBB_RELEASE_VERSION="${BBB_RELEASE_VERSION:-noble-400}"
 
@@ -116,6 +116,10 @@ mkdir -p "$SECRET_CONFIG_DIR"
 if command -v bbb-conf >/dev/null 2>&1; then
     echo "Capturing BigBlueButton API credentials securely into restricted file..."
     BBB_SALT=$(bbb-conf --secret 2>/dev/null | grep -i "Secret:" | head -n 1 | awk '{print $2}' || echo "")
+    if [ -z "$BBB_SALT" ]; then
+        echo "ERROR: Failed to extract non-empty BigBlueButton secret from bbb-conf." >&2
+        exit 1
+    fi
     
     cat <<EOF > "$SECRET_CONFIG_FILE"
 # ==============================================================================
@@ -133,7 +137,8 @@ EOF
     echo " Server URL: https://$DOMAIN/bigbluebutton/api"
     echo " Secret stored securely at: $SECRET_CONFIG_FILE (mode 0600)"
     echo " NOTICE: API Secret has NOT been printed to stdout to prevent log exposure."
-    echo " Retrieve on host: sudo cat $SECRET_CONFIG_FILE"
+    echo " Secure transfer: pipe directly into Server 1's .env.staging without terminal echo:"
+    echo "   ssh deployer@<SERVER_2_IP> \"sudo cat $SECRET_CONFIG_FILE\" | grep -E '^(BBB_SECURITY_SALT|BBB_BASE_URL)=' >> /opt/zealosh/.env.staging"
     echo "=========================================================="
     bbb-conf --check || true
 else

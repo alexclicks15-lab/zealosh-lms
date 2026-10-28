@@ -486,4 +486,397 @@ describe('OpenID Connect (OIDC) & OAuth2 SSO Integration Suite', () => {
       expect(isRedirectUriAllowed('https://lms.staging.zealosh.com/learn-engine/%00admin/oauth2callback.php')).toBe(false);
     });
   });
+
+  describe('Dedicated OAUTH_CLIENT_SECRET Validation & Client Authentication Suite (CP-8.5 Step B)', () => {
+    const originalOAuthSecret = process.env.OAUTH_CLIENT_SECRET;
+    const originalJwtSecret = process.env.JWT_SECRET;
+    const testRedirectUri = 'https://lms.zealosh.com/learn-engine/admin/oauth2callback.php';
+
+    afterEach(() => {
+      if (originalOAuthSecret !== undefined) {
+        process.env.OAUTH_CLIENT_SECRET = originalOAuthSecret;
+      } else {
+        delete process.env.OAUTH_CLIENT_SECRET;
+      }
+      if (originalJwtSecret !== undefined) {
+        process.env.JWT_SECRET = originalJwtSecret;
+      } else {
+        delete process.env.JWT_SECRET;
+      }
+    });
+
+    const createTestCodeWithPkce = async (clientId = 'zealosh-moodle') => {
+      const codeVerifier = 'synthetic_test_code_verifier_1234567890_abcdefghij';
+      const codeChallenge = crypto
+        .createHash('sha256')
+        .update(codeVerifier)
+        .digest('base64url');
+
+      const oauthCode = await db.createOAuthCode({
+        userId: 'usr-std-01',
+        clientId,
+        redirectUri: testRedirectUri,
+        codeChallenge,
+        codeChallengeMethod: 'S256',
+      });
+
+      return { oauthCode, codeVerifier };
+    };
+
+    it('1. Correct configured client secret is accepted with valid PKCE', async () => {
+      const syntheticSecret = 'synthetic_secure_moodle_client_secret_2026_alpha';
+      process.env.OAUTH_CLIENT_SECRET = syntheticSecret;
+
+      const { oauthCode, codeVerifier } = await createTestCodeWithPkce();
+      const { POST } = await import('@/app/api/oauth/token/route');
+
+      const req = new Request('http://localhost:3000/api/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: oauthCode.code,
+          grant_type: 'authorization_code',
+          redirect_uri: testRedirectUri,
+          client_id: 'zealosh-moodle',
+          client_secret: syntheticSecret,
+          code_verifier: codeVerifier,
+        }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(200);
+
+      const data = await res.json();
+      expect(data.access_token).toBeDefined();
+      expect(data.id_token).toBeDefined();
+      expect(data.token_type).toBe('Bearer');
+    });
+
+    it('2. Incorrect client secret is rejected with HTTP 401 invalid_client', async () => {
+      const syntheticSecret = 'synthetic_secure_moodle_client_secret_2026_alpha';
+      process.env.OAUTH_CLIENT_SECRET = syntheticSecret;
+
+      const { oauthCode, codeVerifier } = await createTestCodeWithPkce();
+      const { POST } = await import('@/app/api/oauth/token/route');
+
+      const req = new Request('http://localhost:3000/api/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: oauthCode.code,
+          grant_type: 'authorization_code',
+          redirect_uri: testRedirectUri,
+          client_id: 'zealosh-moodle',
+          client_secret: 'incorrect_attacker_secret_beta',
+          code_verifier: codeVerifier,
+        }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(401);
+      expect(res.headers.get('www-authenticate')).toContain('Basic');
+
+      const data = await res.json();
+      expect(data.error).toBe('invalid_client');
+      expect(data.error_description).toContain('Client authentication failed');
+    });
+
+    it('3. Missing client secret is rejected when the client is configured to require one', async () => {
+      const syntheticSecret = 'synthetic_secure_moodle_client_secret_2026_alpha';
+      process.env.OAUTH_CLIENT_SECRET = syntheticSecret;
+
+      const { oauthCode, codeVerifier } = await createTestCodeWithPkce();
+      const { POST } = await import('@/app/api/oauth/token/route');
+
+      // Request completely omits client_secret
+      const req = new Request('http://localhost:3000/api/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: oauthCode.code,
+          grant_type: 'authorization_code',
+          redirect_uri: testRedirectUri,
+          client_id: 'zealosh-moodle',
+          code_verifier: codeVerifier,
+        }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(401);
+
+      const data = await res.json();
+      expect(data.error).toBe('invalid_client');
+      expect(data.error_description).toContain('Client authentication required');
+    });
+
+    it('4. HTTP Basic authentication is parsed correctly if supported', async () => {
+      const syntheticSecret = 'synthetic_secure_moodle_client_secret_2026_alpha';
+      process.env.OAUTH_CLIENT_SECRET = syntheticSecret;
+
+      const { oauthCode, codeVerifier } = await createTestCodeWithPkce();
+      const { POST } = await import('@/app/api/oauth/token/route');
+
+      const basicCredentials = Buffer.from(`zealosh-moodle:${syntheticSecret}`).toString('base64');
+      const formParams = new URLSearchParams({
+        code: oauthCode.code,
+        grant_type: 'authorization_code',
+        redirect_uri: testRedirectUri,
+        code_verifier: codeVerifier,
+      });
+
+      const req = new Request('http://localhost:3000/api/oauth/token', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${basicCredentials}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formParams.toString(),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(200);
+
+      const data = await res.json();
+      expect(data.access_token).toBeDefined();
+      expect(data.id_token).toBeDefined();
+    });
+
+    it('5. Existing valid PKCE behavior remains accepted when client secret is unconfigured', async () => {
+      delete process.env.OAUTH_CLIENT_SECRET;
+
+      const { oauthCode, codeVerifier } = await createTestCodeWithPkce();
+      const { POST } = await import('@/app/api/oauth/token/route');
+
+      const req = new Request('http://localhost:3000/api/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: oauthCode.code,
+          grant_type: 'authorization_code',
+          redirect_uri: testRedirectUri,
+          client_id: 'zealosh-moodle',
+          code_verifier: codeVerifier,
+        }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(200);
+
+      const data = await res.json();
+      expect(data.access_token).toBeDefined();
+    });
+
+    it('6. Invalid PKCE is still rejected even when client secret is completely valid', async () => {
+      const syntheticSecret = 'synthetic_secure_moodle_client_secret_2026_alpha';
+      process.env.OAUTH_CLIENT_SECRET = syntheticSecret;
+
+      const { oauthCode } = await createTestCodeWithPkce();
+      const { POST } = await import('@/app/api/oauth/token/route');
+
+      const req = new Request('http://localhost:3000/api/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: oauthCode.code,
+          grant_type: 'authorization_code',
+          redirect_uri: testRedirectUri,
+          client_id: 'zealosh-moodle',
+          client_secret: syntheticSecret,
+          code_verifier: 'tampered_invalid_pkce_verifier_token',
+        }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(400);
+
+      const data = await res.json();
+      expect(data.error).toBe('invalid_grant');
+      expect(data.error_description).toContain('PKCE');
+    });
+
+    it('7. JWT_SECRET is never used as a fallback client secret', async () => {
+      const syntheticSecret = 'synthetic_secure_moodle_client_secret_2026_alpha';
+      process.env.OAUTH_CLIENT_SECRET = syntheticSecret;
+      process.env.JWT_SECRET = 'internal_signing_jwt_secret_only_never_client_secret';
+
+      const { oauthCode, codeVerifier } = await createTestCodeWithPkce();
+      const { POST } = await import('@/app/api/oauth/token/route');
+
+      // Attempting to authenticate using JWT_SECRET as client_secret must be strictly rejected
+      const req = new Request('http://localhost:3000/api/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: oauthCode.code,
+          grant_type: 'authorization_code',
+          redirect_uri: testRedirectUri,
+          client_id: 'zealosh-moodle',
+          client_secret: process.env.JWT_SECRET,
+          code_verifier: codeVerifier,
+        }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(401);
+
+      const data = await res.json();
+      expect(data.error).toBe('invalid_client');
+      expect(data.error_description).toContain('Client authentication failed');
+    });
+
+    it('8. Unconfigured client-secret mode preserves the explicitly intended compatibility behavior', async () => {
+      process.env.OAUTH_CLIENT_SECRET = ''; // explicitly empty/unconfigured
+
+      const { oauthCode, codeVerifier } = await createTestCodeWithPkce();
+      const { POST } = await import('@/app/api/oauth/token/route');
+
+      const formParams = new URLSearchParams({
+        code: oauthCode.code,
+        grant_type: 'authorization_code',
+        redirect_uri: testRedirectUri,
+        client_id: 'zealosh-moodle',
+        code_verifier: codeVerifier,
+      });
+
+      const createTokenReq = () =>
+        new Request('http://localhost:3000/api/oauth/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formParams.toString(),
+        });
+
+      const res = await POST(createTokenReq());
+      expect(res.status).toBe(200);
+
+      const data = await res.json();
+      expect(data.access_token).toBeDefined();
+      expect(data.token_type).toBe('Bearer');
+
+      // Code must be atomically marked used (replay attempt fails with invalid_grant)
+      const replayed = await POST(createTokenReq());
+      expect(replayed.status).toBe(400);
+      const replayData = await replayed.json();
+      expect(replayData.error).toBe('invalid_grant');
+      expect(replayData.error_description).toContain('Replay detected');
+    });
+
+    it('9. Malformed authentication is rejected safely', async () => {
+      const syntheticSecret = 'synthetic_secure_moodle_client_secret_2026_alpha';
+      process.env.OAUTH_CLIENT_SECRET = syntheticSecret;
+      const { oauthCode, codeVerifier } = await createTestCodeWithPkce();
+      const { POST } = await import('@/app/api/oauth/token/route');
+
+      // 9a. Corrupted base64 in Authorization header
+      const badBase64Req = new Request('http://localhost:3000/api/oauth/token', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Basic !!!not-valid-base64???',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: oauthCode.code,
+          grant_type: 'authorization_code',
+          redirect_uri: testRedirectUri,
+          code_verifier: codeVerifier,
+        }),
+      });
+      const badBase64Res = await POST(badBase64Req);
+      expect(badBase64Res.status).toBe(401);
+      const badBase64Data = await badBase64Res.json();
+      expect(badBase64Data.error).toBe('invalid_client');
+
+      // 9b. Missing colon in decoded HTTP Basic credentials
+      const noColonBase64 = Buffer.from('zealosh-moodle-without-colon').toString('base64');
+      const badColonReq = new Request('http://localhost:3000/api/oauth/token', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${noColonBase64}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: oauthCode.code,
+          grant_type: 'authorization_code',
+          redirect_uri: testRedirectUri,
+          code_verifier: codeVerifier,
+        }),
+      });
+      const badColonRes = await POST(badColonReq);
+      expect(badColonRes.status).toBe(401);
+      const badColonData = await badColonRes.json();
+      expect(badColonData.error).toBe('invalid_client');
+
+      // 9c. Multiple authentication methods (Basic header AND body client_secret)
+      const multiAuthBase64 = Buffer.from(`zealosh-moodle:${syntheticSecret}`).toString('base64');
+      const multiAuthReq = new Request('http://localhost:3000/api/oauth/token', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${multiAuthBase64}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: oauthCode.code,
+          grant_type: 'authorization_code',
+          redirect_uri: testRedirectUri,
+          client_secret: syntheticSecret,
+          code_verifier: codeVerifier,
+        }),
+      });
+      const multiAuthRes = await POST(multiAuthReq);
+      expect(multiAuthRes.status).toBe(401);
+      const multiAuthData = await multiAuthRes.json();
+      expect(multiAuthData.error).toBe('invalid_client');
+
+      // 9d. Unsupported auth header scheme (Bearer on token endpoint)
+      const unsupportedSchemeReq = new Request('http://localhost:3000/api/oauth/token', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer some_unsupported_token',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: oauthCode.code,
+          grant_type: 'authorization_code',
+          redirect_uri: testRedirectUri,
+          code_verifier: codeVerifier,
+        }),
+      });
+      const unsupportedSchemeRes = await POST(unsupportedSchemeReq);
+      expect(unsupportedSchemeRes.status).toBe(401);
+      const unsupportedSchemeData = await unsupportedSchemeRes.json();
+      expect(unsupportedSchemeData.error).toBe('invalid_client');
+    });
+
+    it('10. Secret values never appear in error bodies or logs', async () => {
+      const sensitiveConfiguredSecret = 'super_secret_canary_value_configured_987654';
+      const sensitiveAttemptedSecret = 'super_secret_canary_value_attempted_123456';
+      process.env.OAUTH_CLIENT_SECRET = sensitiveConfiguredSecret;
+      process.env.JWT_SECRET = 'super_secret_canary_jwt_signing_key_456789';
+
+      const { oauthCode, codeVerifier } = await createTestCodeWithPkce();
+      const { POST } = await import('@/app/api/oauth/token/route');
+
+      const req = new Request('http://localhost:3000/api/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: oauthCode.code,
+          grant_type: 'authorization_code',
+          redirect_uri: testRedirectUri,
+          client_id: 'zealosh-moodle',
+          client_secret: sensitiveAttemptedSecret,
+          code_verifier: codeVerifier,
+        }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(401);
+
+      const rawResponseBody = await res.text();
+
+      // Zero secret exposure in response bodies
+      expect(rawResponseBody).not.toContain(sensitiveConfiguredSecret);
+      expect(rawResponseBody).not.toContain(sensitiveAttemptedSecret);
+      expect(rawResponseBody).not.toContain(process.env.JWT_SECRET);
+    });
+  });
 });

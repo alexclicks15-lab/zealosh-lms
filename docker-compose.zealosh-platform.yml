@@ -46,6 +46,7 @@ services:
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - JWT_SECRET=${JWT_SECRET:-zealosh_super_secret_jwt_key_2026_enterprise}
+      - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET:-}
       - MOODLE_BASE_URL=http://zealosh-moodle
       - BBB_BASE_URL=${BBB_BASE_URL:-${BBB_MEDIA_URL:-https://media.staging.zealosh.com/bigbluebutton/api}}
       - BBB_SECURITY_SALT=${BBB_SECURITY_SALT:-${BBB_SHARED_SECRET:-zealosh_bbb_shared_salt_2026}}

@@ -774,6 +774,46 @@
 - **Recovery Point:** CP-8.2 (206 tests passing, TypeScript clean, 48 Next.js production routes).
 - **Completed At:** 2026-10-27T11:51:00+05:30
 
+---
 
+### Task ID: CP-8.3
+- **Objective:** Recover saved IDE checkpoint; verify present working tree state, test suite, strict TypeScript compilation, and production Next.js build; validate Moodle Option A database architecture readiness; rectify legacy `/bitnami/moodle` container path references in `infra/scripts/moodle-activate-theme-and-sso.sh` to match official `php:8.3-apache` baseline (`/var/www/html`); synchronize project status documentation; establish durable session handoff.
+- **Current Known-Good State:** CP-8.2.
+- **Files Changed:**
+  - `infra/scripts/moodle-activate-theme-and-sso.sh`
+  - `docs/PROJECT_STATUS.md`
+  - `docs/WORK_CHECKPOINTS.md`
+  - `docs/SESSION_HANDOFF.md`
+- **Verification Performed:**
+  1. `npm test`: 206/206 tests passing across 20 test files (100% green).
+  2. `npx tsc --noEmit`: 0 errors.
+  3. `npm run build`: 48/48 routes cleanly compiled and optimized (First Load JS: 87.1 kB).
+  4. Bash syntax validation: all 13 core deployment shell scripts validated via Bash 5.3 (`bash -n`) with 0 errors.
+  5. Preserved uncommitted changes in `data/zealosh-store.json`.
+- **Actual Outcome:** Checkpoint verified, database decision validated, deployment script paths aligned, durable session handoff created.
+- **Remaining Defects / Blockers:** None. (Live cloud VM and Supabase Project 2 provisioning await operator authorization).
+### Task ID: CP-8.4 (Step A — Documentation-Only Reconciliation)
+- **Objective:** Execute authorized Step A documentation-only reconciliation across platform architectural guides, runbooks, and roadmaps without altering code, configuration, database, DNS, or infrastructure:
+  - Reconcile BigBlueButton 4.0 target on Ubuntu 24.04 LTS (`noble-400`).
+  - Standardize canonical BigBlueButton media hostname to `media.staging.zealosh.com` (Prod: `media.zealosh.com`).
+  - Reconcile staging infrastructure cost arithmetic ($84/mo Server 1 + $134/mo Server 2 [including $50 NVMe volume] + $10–$20/mo Project 2 compute + $0.75 R2 = ~$228.75–$238.75/mo total; ~$218.75/mo with Free DB).
+  - Replace terminal stdout secret exposure (`sudo cat`) with secure non-leaking SSH pipe into `/opt/zealosh/.env.staging`.
+  - Accurately document current OAuth token endpoint runtime behavior: RFC 7636 PKCE (`code_verifier`) enforced, `client_secret` not validated at runtime; explicitly warn that `JWT_SECRET` must never be shared with Moodle; queue dedicated `OAUTH_CLIENT_SECRET` validation for Step B.
+  - Consolidate duplicate Section 8 headings in `docs/DEPLOYMENT_RUNBOOK.md`.
+- **Current Known-Good State:** CP-8.3.
+- **Files Changed:**
+  - `docs/DEPLOYMENT_RUNBOOK.md`
+  - `docs/MOODLE_DATABASE_ARCHITECTURE.md`
+  - `docs/ARCHITECTURE.md`
+  - `docs/IMPLEMENTATION_ROADMAP.md`
+  - `docs/SESSION_HANDOFF.md`
+  - `docs/WORK_CHECKPOINTS.md`
+- **Verification Performed:**
+  - Re-verified git status: strictly documentation files modified; `data/zealosh-store.json` preserved untouched.
+  - No environment templates, deployment scripts, Terraform files, Nginx configs, or code modified.
+- **Actual Outcome:** Complete, unified, and accurate documentation baseline established; operational fixes clearly decoupled into Step B.
+- **Remaining Defects / Blockers:** Awaiting explicit authorization for Step B (Operational Fixes) and cloud infrastructure budget.
+- **Recovery Point:** CP-8.4 (Step A Documentation Reconciled; zero code/infra drift).
+- **Completed At:** 2026-10-28T12:45:00+05:30
 
 

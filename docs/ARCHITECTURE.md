@@ -9,7 +9,7 @@
 ## 1. Architectural Philosophy & Principles
 
 1. **One Cohesive Zealosh Product:** The learner experiences a unified brand identity (*Zealosh Training & Consultants*). Third-party vendor names are strictly suppressed from all learner-facing interfaces.
-2. **Self-Hosted Open-Source Foundation:** Upstream Moodle Core 5.3 LTS and BigBlueButton Core 2.7+/3.0 are self-hosted and customized as the *Zealosh Learning Engine* and *Zealosh Live Classroom*, eliminating external SaaS dependencies and recurring license fees. Both Core Hub and Moodle persist their authoritative state to dedicated, isolated Supabase PostgreSQL instances.
+2. **Self-Hosted Open-Source Foundation:** Upstream Moodle Core 5.3 LTS and BigBlueButton 4.0 (Ubuntu 24.04 LTS) are self-hosted and customized as the *Zealosh Learning Engine* and *Zealosh Live Classroom*, eliminating external SaaS dependencies and recurring license fees. Both Core Hub and Moodle persist their authoritative state to dedicated, isolated Supabase PostgreSQL instances.
 3. **Strict Legal & Copyleft Isolation:** 
    - Proprietary Next.js Core Hub operates across a clear network/HTTP boundary from GPL-licensed Moodle and LGPL-licensed BigBlueButton.
    - Customizations to Moodle (`theme_zealosh`) and BigBlueButton (`bbb-custom`) are maintained as separate extension packages conforming to upstream licenses.
@@ -25,7 +25,7 @@ graph TD
     Client["Learner / Instructor / Admin Browser & PWA"]
     
     subgraph Edge["Unified Ingress Edge (Nginx / Cloudflare TLS)"]
-        ReverseProxy["High-Performance Reverse Proxy (lms.zealosh.com)"]
+        ReverseProxy["High-Performance Reverse Proxy Gateway<br/>(Staging: lms.staging.zealosh.com / Prod: lms.zealosh.com)"]
     end
     
     subgraph Zealosh_Core["Zealosh Core Hub (Next.js 14 App Router / React 19 / TypeScript)"]
@@ -45,8 +45,8 @@ graph TD
         MoodleDB[("Supabase Project 2: Dedicated Moodle PostgreSQL 17 DB (Port 5432)")]
     end
     
-    subgraph Live_Classroom["Zealosh Live Classroom (Self-Hosted BigBlueButton 2.7+ Cluster)"]
-        BBBCore["BBB Server (Ubuntu 22.04 LTS / mediasoup / FreeSWITCH)"]
+    subgraph Live_Classroom["Zealosh Live Classroom (Dedicated Server 2: BBB 4.0 Media Node)"]
+        BBBCore["BBB Server (Ubuntu 24.04 LTS / mediasoup / FreeSWITCH)"]
         BBBSkin["Custom Zealosh Whiteboard & HTML5 Client Skin"]
         WebRTC_Bridge["WebRTC Audio / Video SFU & Recording Service"]
     end
@@ -54,17 +54,17 @@ graph TD
     Client -->|HTTPS :443| ReverseProxy
     ReverseProxy -->|/ | /courses | /exams | /student | /admin| Zealosh_Core
     ReverseProxy -->|/learn-engine/*| Learning_Engine
-    ReverseProxy -->|/classroom/*| Live_Classroom
+    Client -->|WebRTC / Audio-Video :443 / UDP| Live_Classroom
     
     Learning_Engine -->|OIDC Token Verification| OIDC_Provider
-    Zealosh_Core -->|Signed Session Tokens| Live_Classroom
+    Zealosh_Core -->|Signed Join API Tokens| Live_Classroom
 ```
 
 ---
 
 ## 3. Unified URL & Routing Structure
 
-All services route through the canonical domain (`lms.zealosh.com`):
+All services route through canonical domains (`lms.staging.zealosh.com` / `media.staging.zealosh.com` in Staging, `lms.zealosh.com` / `media.zealosh.com` in Production):
 
 | Public Path | Upstream Handler | User-Facing Description |
 | :--- | :--- | :--- |
@@ -76,7 +76,7 @@ All services route through the canonical domain (`lms.zealosh.com`):
 | `/verify/[code]` | Next.js Core Hub | Public tamper-proof credential verification. |
 | `/admin` | Next.js Core Hub | 14-tab Superadmin Control Center and governance console. |
 | `/learn-engine/*` | Self-Hosted Moodle (`theme_zealosh`) | Deep learning modules, SCORM packages, homework submissions. |
-| `/classroom/*` | Self-Hosted BigBlueButton (`bbb-custom`) | Live interactive WebRTC classrooms and collaborative whiteboard. |
+| `https://media.staging.zealosh.com` | Dedicated BBB 4.0 Media Node | Live interactive WebRTC classrooms, collaborative whiteboard, audio/video SFU. |
 | `/api/oauth/*` | Next.js Core Hub | OAuth2/OIDC discovery, authorization, and token issuance. |
 
 ---
@@ -86,9 +86,9 @@ All services route through the canonical domain (`lms.zealosh.com`):
 1. Learner authenticates at `/login` on the Zealosh Core Hub.
 2. Next.js issues a secure, HTTP-only session token and OIDC authorization code.
 3. When the learner clicks **"Launch Interactive Learning Module"**, the browser navigates to `/learn-engine/auth/oauth2/login.php?id=zealosh`.
-4. Moodle queries `/api/oauth/token` using client credentials, receives a signed RS256 JWT, and queries `/api/oauth/userinfo`.
+4. Moodle queries `/api/oauth/token` using authorization code with PKCE (`code_verifier`), receives a signed JWT, and queries `/api/oauth/userinfo`. *(Current runtime behavior: the token endpoint enforces PKCE `code_verifier` validation and does not validate `client_secret` at runtime; dedicated `OAUTH_CLIENT_SECRET` verification is deferred to Step B operational fixes. `JWT_SECRET` must NEVER be shared with Moodle)*.
 5. Moodle matches or provisions the student account seamlessly under the verified email, logging the user in instantly with **zero additional password prompts**.
-6. When launching a live classroom (`/live/[sessionId]`), Zealosh Core generates a single-use signed join token verified by BigBlueButton's API.
+6. When launching a live classroom (`/live/[sessionId]`), Zealosh Core generates a single-use signed join token verified by BigBlueButton's API (`media.staging.zealosh.com`).
 
 ---
 

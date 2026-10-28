@@ -28,7 +28,7 @@ To prevent schema pollution, connection starvation, and coupled backup risks, th
 graph TD
     Client["Learner / Instructor / Admin Browser & PWA"]
     
-    subgraph Edge["Unified Edge Gateway (lms.zealosh.com)"]
+    subgraph Edge["Unified Edge Gateway (Staging: lms.staging.zealosh.com / Prod: lms.zealosh.com)"]
         Nginx["Nginx Reverse Proxy (:80 / :443)"]
     end
 
@@ -164,6 +164,7 @@ To avoid connection exhaustion, all potential concurrent database clients on Sup
   - Uses Moodle Core `auth_oauth2` service discovery.
   - Directly maps Zealosh Core Hub endpoints (`/.well-known/openid-configuration`, `/api/oauth/authorize`, `/api/oauth/token`, `/api/oauth/userinfo`).
   - Fully tested against PKCE S256 and `application/x-www-form-urlencoded` token exchange.
+  - **OAuth Secret Model Reality:** In the current runtime implementation, the `/api/oauth/token` endpoint validates RFC 7636 PKCE (`code_verifier`) and does NOT validate `client_secret`. `JWT_SECRET` must NEVER be configured as Moodle's client secret (it is the private cookie-signing key). Dedicated `OAUTH_CLIENT_SECRET` validation is deferred to Step B operational fixes.
 
 ---
 

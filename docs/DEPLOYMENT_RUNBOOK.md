@@ -13,22 +13,22 @@ The Zealosh production deployment consists of two distinct tiers:
 
 ```mermaid
 graph TD
-    PublicDNS["DNS: lms.zealosh.com / classroom.zealosh.com"] --> CloudflareTLS[TLS Termination / CDN]
+    PublicDNS["DNS: Staging: lms.staging.zealosh.com / media.staging.zealosh.com<br/>(Prod: lms.zealosh.com / media.zealosh.com)"] --> CloudflareTLS[TLS Termination / CDN]
     
-    subgraph Core_Host["Zealosh Application Host (Docker Host / Cloud VM: 4 vCPU, 16GB RAM)"]
+    subgraph Core_Host["Zealosh Application Host (Server 1: Ubuntu 22.04 LTS: 4 vCPU, 16GB RAM)"]
         NginxGateway["Nginx Reverse Proxy Gateway (:80 / :443)"]
         NextApp["Zealosh Core Hub (Next.js 14 Container :3000)"]
         MoodleEngine["Zealosh Learning Engine (Moodle 5.3 LTS Container :80)"]
         RedisStore[(Redis 7 Cache :6379)]
     end
 
-    subgraph Supabase_Cloud["Managed Supabase Cloud (Isolated Databases)"]
+    subgraph Supabase_Cloud["Managed Supabase Cloud (Strictly Isolated Projects)"]
         Supabase1[("Supabase Project 1: Core Hub DB (Cloud PostgreSQL)")]
         Supabase2[("Supabase Project 2: Moodle Engine DB (PostgreSQL 17 :5432)")]
     end
     
-    subgraph Media_Host["Zealosh Live Classroom Host (Dedicated Bare-Metal / VPS: 8 vCPU, 16GB RAM)"]
-        BBBNode["BigBlueButton 2.7+ Cluster (Ubuntu 22.04 LTS)"]
+    subgraph Media_Host["Zealosh Live Classroom Host (Server 2: Ubuntu 24.04 LTS: 8 vCPU, 16GB RAM, 500GB SSD)"]
+        BBBNode["BigBlueButton 4.0 Media Node (Ubuntu 24.04 LTS)"]
         Kurento_MediaSoup["WebRTC mediasoup / FreeSWITCH Audio SFU"]
         RecordingWorker["Recording Processing Worker"]
     end
@@ -116,8 +116,8 @@ docker compose --env-file .env.staging -f docker-compose.zealosh-platform.yml lo
 2. Click **Create custom service**:
    - **Name:** `Zealosh Core Hub`
    - **Client ID:** `zealosh-moodle`
-   - **Client Secret:** *(Matches JWT_SECRET / OAUTH_CLIENT_SECRET)*
-   - **Service Base URL:** `https://lms.zealosh.com`
+   - **Client Secret:** `placeholder-not-validated-in-current-build` *(See Security Note below)*
+   - **Service Base URL:** `https://lms.staging.zealosh.com` *(Prod: `https://lms.zealosh.com`)*
    - **Show on login page:** **Yes**
 3. Endpoints auto-discovered via `/.well-known/openid-configuration`:
    - `authorization_endpoint`: `/api/oauth/authorize`
@@ -129,6 +129,12 @@ docker compose --env-file .env.staging -f docker-compose.zealosh-platform.yml lo
    - `name` -> `firstname`
    - `preferred_username` -> `username`
 5. Enable **OAuth 2** plugin in **Site administration** > **Plugins** > **Authentication** > **Manage authentication**.
+
+> [!CAUTION]
+> **OAuth Secret Model & Security Isolation Invariant:**
+> - **Current Runtime Behavior:** The Core Hub token endpoint (`/api/oauth/token`) currently enforces RFC 7636 PKCE (`code_verifier`) and **does NOT validate `client_secret` at runtime**.
+> - **Never Use `JWT_SECRET`:** Under no circumstances should `JWT_SECRET` ever be supplied to Moodle or configured as Moodle's client secret. `JWT_SECRET` is the private symmetric key used to sign HTTP session cookies and internal tokens; leaking it to Moodle or entering it in Moodle's database/UI would severely compromise platform session security.
+> - **Step B Operational Fix:** Adding dedicated `OAUTH_CLIENT_SECRET` validation (with a separate, dedicated secret completely decoupled from `JWT_SECRET`) is queued for **Step B — Operational Fixes**. Documenting this behavior accurately describes the current codebase and does NOT imply that client-secret validation has been implemented.
 
 ---
 
@@ -149,23 +155,26 @@ According to official BigBlueButton administration guidelines ([https://docs.big
 wget -O /tmp/bbb-install.sh https://ubuntu.bigbluebutton.org/bbb-install.sh
 head -n 25 /tmp/bbb-install.sh # inspect header & version
 
-# 2. Execute installer locally with BBB 4.0 target
+# 2. Execute installer locally with BBB 4.0 target on Ubuntu 24.04 LTS
 chmod 0700 /tmp/bbb-install.sh
 sudo bash /tmp/bbb-install.sh \
   -v noble-400 \
-  -s classroom.staging.zealosh.com \
+  -s media.staging.zealosh.com \
   -e admin@zealosh.com \
   -a -w
 rm -f /tmp/bbb-install.sh
+# (Note: Existing deploy/bbb-staging-setup.sh currently references classroom.staging.zealosh.com; alignment to media.staging.zealosh.com is scheduled in Step B).
 
 # 3. Apply Zealosh Live Classroom Custom Branding Overlay
 cd /opt/zealosh/bbb-custom
 sudo bash apply-branding.sh
 
-# 4. Isolate API Secret (Zero Log Leakage)
-# The setup script writes the secret to /etc/bigbluebutton/zealosh-secret.env (mode 0600)
-# Retrieve on host without echoing to stdout or deployment logs:
-sudo cat /etc/bigbluebutton/zealosh-secret.env
+# 4. Securely Transfer API Secret (Zero Console / Log Leakage)
+# The setup script writes the secret to /etc/bigbluebutton/zealosh-secret.env (mode 0600) on Server 2.
+# Do NOT run `sudo cat` directly in an interactive shell, which prints the plaintext salt to the terminal and scrollback logs.
+# Instead, append it directly into Server 1's /opt/zealosh/.env.staging via SSH pipe without terminal stdout echo:
+ssh deployer@<SERVER_2_IP> "sudo cat /etc/bigbluebutton/zealosh-secret.env" | grep "^BIGBLUEBUTTON_SECRET=" >> /opt/zealosh/.env.staging
+chmod 0600 /opt/zealosh/.env.staging
 ```
 
 ---
@@ -275,38 +284,36 @@ If an installation or container boot halts in `PARTIAL_OR_UNEXPECTED` state:
 | **1. Cloud Account & Provider** | DigitalOcean (or AWS/Hetzner/GCP) account with VPC networking and Droplet quota | **Account access pending operator provision.** Terraform manifests prepared in `infra/terraform/`. | `doctl account get` |
 | **2. Application Hostname & DNS** | `lms.staging.zealosh.com` A-record pointing to Server 1 Public IP | **DNS configuration pending server IP assignment.** Cloudflare/Route53 management. | `dig +short lms.staging.zealosh.com` |
 | **3. Moodle Hostname & Routing** | Subpath `/learn-engine/` on `lms.staging.zealosh.com` reverse-proxied to `zealosh-moodle:80` | **Configured & Validated** in `deploy/nginx/nginx.staging.conf`. | `curl -sI -H "Host: lms.staging.zealosh.com" http://127.0.0.1/learn-engine/` |
-| **4. BigBlueButton Hostname & DNS** | `classroom.staging.zealosh.com` A-record pointing to Server 2 Public IP | **DNS configuration pending media server IP.** | `dig +short classroom.staging.zealosh.com` |
-| **5. TLS Certificates & DNS Validation** | Public Let's Encrypt certificates for `lms.staging.zealosh.com` & `classroom.staging.zealosh.com` | Automated via Certbot / Cloudflare Edge TLS / `bbb-install.sh`. | `openssl s_client -connect lms.staging.zealosh.com:443 -servername lms.staging.zealosh.com` |
+| **4. BigBlueButton Hostname & DNS** | `media.staging.zealosh.com` A-record pointing to Server 2 Public IP | Canonical media hostname. (DNS pending IP assignment; script and template alignment queued in Step B). | `dig +short media.staging.zealosh.com` |
+| **5. TLS Certificates & DNS Validation** | Public Let's Encrypt certificates for `lms.staging.zealosh.com` & `media.staging.zealosh.com` | Automated via Certbot / Cloudflare Edge TLS / `bbb-install.sh`. | `openssl s_client -connect lms.staging.zealosh.com:443 -servername lms.staging.zealosh.com` |
 | **6. Local SSH Access** | Operator SSH key pair configured locally (`~/.ssh/id_ed25519` or `~/.ssh/id_rsa`) | Public key fingerprinted in `infra/terraform/variables.tf`. | `ssh -i ~/.ssh/id_ed25519 root@<SERVER_IP>` |
 | **7. Supabase & PostgreSQL 17** | **Project 1:** `https://yeegsljnjwxdhgzfdnyg.supabase.co` (Active)<br/>**Project 2:** Dedicated PostgreSQL 17 for Moodle (Port 5432 Session Mode) | Project 1 active & verified (206/206 tests green). Project 2 pending operator provisioning approval. | Session Mode port 5432 TCP handshake probe. |
 | **8. Secret Isolation & Environment** | Isolated `.env.staging` (0600) + Docker secret `secrets/moodle_admin_password.txt` (0600) | Templates prepared in `.env.staging.example`. Zero passwords printed in logs or committed. | `test -f secrets/moodle_admin_password.txt && stat -c %a secrets/moodle_admin_password.txt` |
 | **9. Firewall & Network Ports** | **Server 1:** TCP 22 (SSH), TCP 80 (HTTP), TCP 443 (HTTPS)<br/>**Server 2:** TCP 22, TCP 80, TCP 443, UDP 16384-32768 (WebRTC) | Defined in `infra/terraform/firewalls.tf` and cloud-init manifests. | `ufw status verbose` on target hosts |
-| **10. Estimated Infrastructure Cost** | **Server 1:** $84/mo (4 vCPU, 16GB RAM)<br/>**Server 2:** $84/mo (c-8: 8 vCPU, 16GB RAM) + $50/mo (500GB NVMe)<br/>**Database:** $25/mo (Supabase Pro) or $15-30/mo (Managed Postgres) | **Estimated Total: ~$193 - $243 / month** for full dual-node staging cluster. | Cloud billing dashboard |
+| **10. Estimated Infrastructure Cost** | **Server 1 (App):** $84/mo (DigitalOcean `s-4vcpu-16gb`: 4 vCPU, 16GB RAM)<br/>**Server 2 (Media):** $84/mo (DigitalOcean `c-8`: 8 vCPU, 16GB RAM) + $50/mo (500GB NVMe Volume @ $0.10/GB) = $134/mo<br/>**Database (Project 2):** $10–$20/mo (Compute add-on in existing Pro Org) or $0/mo (Free Tier for smoke testing)<br/>**Storage (Cloudflare R2):** ~$0.75/mo (50GB storage, $0 egress) | **Staging Total (Paid DB): ~$228.75 – $238.75 / month**<br/>*(With Free DB smoke test: ~$218.75/mo; +18% GST if applicable: ~$269.93 – $281.73/mo)* | Cloud billing dashboard |
 | **11. Backup Storage & Destination** | Local directory `/opt/zealosh/backups` + offsite S3/R2 bucket with 7-day daily retention | Scripted in `infra/scripts/backup-restore-test.sh`. Documented in `BACKUP_AND_RESTORE_RUNBOOK.md`. | `ls -la /opt/zealosh/backups` |
 | **12. Deployment Access Privileges** | Root / sudo access on Ubuntu hosts; deployer user in docker group | Defined in `infra/cloud-init/app-server.cloud-init.yaml`. | `id deployer` |
 
 ---
 
-## 8. Safe Ordered Staging Deployment Procedure
+## 8. Authoritative Operator-Controlled Staging Deployment Sequence
 
-Follow these sequential steps when deploying onto real staging infrastructure:
+Follow this rigorous, operator-controlled sequence when deploying onto real staging infrastructure:
 
 ### Phase 1: Pre-Deployment Account & DNS Setup
 1. Verify cloud provider quota (at least 12 vCPUs, 32GB RAM across 2 Droplets/VMs).
 2. Provision DNS A-records in DNS management console:
    - `lms.staging.zealosh.com` -> `[Server 1 Planned Public IP]`
-   - `classroom.staging.zealosh.com` -> `[Server 2 Planned Public IP]`
+   - `media.staging.zealosh.com` -> `[Server 2 Planned Public IP]`
 3. Ensure domain names propagate before attempting Let's Encrypt TLS issuance.
 
-## 8. Authoritative Operator-Controlled Staging Deployment Sequence
-
-Follow this rigorous, operator-controlled 10-step sequence when deploying onto real staging infrastructure.
+### Phase 2: 10-Step Staging Execution Procedure
 
 > [!IMPORTANT]
 > **Execution Status:** **Steps 1–10 are UNEXECUTED.** They require explicit operator authorization, account access, and real cloud resource provisioning. No paid servers or databases have been created.
 
 ### Step 1: Review Project & Compute Cost
-- **Action:** Review the incremental cost model ($10–$20/mo compute for Project 2 within existing Pro organization + $84/mo for Server 1 + $134/mo for Server 2 with 500GB SSD).
+- **Action:** Review the reconciled cost model ($10–$20/mo compute for Project 2 within existing Pro organization + $84/mo for Server 1 + $134/mo for Server 2 with 500GB SSD NVMe volume; total ~$228.75–$238.75/mo, or ~$218.75/mo with Free DB smoke test).
 - **Status:** `[PENDING OPERATOR BUDGET APPROVAL]`
 
 ### Step 2: Create Dedicated Supabase Project 2 (PostgreSQL 17+)
