@@ -1,0 +1,13 @@
+{
+  "run_id": "run-20261101-130313-s311026",
+  "seed": 311026,
+  "candidates": [
+    "a001",
+    "a002",
+    "a003",
+    "a004"
+  ],
+  "champion": "a004",
+  "final_score": 98.45,
+  "determination": "OUTCOME 2 — VERIFIED WITH NON-BLOCKING GAPS"
+}

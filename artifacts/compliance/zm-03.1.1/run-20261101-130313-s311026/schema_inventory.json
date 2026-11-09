@@ -1,0 +1,30 @@
+{
+  "tables": [
+    "users",
+    "profiles",
+    "courses",
+    "batches",
+    "enrollments",
+    "lessons",
+    "live_sessions",
+    "attendance",
+    "exam_blueprints",
+    "exam_questions",
+    "exam_attempts",
+    "exam_manual_evaluations",
+    "certificates",
+    "payment_orders",
+    "invoices",
+    "invoice_credit_notes",
+    "payment_webhook_events"
+  ],
+  "views": [
+    "learner_exam_questions"
+  ],
+  "migrations_verified": [
+    "20261030000008",
+    "20261031000009",
+    "20261031000010",
+    "20261031000011"
+  ]
+}

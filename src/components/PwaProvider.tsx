@@ -71,7 +71,7 @@ export default function PwaProvider({ children }: { children: React.ReactNode })
     <>
       {/* Offline Status Bar */}
       {isOffline && (
-        <div className="bg-[#252c41] text-white px-4 py-2.5 text-xs font-medium flex items-center justify-between sticky top-0 z-50 shadow-md border-b border-amber-500/30">
+        <div className="bg-[#1e481c] text-white px-4 py-2.5 text-xs font-medium flex items-center justify-between sticky top-0 z-50 shadow-md border-b border-amber-500/30">
           <div className="flex items-center gap-2 max-w-7xl mx-auto w-full">
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
             <WifiOff className="w-4 h-4 text-amber-400 flex-shrink-0" />
@@ -93,12 +93,12 @@ export default function PwaProvider({ children }: { children: React.ReactNode })
 
       {/* PWA Install Banner */}
       {showInstallBanner && (
-        <div className="fixed bottom-4 right-4 z-40 bg-white border border-[#eaedf5] p-4 rounded-xl shadow-xl max-w-sm flex items-start gap-3">
+        <div className="fixed bottom-4 right-4 z-40 bg-white border border-[#e2efe1] p-4 rounded-xl shadow-xl max-w-sm flex items-start gap-3">
           <div className="p-2 bg-[#e1f0df] rounded-lg text-[#3a7536] flex-shrink-0">
             <Download className="w-5 h-5" />
           </div>
           <div className="flex-1">
-            <h4 className="text-xs font-bold text-[#252c41]">Install Zealosh LMS App</h4>
+            <h4 className="text-xs font-bold text-slate-900">Install Zealosh LMS App</h4>
             <p className="text-[11px] text-gray-500 mt-0.5">
               Install for instant access, offline mock exam preparation, and class notifications.
             </p>

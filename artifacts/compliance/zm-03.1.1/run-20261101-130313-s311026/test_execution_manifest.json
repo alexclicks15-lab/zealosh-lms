@@ -1,0 +1,17 @@
+{
+  "vitest": {
+    "status": "PASS",
+    "passed": 484,
+    "failed": 0,
+    "test_files": 40
+  },
+  "tsc": {
+    "status": "PASS",
+    "error_count": 0
+  },
+  "next_build": {
+    "status": "PASS",
+    "routes_compiled": 75,
+    "errors": 0
+  }
+}

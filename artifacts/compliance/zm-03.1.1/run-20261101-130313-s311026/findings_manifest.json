@@ -1,0 +1,18 @@
+[
+  {
+    "id": "SEC-MFA-001",
+    "severity": "HIGH",
+    "title": "Client Header Trust in Administrator MFA Guard",
+    "affected_file": "src/lib/auth/admin-guard.ts",
+    "remediated": true,
+    "description": "Removed untrusted x-mfa-verified header check; enforced signed JWT claims."
+  },
+  {
+    "id": "TIMING-001",
+    "severity": "MEDIUM",
+    "title": "Grace Period and Deadline Divergence in Supabase Storage Adapter",
+    "affected_file": "src/lib/store/supabase-adapter.ts",
+    "remediated": true,
+    "description": "Incorporated blueprint.gracePeriodSeconds into deadlineTime calculation and insert payload."
+  }
+]

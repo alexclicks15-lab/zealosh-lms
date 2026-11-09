@@ -7,6 +7,8 @@ import { db } from '@/lib/store/db';
 import { verifyToken } from '@/lib/auth/jwt';
 import { ClassRecording, UserRole } from '@/types';
 import { recordingStorage } from '@/lib/storage/recording-storage';
+import { isAuthorizedPlatformTenant } from '@/lib/store/live-session-resolver';
+import { resolveCourseRecordings } from '@/lib/store/course-recording-resolver';
 
 function extractUser(request: Request) {
   const authHeader = request.headers.get('authorization');
@@ -27,10 +29,36 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
+    const tokenOrgId = (user as { organizationId?: string }).organizationId;
+    if (!isAuthorizedPlatformTenant(tokenOrgId)) {
+      return NextResponse.json({ error: 'Forbidden: Unauthorized tenant organization' }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get('courseId') || undefined;
     const batchId = searchParams.get('batchId') || undefined;
     const sessionId = searchParams.get('sessionId') || undefined;
+
+    // When courseId is provided, delegate to authoritative course recording resolver
+    if (courseId && !batchId && !sessionId) {
+      const courseResult = await resolveCourseRecordings(user.userId, courseId, {
+        tokenOrganizationId: tokenOrgId,
+      });
+
+      if (!courseResult.success) {
+        const status = courseResult.statusCode || (courseResult.error === 'COURSE_NOT_FOUND' ? 404 : 400);
+        return NextResponse.json({ error: courseResult.error || 'Failed to resolve course recordings' }, { status });
+      }
+
+      return NextResponse.json({
+        success: true,
+        count: courseResult.count,
+        courseId: courseResult.courseId,
+        courseTitle: courseResult.courseTitle,
+        entitlementStatus: courseResult.entitlementStatus,
+        recordings: courseResult.recordings,
+      });
+    }
 
     // Retrieve recordings matching filter
     const allRecordings = await db.getClassRecordings({ courseId, batchId, sessionId });

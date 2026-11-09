@@ -1,7 +1,7 @@
-// Zealosh LMS — Production Service Worker
+// Zealosh LMS — Production Service Worker v3.0
 // Implements PWA App Shell Caching, Offline Fallback, and Resilient Synchronization
 
-const CACHE_NAME = 'zealosh-lms-v2.0';
+const CACHE_NAME = 'zealosh-lms-v3.0';
 const STATIC_ASSETS = [
   '/',
   '/offline.html',
@@ -13,9 +13,11 @@ const STATIC_ASSETS = [
 // Sensitive endpoints that must NEVER be served from or saved to shared caches
 const SENSITIVE_URL_PATTERNS = [
   /\/api\/auth/,
-  /\/api\/exams\/.*\/answers/,
-  /\/api\/exams\/.*\/submit/,
+  /\/api\/exams/,
   /\/api\/admin/,
+  /\/api\/payments/,
+  /\/api\/support/,
+  /\/api\/storage/,
 ];
 
 self.addEventListener('install', (event) => {
@@ -49,7 +51,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Security Gate: bypass service worker cache for sensitive security endpoints
+  // Security Gate: bypass service worker cache for sensitive security & transactional endpoints
   if (SENSITIVE_URL_PATTERNS.some((pattern) => pattern.test(url.pathname))) {
     event.respondWith(fetch(request));
     return;
@@ -85,9 +87,25 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Resilient Background Sync Queue for Learning Progress
+// Cache purge and control messages
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+  if (event.data) {
+    if (event.data.type === 'SKIP_WAITING') {
+      self.skipWaiting();
+    }
+    if (event.data.type === 'CLEAR_USER_CACHE' || event.data.type === 'USER_LOGOUT') {
+      // Purge dynamic caches to prevent cross-user data leakage
+      event.waitUntil(
+        caches.keys().then((keys) => {
+          return Promise.all(
+            keys.map((key) => {
+              if (key !== CACHE_NAME) {
+                return caches.delete(key);
+              }
+            })
+          );
+        })
+      );
+    }
   }
 });

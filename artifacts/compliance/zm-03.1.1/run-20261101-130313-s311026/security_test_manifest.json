@@ -1,0 +1,7 @@
+{
+  "mfa_enforcement": "VERIFIED (Client header rejected with 403, signed JWT accepted)",
+  "candidate_answer_redaction": "VERIFIED",
+  "cross_candidate_isolation": "VERIFIED",
+  "webhook_signature_check": "VERIFIED (HMAC-SHA256)",
+  "rls_evaluation_protection": "VERIFIED"
+}

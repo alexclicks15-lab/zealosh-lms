@@ -176,9 +176,9 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
   if (examResult) {
     return (
       <div className="py-12 px-4 sm:px-8 max-w-5xl mx-auto w-full">
-        <div className="bg-white rounded-2xl border border-[#eaedf5] shadow-lg overflow-hidden">
+        <div className="bg-white rounded-2xl border border-[#e2efe1] shadow-lg overflow-hidden">
           {/* Result Header */}
-          <div className={`p-8 text-white ${examResult.passed ? 'bg-gradient-to-r from-[#252c41] to-[#3a7536]' : 'bg-gradient-to-r from-[#252c41] to-red-800'}`}>
+          <div className={`p-8 text-white ${examResult.passed ? 'bg-gradient-to-r from-[#1e481c] to-[#3a7536]' : 'bg-gradient-to-r from-[#1e481c] to-red-800'}`}>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
               <div>
                 <span className="bg-white/20 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
@@ -223,7 +223,7 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#3a7536] bg-green-100 px-2 py-0.5 rounded">
                     Official Accreditation Credential Issued
                   </span>
-                  <h3 className="text-lg font-extrabold text-[#252c41] mt-1">
+                  <h3 className="text-lg font-extrabold text-slate-900 mt-1">
                     Certificate Code: {examResult.certificate.certificateCode}
                   </h3>
                   <p className="text-xs text-gray-600 mt-0.5">
@@ -245,8 +245,8 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
           )}
 
           {/* Domain Breakdown */}
-          <div className="p-8 border-b border-[#eaedf5]">
-            <h3 className="font-bold text-base text-[#252c41] mb-4">
+          <div className="p-8 border-b border-[#e2efe1]">
+            <h3 className="font-bold text-base text-slate-900 mb-4">
               Domain-by-Domain Blueprint Breakdown
             </h3>
             <div className="space-y-4">
@@ -273,7 +273,7 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
 
           {/* Question-Level Review with Explanations */}
           <div className="p-8">
-            <h3 className="font-bold text-base text-[#252c41] mb-6">
+            <h3 className="font-bold text-base text-slate-900 mb-6">
               Detailed Question Analysis & Authoritative Explanations
             </h3>
 
@@ -297,7 +297,7 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
                     </span>
                   </div>
 
-                  <p className="text-sm font-bold text-[#252c41] mb-4">
+                  <p className="text-sm font-bold text-slate-900 mb-4">
                     {q.stem}
                   </p>
 
@@ -347,7 +347,7 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
               ))}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-[#eaedf5] flex justify-between items-center">
+            <div className="mt-8 pt-6 border-t border-[#e2efe1] flex justify-between items-center">
               <Link href="/exams" className="btn-outline text-xs">
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Exam Hub</span>
@@ -368,7 +368,7 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
   return (
     <div className="min-h-screen bg-[#f7f9fc] flex flex-col">
       {/* Top Examination HUD */}
-      <div className="bg-[#252c41] text-white px-4 sm:px-8 py-3.5 sticky top-0 z-40 border-b border-gray-700 flex items-center justify-between shadow-md">
+      <div className="bg-[#1e481c] text-white px-4 sm:px-8 py-3.5 sticky top-0 z-40 border-b border-emerald-900 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-3">
           <span className="bg-[#4f8c4c] text-white text-[10px] font-bold px-2.5 py-1 rounded">
             BCSP TIMED SIMULATION
@@ -404,10 +404,10 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
       {/* Main Examination View */}
       <div className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Question Area */}
-        <div className="lg:col-span-8 flex flex-col justify-between bg-white rounded-2xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
+        <div className="lg:col-span-8 flex flex-col justify-between bg-white rounded-2xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
           {currentQ ? (
             <div>
-              <div className="flex items-center justify-between border-b border-[#eaedf5] pb-4 mb-6">
+              <div className="flex items-center justify-between border-b border-[#e2efe1] pb-4 mb-6">
                 <div>
                   <span className="text-xs font-bold text-[#4f8c4c] uppercase tracking-wider">
                     Question {currentIndex + 1} of {questions.length}
@@ -433,7 +433,7 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
               </div>
 
               {/* Question Stem */}
-              <div className="text-base sm:text-lg font-bold text-[#252c41] leading-relaxed mb-6">
+              <div className="text-base sm:text-lg font-bold text-slate-900 leading-relaxed mb-6">
                 {currentQ.stem}
               </div>
 
@@ -449,10 +449,10 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
                       className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
                         isSelected
                           ? 'border-[#4f8c4c] bg-[#f1f8f0]'
-                          : 'border-[#eaedf5] hover:border-gray-300 bg-white'
+                          : 'border-[#e2efe1] hover:border-gray-300 bg-white'
                       }`}
                     >
-                      <span className="text-sm font-medium text-[#252c41]">
+                      <span className="text-sm font-medium text-slate-900">
                         {opt.text}
                       </span>
                       <div
@@ -472,7 +472,7 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
           )}
 
           {/* Navigation Controls */}
-          <div className="pt-6 border-t border-[#eaedf5] flex items-center justify-between">
+          <div className="pt-6 border-t border-[#e2efe1] flex items-center justify-between">
             <button
               onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
               disabled={currentIndex === 0}
@@ -495,8 +495,8 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
 
         {/* Question Palette Sidebar */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white rounded-2xl border border-[#eaedf5] p-6 shadow-xs">
-            <h3 className="text-sm font-bold text-[#252c41] mb-3">
+          <div className="bg-white rounded-2xl border border-[#e2efe1] p-6 shadow-xs">
+            <h3 className="text-sm font-bold text-slate-900 mb-3">
               Question Navigator ({Object.keys(answers).length}/{questions.length} Answered)
             </h3>
 
@@ -527,7 +527,7 @@ export default function ExamAttemptPage({ params }: { params: { examId: string }
             </div>
 
             {/* Legend */}
-            <div className="space-y-2 text-xs text-gray-500 pt-4 border-t border-[#eaedf5]">
+            <div className="space-y-2 text-xs text-gray-500 pt-4 border-t border-[#e2efe1]">
               <div className="flex items-center gap-2">
                 <div className="w-3.5 h-3.5 rounded bg-[#4f8c4c]" />
                 <span>Answered</span>

@@ -3,6 +3,7 @@
 // Strict typed mapping between Supabase PostgreSQL schema and TypeScript domain entities
 
 import { getSupabaseAdminClient } from '@/lib/supabase';
+import { DatabasePersistenceError, classifyDatabaseError } from './db-errors';
 import {
   User,
   Course,
@@ -14,6 +15,7 @@ import {
   ExamQuestion,
   ExamBlueprint,
   ExamAttempt,
+  FrozenExamQuestionSnapshot,
   AuditLogEntry,
   PlatformSettings,
   BrandingTheme,
@@ -29,6 +31,15 @@ import {
   NotificationTemplate,
   Assignment,
   AssignmentSubmission,
+  ClassroomAnnouncement,
+  AiReviewSuggestion,
+  InAppNotification,
+  EmailOutboxJob,
+  EmailOutboxStatus,
+  EmailErrorClassification,
+  EmailDeliveryEvent,
+  EmailTemplate,
+  UserNotificationPreference,
   RubricScore,
   RubricCriterion,
   RecurringScheduleRule,
@@ -45,12 +56,290 @@ import {
   RecordingDoubt,
   RecordingDoubtAnswer,
   DoubtStatus,
+  DiagnosticIssue,
+  DiagnosticEvent,
+  DiagnosticCategory,
+  DiagnosticSeverity,
+  DiagnosticIssueStatus,
+  DiagnosticSource,
+  ServiceHealthCheck,
+  ServiceHealthStatus,
+  SupportCategory,
+  SupportTeam,
+  SupportTeamMember,
+  SupportSlaPolicy,
+  SupportTicket,
+  SupportTicketMessage,
+  SupportTicketEvent,
+  SupportTicketAttachment,
+  SupportTicketFilterParams,
+  SupportTicketStatus,
+  SupportTicketPriority,
+  SupportTicketImpact,
+  SupportMessageVisibility,
+  SupportSlaStatus,
+  SupportTicketEventType,
+  DirectMessage,
+  CmsPage,
+  CmsPageVersion,
+  CmsPageNode,
+  CmsTemplate,
+  CmsReusableBlock,
+  CmsPublicationRecord,
+  CmsScheduledPublicationJob,
+  CmsPublicationJobStatus,
 } from '@/types';
 
+
+export function isTableMissingError(error: any): boolean {
+  if (!error) return false;
+  if (error.code === 'PGRST205' || error.code === '42P01') return true;
+  const msg = typeof error.message === 'string' ? error.message : '';
+  return (
+    msg.includes('relation') ||
+    msg.includes('does not exist') ||
+    msg.includes('schema cache') ||
+    msg.includes('Could not find the table')
+  );
+}
 
 // ============================================================================
 // DTO MAPPERS (Database Snake_Case <-> TypeScript CamelCase)
 // ============================================================================
+
+export function mapDomainDirectMessageToDb(msg: DirectMessage): any {
+  return {
+    id: msg.id,
+    sender_id: msg.senderId,
+    sender_name: msg.senderName,
+    sender_role: msg.senderRole,
+    recipient_id: msg.recipientId || null,
+    course_id: msg.courseId,
+    batch_id: msg.batchId || null,
+    subject: msg.subject || null,
+    content: msg.content,
+    read: Boolean(msg.read),
+    read_at: msg.readAt || (msg.read ? new Date().toISOString() : null),
+    client_message_id: msg.clientMessageId || null,
+    created_at: msg.createdAt || new Date().toISOString(),
+    updated_at: msg.updatedAt || new Date().toISOString(),
+  };
+}
+
+export function mapDbDirectMessageToDomain(row: any): DirectMessage {
+  return {
+    id: row.id,
+    senderId: row.sender_id,
+    senderName: row.sender_name,
+    senderRole: row.sender_role,
+    recipientId: row.recipient_id || undefined,
+    courseId: row.course_id,
+    batchId: row.batch_id || undefined,
+    subject: row.subject || undefined,
+    content: row.content,
+    read: Boolean(row.read),
+    readAt: row.read_at || undefined,
+    clientMessageId: row.client_message_id || undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at || undefined,
+  };
+}
+
+export function mapDomainCmsPageToDb(page: CmsPage): any {
+  return {
+    id: page.id,
+    slug: page.slug,
+    title: page.title,
+    page_type: page.pageType,
+    status: page.status,
+    current_draft_version_id: page.currentDraftVersionId || null,
+    published_version_id: page.publishedVersionId || null,
+    scheduled_publish_at: page.scheduledPublishAt || null,
+    scheduled_version_id: page.scheduledVersionId || null,
+    seo_metadata: page.seoMetadata || {},
+    created_by: page.createdBy,
+    updated_by: page.updatedBy,
+    created_at: page.createdAt || new Date().toISOString(),
+    updated_at: page.updatedAt || new Date().toISOString(),
+  };
+}
+
+export function mapDbCmsPageToDomain(row: any): CmsPage {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    pageType: row.page_type,
+    status: row.status,
+    currentDraftVersionId: row.current_draft_version_id || undefined,
+    publishedVersionId: row.published_version_id || undefined,
+    scheduledPublishAt: row.scheduled_publish_at || undefined,
+    scheduledVersionId: row.scheduled_version_id || undefined,
+    seoMetadata: row.seo_metadata || {},
+    createdBy: row.created_by,
+    updatedBy: row.updated_by,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function mapDomainCmsPageVersionToDb(ver: CmsPageVersion): any {
+  return {
+    id: ver.id,
+    page_id: ver.pageId,
+    version_number: ver.versionNumber,
+    status: ver.status,
+    change_summary: ver.changeSummary || null,
+    rejection_reason: ver.rejectionReason || null,
+    created_by: ver.createdBy,
+    approved_by: ver.approvedBy || null,
+    published_at: ver.publishedAt || null,
+    scheduled_publish_at: ver.scheduledPublishAt || null,
+    created_at: ver.createdAt || new Date().toISOString(),
+    updated_at: ver.updatedAt || new Date().toISOString(),
+  };
+}
+
+export function mapDbCmsPageVersionToDomain(row: any): CmsPageVersion {
+  return {
+    id: row.id,
+    pageId: row.page_id,
+    versionNumber: row.version_number,
+    status: row.status,
+    changeSummary: row.change_summary || undefined,
+    rejectionReason: row.rejection_reason || undefined,
+    createdBy: row.created_by,
+    approvedBy: row.approved_by || undefined,
+    publishedAt: row.published_at || undefined,
+    scheduledPublishAt: row.scheduled_publish_at || undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function mapDomainCmsScheduledPublicationJobToDb(job: CmsScheduledPublicationJob): any {
+  return {
+    id: job.id,
+    page_id: job.pageId,
+    version_id: job.versionId,
+    scheduled_at: job.scheduledAt,
+    scheduled_by: job.scheduledBy,
+    status: job.status,
+    attempt_count: job.attemptCount || 0,
+    max_attempts: job.maxAttempts || 3,
+    locked_at: job.lockedAt || null,
+    locked_by: job.lockedBy || null,
+    completed_at: job.completedAt || null,
+    error_message: job.errorMessage || null,
+    created_at: job.createdAt || new Date().toISOString(),
+    updated_at: job.updatedAt || new Date().toISOString(),
+  };
+}
+
+export function mapDbCmsScheduledPublicationJobToDomain(row: any): CmsScheduledPublicationJob {
+  return {
+    id: row.id,
+    pageId: row.page_id,
+    versionId: row.version_id,
+    scheduledAt: row.scheduled_at,
+    scheduledBy: row.scheduled_by,
+    status: row.status,
+    attemptCount: row.attempt_count || 0,
+    maxAttempts: row.max_attempts || 3,
+    lockedAt: row.locked_at || undefined,
+    lockedBy: row.locked_by || undefined,
+    completedAt: row.completed_at || undefined,
+    errorMessage: row.error_message || undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function mapDomainCmsPageNodeToDb(node: CmsPageNode): any {
+  return {
+    id: node.id,
+    page_version_id: node.pageVersionId,
+    parent_id: node.parentId || null,
+    node_type: node.nodeType,
+    component_type: node.componentType,
+    position: node.position,
+    props: node.props || {},
+    styles: node.styles || {},
+    responsive_styles: node.responsiveStyles || {},
+    dynamic_binding: node.dynamicBinding || null,
+    enabled: Boolean(node.enabled),
+    created_at: node.createdAt || new Date().toISOString(),
+    updated_at: node.updatedAt || new Date().toISOString(),
+  };
+}
+
+export function mapDbCmsPageNodeToDomain(row: any): CmsPageNode {
+  return {
+    id: row.id,
+    pageVersionId: row.page_version_id,
+    parentId: row.parent_id || null,
+    nodeType: row.node_type,
+    componentType: row.component_type,
+    position: row.position,
+    props: row.props || {},
+    styles: row.styles || {},
+    responsiveStyles: row.responsive_styles || {},
+    dynamicBinding: row.dynamic_binding || null,
+    enabled: Boolean(row.enabled),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function mapDomainCmsTemplateToDb(tpl: CmsTemplate): any {
+  return {
+    id: tpl.id,
+    name: tpl.name,
+    description: tpl.description || null,
+    category: tpl.category,
+    template_type: tpl.templateType,
+    preview_image_url: tpl.previewImageUrl || null,
+    nodes_snapshot: tpl.nodesSnapshot || [],
+    created_by: tpl.createdBy,
+    created_at: tpl.createdAt || new Date().toISOString(),
+  };
+}
+
+export function mapDbCmsTemplateToDomain(row: any): CmsTemplate {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description || '',
+    category: row.category,
+    templateType: row.template_type,
+    previewImageUrl: row.preview_image_url || undefined,
+    nodesSnapshot: row.nodes_snapshot || [],
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+  };
+}
+
+export function mapDomainCmsReusableBlockToDb(blk: CmsReusableBlock): any {
+  return {
+    id: blk.id,
+    name: blk.name,
+    category: blk.category,
+    nodes_snapshot: blk.nodesSnapshot || [],
+    created_by: blk.createdBy,
+    created_at: blk.createdAt || new Date().toISOString(),
+  };
+}
+
+export function mapDbCmsReusableBlockToDomain(row: any): CmsReusableBlock {
+  return {
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    nodesSnapshot: row.nodes_snapshot || [],
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+  };
+}
 
 export function mapDbAssignmentToDomain(row: any): Assignment {
   return {
@@ -102,6 +391,7 @@ export function mapDbSubmissionToDomain(row: any): AssignmentSubmission {
     score: row.score !== null && row.score !== undefined ? Number(row.score) : undefined,
     feedback: row.feedback || undefined,
     rubricScores: Array.isArray(row.rubric_scores) ? row.rubric_scores : undefined,
+    aiReviewSuggestions: row.ai_review_suggestions || undefined,
     gradedByUserId: row.graded_by_user_id || undefined,
     gradedAt: row.graded_at || undefined,
     createdAt: row.created_at || new Date().toISOString(),
@@ -110,7 +400,7 @@ export function mapDbSubmissionToDomain(row: any): AssignmentSubmission {
 }
 
 export function mapDomainSubmissionToDb(s: AssignmentSubmission): any {
-  return {
+  const payload: any = {
     id: s.id,
     assignment_id: s.assignmentId,
     user_id: s.userId,
@@ -127,6 +417,598 @@ export function mapDomainSubmissionToDb(s: AssignmentSubmission): any {
     graded_by_user_id: s.gradedByUserId || null,
     graded_at: s.gradedAt || null,
     updated_at: new Date().toISOString(),
+  };
+  if (s.aiReviewSuggestions !== undefined && s.aiReviewSuggestions !== null) {
+    payload.ai_review_suggestions = s.aiReviewSuggestions;
+  }
+  return payload;
+}
+
+export function mapDbAnnouncementToDomain(row: any): ClassroomAnnouncement {
+  return {
+    id: row.id,
+    courseId: row.course_id,
+    batchId: row.batch_id || undefined,
+    audienceScope: row.audience_scope || (row.batch_id ? 'BATCH_SPECIFIC' : 'COURSE_WIDE'),
+    status: row.status || 'PUBLISHED',
+    authorId: row.author_id,
+    authorName: row.author_name || 'Instructor',
+    authorRole: row.author_role || 'INSTRUCTOR',
+    title: row.title,
+    content: row.content,
+    attachments: Array.isArray(row.attachments) ? row.attachments : [],
+    comments: Array.isArray(row.comments) ? row.comments : [],
+    isPinned: Boolean(row.is_pinned),
+    scheduledPublishAt: row.scheduled_publish_at || undefined,
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || new Date().toISOString(),
+  };
+}
+
+export function mapDomainAnnouncementToDb(a: ClassroomAnnouncement): any {
+  const payload: any = {
+    id: a.id,
+    course_id: a.courseId,
+    batch_id: a.batchId || null,
+    author_id: a.authorId,
+    author_name: a.authorName,
+    author_role: a.authorRole || 'INSTRUCTOR',
+    title: a.title,
+    content: a.content,
+    attachments: a.attachments || [],
+    comments: Array.isArray(a.comments) ? a.comments : [],
+    is_pinned: Boolean(a.isPinned),
+    updated_at: new Date().toISOString(),
+  };
+  if (a.audienceScope) payload.audience_scope = a.audienceScope;
+  if (a.status) payload.status = a.status;
+  if (a.scheduledPublishAt) payload.scheduled_publish_at = a.scheduledPublishAt;
+  return payload;
+}
+
+export function mapDbNotificationToDomain(row: any): InAppNotification {
+  return {
+    id: row.id,
+    recipientUserId: row.recipient_user_id,
+    type: row.type,
+    title: row.title,
+    description: row.description,
+    entityType: row.entity_type || undefined,
+    entityId: row.entity_id || undefined,
+    courseId: row.course_id || undefined,
+    batchId: row.batch_id || undefined,
+    actionUrl: row.action_url || '/',
+    isRead: Boolean(row.is_read),
+    readAt: row.read_at || undefined,
+    idempotencyKey: row.idempotency_key || undefined,
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || new Date().toISOString(),
+  };
+}
+
+export function mapDomainNotificationToDb(n: Partial<InAppNotification>): any {
+  return {
+    id: n.id,
+    recipient_user_id: n.recipientUserId,
+    type: n.type,
+    title: n.title,
+    description: n.description,
+    entity_type: n.entityType || null,
+    entity_id: n.entityId || null,
+    course_id: n.courseId || null,
+    batch_id: n.batchId || null,
+    action_url: n.actionUrl || '/',
+    is_read: Boolean(n.isRead),
+    read_at: n.readAt || null,
+    idempotency_key: n.idempotencyKey || null,
+    created_at: n.createdAt || new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+export function mapDbEmailOutboxToDomain(row: any): EmailOutboxJob {
+  return {
+    id: row.id,
+    sourceEventId: row.source_event_id || undefined,
+    eventType: row.event_type,
+    recipientUserId: row.recipient_user_id || undefined,
+    recipientEmail: row.recipient_email,
+    recipientName: row.recipient_name || undefined,
+    templateId: row.template_id,
+    templateVersion: row.template_version || 'v1',
+    templateVariables: typeof row.template_variables === 'object' && row.template_variables !== null ? row.template_variables : {},
+    subject: row.subject,
+    htmlBody: row.html_body,
+    textBody: row.text_body,
+    status: row.status as EmailOutboxStatus,
+    attemptCount: Number(row.attempt_count || 0),
+    maxAttempts: Number(row.max_attempts || 3),
+    nextAttemptAt: row.next_attempt_at || undefined,
+    lastAttemptAt: row.last_attempt_at || undefined,
+    lockedAt: row.locked_at || undefined,
+    lockedBy: row.locked_by || undefined,
+    provider: row.provider || 'unconfigured',
+    providerMessageId: row.provider_message_id || undefined,
+    errorMessage: row.error_message || undefined,
+    errorClassification: row.error_classification || undefined,
+    idempotencyKey: row.idempotency_key || undefined,
+    metadata: typeof row.metadata === 'object' && row.metadata !== null ? row.metadata : {},
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || new Date().toISOString(),
+  };
+}
+
+export function mapDomainEmailOutboxToDb(job: Partial<EmailOutboxJob>): any {
+  return {
+    id: job.id,
+    source_event_id: job.sourceEventId || null,
+    event_type: job.eventType,
+    recipient_user_id: job.recipientUserId || null,
+    recipient_email: job.recipientEmail,
+    recipient_name: job.recipientName || null,
+    template_id: job.templateId,
+    template_version: job.templateVersion || 'v1',
+    template_variables: job.templateVariables || {},
+    subject: job.subject,
+    html_body: job.htmlBody,
+    text_body: job.textBody,
+    status: job.status || 'QUEUED',
+    attempt_count: job.attemptCount || 0,
+    max_attempts: job.maxAttempts || 3,
+    next_attempt_at: job.nextAttemptAt || new Date().toISOString(),
+    last_attempt_at: job.lastAttemptAt || null,
+    locked_at: job.lockedAt || null,
+    locked_by: job.lockedBy || null,
+    provider: job.provider || 'unconfigured',
+    provider_message_id: job.providerMessageId || null,
+    error_message: job.errorMessage || null,
+    error_classification: job.errorClassification || null,
+    idempotency_key: job.idempotencyKey || null,
+    metadata: job.metadata || {},
+    created_at: job.createdAt || new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+export function mapDbEmailDeliveryEventToDomain(row: any): EmailDeliveryEvent {
+  return {
+    id: row.id,
+    outboxId: row.outbox_id || undefined,
+    provider: row.provider,
+    providerMessageId: row.provider_message_id || undefined,
+    eventType: row.event_type,
+    recipientEmail: row.recipient_email,
+    rawPayload: typeof row.raw_payload === 'object' && row.raw_payload !== null ? row.raw_payload : {},
+    occurredAt: row.occurred_at || new Date().toISOString(),
+    createdAt: row.created_at || new Date().toISOString(),
+  };
+}
+
+export function mapDbUserPreferenceToDomain(row: any): UserNotificationPreference {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    channel: row.channel || 'EMAIL',
+    category: row.category,
+    isEnabled: Boolean(row.is_enabled),
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || new Date().toISOString(),
+  };
+}
+
+export function mapDbDiagnosticIssueToDomain(row: any): DiagnosticIssue {
+  return {
+    id: row.id,
+    fingerprint: row.fingerprint,
+    title: row.title,
+    category: row.category as DiagnosticCategory,
+    severity: row.severity as DiagnosticSeverity,
+    status: row.status as DiagnosticIssueStatus,
+    occurrenceCount: Number(row.occurrence_count || 1),
+    firstSeenAt: row.first_seen_at || new Date().toISOString(),
+    lastSeenAt: row.last_seen_at || new Date().toISOString(),
+    affectedRoutes: Array.isArray(row.affected_routes) ? row.affected_routes : [],
+    affectedServices: Array.isArray(row.affected_services) ? row.affected_services : [],
+    lastCorrelationId: row.last_correlation_id || undefined,
+    lastErrorMessage: row.last_error_message || '',
+    sampleStackTrace: row.sample_stack_trace || undefined,
+    sampleComponentStack: row.sample_component_stack || undefined,
+    acknowledgedBy: row.acknowledged_by || undefined,
+    acknowledgedAt: row.acknowledged_at || undefined,
+    resolvedBy: row.resolved_by || undefined,
+    resolvedAt: row.resolved_at || undefined,
+    resolutionNotes: row.resolution_notes || undefined,
+    metadata: typeof row.metadata === 'object' && row.metadata !== null ? row.metadata : {},
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || new Date().toISOString(),
+  };
+}
+
+export function mapDomainDiagnosticIssueToDb(issue: DiagnosticIssue): any {
+  return {
+    id: issue.id,
+    fingerprint: issue.fingerprint,
+    title: issue.title,
+    category: issue.category,
+    severity: issue.severity,
+    status: issue.status,
+    occurrence_count: issue.occurrenceCount,
+    first_seen_at: issue.firstSeenAt,
+    last_seen_at: issue.lastSeenAt,
+    affected_routes: issue.affectedRoutes || [],
+    affected_services: issue.affectedServices || [],
+    last_correlation_id: issue.lastCorrelationId || null,
+    last_error_message: issue.lastErrorMessage,
+    sample_stack_trace: issue.sampleStackTrace || null,
+    sample_component_stack: issue.sampleComponentStack || null,
+    acknowledged_by: issue.acknowledgedBy || null,
+    acknowledged_at: issue.acknowledgedAt || null,
+    resolved_by: issue.resolvedBy || null,
+    resolved_at: issue.resolvedAt || null,
+    resolution_notes: issue.resolutionNotes || null,
+    metadata: issue.metadata || {},
+    created_at: issue.createdAt,
+    updated_at: issue.updatedAt,
+  };
+}
+
+export function mapDbDiagnosticEventToDomain(row: any): DiagnosticEvent {
+  return {
+    id: row.id,
+    issueId: row.issue_id,
+    correlationId: row.correlation_id,
+    category: row.category as DiagnosticCategory,
+    severity: row.severity as DiagnosticSeverity,
+    source: (row.source || 'BACKEND') as DiagnosticSource,
+    route: row.route || undefined,
+    service: row.service || undefined,
+    method: row.method || undefined,
+    statusCode: row.status_code !== null && row.status_code !== undefined ? Number(row.status_code) : undefined,
+    errorCode: row.error_code || undefined,
+    sanitizedMessage: row.sanitized_message || '',
+    stackTrace: row.stack_trace || undefined,
+    componentStack: row.component_stack || undefined,
+    userId: row.user_id || undefined,
+    userEmail: row.user_email || undefined,
+    clientInfo: typeof row.client_info === 'object' && row.client_info !== null ? row.client_info : undefined,
+    metadata: typeof row.metadata === 'object' && row.metadata !== null ? row.metadata : {},
+    createdAt: row.created_at || new Date().toISOString(),
+  };
+}
+
+export function mapDomainDiagnosticEventToDb(event: DiagnosticEvent): any {
+  return {
+    id: event.id,
+    issue_id: event.issueId,
+    correlation_id: event.correlationId,
+    category: event.category,
+    severity: event.severity,
+    source: event.source,
+    route: event.route || null,
+    service: event.service || null,
+    method: event.method || null,
+    status_code: event.statusCode !== undefined ? event.statusCode : null,
+    error_code: event.errorCode || null,
+    sanitized_message: event.sanitizedMessage,
+    stack_trace: event.stackTrace || null,
+    component_stack: event.componentStack || null,
+    user_id: event.userId || null,
+    user_email: event.userEmail || null,
+    client_info: event.clientInfo || {},
+    metadata: event.metadata || {},
+    created_at: event.createdAt,
+  };
+}
+
+export function mapDbServiceHealthCheckToDomain(row: any): ServiceHealthCheck {
+  return {
+    serviceName: row.service_name,
+    status: row.status as ServiceHealthStatus,
+    latencyMs: row.latency_ms !== null && row.latency_ms !== undefined ? Number(row.latency_ms) : undefined,
+    message: row.message || '',
+    checkedAt: row.checked_at || new Date().toISOString(),
+    details: typeof row.details === 'object' && row.details !== null ? row.details : {},
+  };
+}
+
+export function mapDomainServiceHealthCheckToDb(check: ServiceHealthCheck): any {
+  return {
+    service_name: check.serviceName,
+    status: check.status,
+    latency_ms: check.latencyMs !== undefined ? check.latencyMs : null,
+    message: check.message,
+    checked_at: check.checkedAt,
+    details: check.details || {},
+  };
+}
+
+export function mapDbSupportCategoryToDomain(row: any): SupportCategory {
+  return {
+    id: row.id,
+    organizationId: row.organization_id || 'org-zealosh-main',
+    name: row.name,
+    slug: row.slug,
+    description: row.description || undefined,
+    isActive: row.is_active ?? true,
+    requiresAcademicContext: row.requires_academic_context ?? false,
+    allowAttachments: row.allow_attachments ?? true,
+    defaultPriority: (row.default_priority || 'NORMAL') as SupportTicketPriority,
+    defaultTeamId: row.default_team_id || undefined,
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || new Date().toISOString(),
+  };
+}
+
+export function mapDomainSupportCategoryToDb(cat: SupportCategory): any {
+  return {
+    id: cat.id,
+    organization_id: cat.organizationId || 'org-zealosh-main',
+    name: cat.name,
+    slug: cat.slug,
+    description: cat.description || null,
+    is_active: cat.isActive,
+    requires_academic_context: cat.requiresAcademicContext,
+    allow_attachments: cat.allowAttachments,
+    default_priority: cat.defaultPriority,
+    default_team_id: cat.defaultTeamId || null,
+    created_at: cat.createdAt,
+    updated_at: cat.updatedAt,
+  };
+}
+
+export function mapDbSupportTeamToDomain(row: any): SupportTeam {
+  return {
+    id: row.id,
+    organizationId: row.organization_id || 'org-zealosh-main',
+    name: row.name,
+    slug: row.slug,
+    description: row.description || undefined,
+    leadUserId: row.lead_user_id || undefined,
+    isActive: row.is_active ?? true,
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || new Date().toISOString(),
+  };
+}
+
+export function mapDomainSupportTeamToDb(team: SupportTeam): any {
+  return {
+    id: team.id,
+    organization_id: team.organizationId || 'org-zealosh-main',
+    name: team.name,
+    slug: team.slug,
+    description: team.description || null,
+    lead_user_id: team.leadUserId || null,
+    is_active: team.isActive,
+    created_at: team.createdAt,
+    updated_at: team.updatedAt,
+  };
+}
+
+export function mapDbSupportSlaPolicyToDomain(row: any): SupportSlaPolicy {
+  return {
+    id: row.id,
+    organizationId: row.organization_id || 'org-zealosh-main',
+    name: row.name,
+    categoryId: row.category_id || undefined,
+    priority: (row.priority || 'NORMAL') as SupportTicketPriority,
+    firstResponseTargetHours: Number(row.first_response_target_hours || 24),
+    resolutionTargetHours: Number(row.resolution_target_hours || 72),
+    isActive: row.is_active ?? true,
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || new Date().toISOString(),
+  };
+}
+
+export function mapDomainSupportSlaPolicyToDb(sla: SupportSlaPolicy): any {
+  return {
+    id: sla.id,
+    organization_id: sla.organizationId || 'org-zealosh-main',
+    name: sla.name,
+    category_id: sla.categoryId || null,
+    priority: sla.priority,
+    first_response_target_hours: sla.firstResponseTargetHours,
+    resolution_target_hours: sla.resolutionTargetHours,
+    is_active: sla.isActive,
+    created_at: sla.createdAt,
+    updated_at: sla.updatedAt,
+  };
+}
+
+export function mapDbSupportTicketToDomain(row: any): SupportTicket {
+  return {
+    id: row.id,
+    organizationId: row.organization_id || 'org-zealosh-main',
+    ticketNumber: row.ticket_number,
+    requesterUserId: row.requester_user_id,
+    requesterRole: row.requester_role || 'STUDENT',
+    requesterName: row.requester_name,
+    requesterEmail: row.requester_email,
+    categoryId: row.category_id,
+    categoryName: row.category_name,
+    subject: row.subject,
+    description: row.description,
+    status: row.status as SupportTicketStatus,
+    priority: row.priority as SupportTicketPriority,
+    impact: row.impact as SupportTicketImpact | undefined,
+    assignedTeamId: row.assigned_team_id || undefined,
+    assignedTeamName: row.assigned_team_name || undefined,
+    assignedAgentUserId: row.assigned_agent_user_id || undefined,
+    assignedAgentName: row.assigned_agent_name || undefined,
+    assignedAgentEmail: row.assigned_agent_email || undefined,
+    relatedCourseId: row.related_course_id || undefined,
+    relatedCourseTitle: row.related_course_title || undefined,
+    relatedBatchId: row.related_batch_id || undefined,
+    relatedBatchName: row.related_batch_name || undefined,
+    relatedSessionId: row.related_session_id || undefined,
+    relatedAssignmentId: row.related_assignment_id || undefined,
+    relatedExamAttemptId: row.related_exam_attempt_id || undefined,
+    firstResponseAt: row.first_response_at || undefined,
+    resolvedAt: row.resolved_at || undefined,
+    resolvedByUserId: row.resolved_by_user_id || undefined,
+    closedAt: row.closed_at || undefined,
+    closedByUserId: row.closed_by_user_id || undefined,
+    reopenedAt: row.reopened_at || undefined,
+    reopenedByUserId: row.reopened_by_user_id || undefined,
+    reopenCount: Number(row.reopen_count || 0),
+    slaPolicyId: row.sla_policy_id || undefined,
+    slaStatus: (row.sla_status || 'NOT_CONFIGURED') as SupportSlaStatus,
+    firstResponseDueAt: row.first_response_due_at || undefined,
+    resolutionDueAt: row.resolution_due_at || undefined,
+    version: Number(row.version || 1),
+    idempotencyKey: row.idempotency_key || undefined,
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || new Date().toISOString(),
+  };
+}
+
+export function mapDomainSupportTicketToDb(ticket: SupportTicket): any {
+  return {
+    id: ticket.id,
+    organization_id: ticket.organizationId || 'org-zealosh-main',
+    ticket_number: ticket.ticketNumber,
+    requester_user_id: ticket.requesterUserId,
+    requester_role: ticket.requesterRole,
+    requester_name: ticket.requesterName,
+    requester_email: ticket.requesterEmail,
+    category_id: ticket.categoryId,
+    category_name: ticket.categoryName,
+    subject: ticket.subject,
+    description: ticket.description,
+    status: ticket.status,
+    priority: ticket.priority,
+    impact: ticket.impact || null,
+    assigned_team_id: ticket.assignedTeamId || null,
+    assigned_team_name: ticket.assignedTeamName || null,
+    assigned_agent_user_id: ticket.assignedAgentUserId || null,
+    assigned_agent_name: ticket.assignedAgentName || null,
+    assigned_agent_email: ticket.assignedAgentEmail || null,
+    related_course_id: ticket.relatedCourseId || null,
+    related_course_title: ticket.relatedCourseTitle || null,
+    related_batch_id: ticket.relatedBatchId || null,
+    related_batch_name: ticket.relatedBatchName || null,
+    related_session_id: ticket.relatedSessionId || null,
+    related_assignment_id: ticket.relatedAssignmentId || null,
+    related_exam_attempt_id: ticket.relatedExamAttemptId || null,
+    first_response_at: ticket.firstResponseAt || null,
+    resolved_at: ticket.resolvedAt || null,
+    resolved_by_user_id: ticket.resolvedByUserId || null,
+    closed_at: ticket.closedAt || null,
+    closed_by_user_id: ticket.closedByUserId || null,
+    reopened_at: ticket.reopenedAt || null,
+    reopened_by_user_id: ticket.reopenedByUserId || null,
+    reopen_count: ticket.reopenCount,
+    sla_policy_id: ticket.slaPolicyId || null,
+    sla_status: ticket.slaStatus || 'NOT_CONFIGURED',
+    first_response_due_at: ticket.firstResponseDueAt || null,
+    resolution_due_at: ticket.resolutionDueAt || null,
+    version: ticket.version || 1,
+    idempotency_key: ticket.idempotencyKey || null,
+    created_at: ticket.createdAt,
+    updated_at: ticket.updatedAt,
+  };
+}
+
+export function mapDbSupportTicketMessageToDomain(row: any): SupportTicketMessage {
+  return {
+    id: row.id,
+    organizationId: row.organization_id || 'org-zealosh-main',
+    ticketId: row.ticket_id,
+    authorUserId: row.author_user_id,
+    authorName: row.author_name,
+    authorRole: row.author_role,
+    visibility: row.visibility as SupportMessageVisibility,
+    body: row.body,
+    metadata: typeof row.metadata === 'object' && row.metadata !== null ? row.metadata : {},
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || undefined,
+  };
+}
+
+export function mapDomainSupportTicketMessageToDb(msg: SupportTicketMessage): any {
+  return {
+    id: msg.id,
+    organization_id: msg.organizationId || 'org-zealosh-main',
+    ticket_id: msg.ticketId,
+    author_user_id: msg.authorUserId,
+    author_name: msg.authorName,
+    author_role: msg.authorRole,
+    visibility: msg.visibility,
+    body: msg.body,
+    metadata: msg.metadata || {},
+    created_at: msg.createdAt,
+    updated_at: msg.updatedAt || null,
+  };
+}
+
+export function mapDbSupportTicketEventToDomain(row: any): SupportTicketEvent {
+  return {
+    id: row.id,
+    organizationId: row.organization_id || 'org-zealosh-main',
+    ticketId: row.ticket_id,
+    actorUserId: row.actor_user_id,
+    actorName: row.actor_name,
+    actorRole: row.actor_role,
+    eventType: row.event_type as SupportTicketEventType,
+    previousValue: row.previous_value || undefined,
+    newValue: row.new_value || undefined,
+    reason: row.reason || undefined,
+    metadata: typeof row.metadata === 'object' && row.metadata !== null ? row.metadata : {},
+    createdAt: row.created_at || new Date().toISOString(),
+  };
+}
+
+export function mapDomainSupportTicketEventToDb(evt: SupportTicketEvent): any {
+  return {
+    id: evt.id,
+    organization_id: evt.organizationId || 'org-zealosh-main',
+    ticket_id: evt.ticketId,
+    actor_user_id: evt.actorUserId,
+    actor_name: evt.actorName,
+    actor_role: evt.actorRole,
+    event_type: evt.eventType,
+    previous_value: evt.previousValue || null,
+    new_value: evt.newValue || null,
+    reason: evt.reason || null,
+    metadata: evt.metadata || {},
+    created_at: evt.createdAt,
+  };
+}
+
+export function mapDbSupportTicketAttachmentToDomain(row: any): SupportTicketAttachment {
+  return {
+    id: row.id,
+    organizationId: row.organization_id || 'org-zealosh-main',
+    ticketId: row.ticket_id,
+    messageId: row.message_id || undefined,
+    uploadedByUserId: row.uploaded_by_user_id,
+    storageProvider: row.storage_provider || 'SUPABASE_STORAGE',
+    storageBucket: row.storage_bucket || 'support-attachments',
+    storageKey: row.storage_key,
+    originalFilename: row.original_filename,
+    sanitizedFilename: row.sanitized_filename,
+    contentType: row.content_type,
+    fileSize: Number(row.file_size || 0),
+    checksum: row.checksum || undefined,
+    createdAt: row.created_at || new Date().toISOString(),
+  };
+}
+
+export function mapDomainSupportTicketAttachmentToDb(att: SupportTicketAttachment): any {
+  return {
+    id: att.id,
+    organization_id: att.organizationId || 'org-zealosh-main',
+    ticket_id: att.ticketId,
+    message_id: att.messageId || null,
+    uploaded_by_user_id: att.uploadedByUserId,
+    storage_provider: att.storageProvider,
+    storage_bucket: att.storageBucket,
+    storage_key: att.storageKey,
+    original_filename: att.originalFilename,
+    sanitized_filename: att.sanitizedFilename,
+    content_type: att.contentType,
+    file_size: att.fileSize,
+    checksum: att.checksum || null,
+    created_at: att.createdAt,
   };
 }
 
@@ -145,7 +1027,7 @@ export function mapDbCourseToDomain(row: any): Course {
     priceInr: Number(row.price_inr || 0),
     priceUsd: Number(row.price_usd || 0),
     durationWeeks: Number(row.duration_weeks || 0),
-    coverImage: row.cover_image || '',
+    coverImage: (row.cover_image && row.cover_image !== '/images/cover.jpg') ? row.cover_image : '/logo.png',
     leadInstructorId: row.lead_instructor_id || '',
     coInstructorIds: row.co_instructor_ids || [],
     moodleCourseId: row.moodle_course_id ? Number(row.moodle_course_id) : undefined,
@@ -561,14 +1443,19 @@ export function mapDbExamAttemptToDomain(row: any): ExamAttempt {
     status: row.status,
     startTime: row.start_time,
     deadlineTime: row.deadline_time,
+    gracePeriodSeconds: row.grace_period_seconds ?? 60,
     completedTime: row.completed_time || undefined,
     assignedQuestionIds: row.assigned_question_ids || [],
+    questionSnapshots: row.question_snapshots || [],
     answers: row.answers || {},
     bookmarkedQuestionIds: row.bookmarked_question_ids || [],
+    autosavedAt: row.autosaved_at || undefined,
     totalScore: row.total_score !== null ? Number(row.total_score) : undefined,
     passingScorePercent: Number(row.passing_score_percent || 70),
     passed: row.passed !== null ? Boolean(row.passed) : undefined,
     domainBreakdown: row.domain_breakdown || undefined,
+    certificateId: row.certificate_id || undefined,
+    certificateCode: row.certificate_code || undefined,
   };
 }
 
@@ -971,10 +1858,10 @@ export class SupabaseAdapter {
       primaryGreen: '#4f8c4c',
       deepGreen: '#3a7536',
       accentGreen: '#2ea033',
-      darkNeutral: '#252c41',
+      darkNeutral: '#0f172a',
       surfaceColor: '#ffffff',
-      lightSurfaceColor: '#f7f9fc',
-      secondarySurface: '#eaedf5',
+      lightSurfaceColor: '#f4f9f3',
+      secondarySurface: '#e2efe1',
       fontFamily: 'Inter',
       borderRadius: 'md',
       layoutDensity: 'comfortable',
@@ -1417,9 +2304,73 @@ export class SupabaseAdapter {
 
   public async getLiveSession(sessionId: string): Promise<LiveSession | null> {
     const client = this.getClient();
-    const { data, error } = await client.from('live_sessions').select('*').eq('id', sessionId).single();
-    if (error || !data) return null;
+    let { data, error } = await client.from('live_sessions').select('*').eq('id', sessionId).maybeSingle();
+    if (!data) {
+      const byMtg = await client.from('live_sessions').select('*').eq('meeting_id', sessionId).maybeSingle();
+      if (byMtg.data) data = byMtg.data;
+    }
+    if (!data) return null;
     return mapDbLiveSessionToDomain(data);
+  }
+
+  public async getLiveSessionByMeetingId(meetingId: string): Promise<LiveSession | null> {
+    const client = this.getClient();
+    const { data, error } = await client.from('live_sessions').select('*').eq('meeting_id', meetingId).maybeSingle();
+    if (error) {
+      if (isTableMissingError(error)) {
+        throw new DatabasePersistenceError(
+          `Authoritative query failed for live session meeting "${meetingId}": table "live_sessions" does not exist in database or schema cache`,
+          {
+            operation: 'getLiveSessionByMeetingId',
+            entityType: 'LiveSession',
+            category: 'SCHEMA_MISSING',
+            retryable: false,
+            cause: error,
+          }
+        );
+      }
+      const classification = classifyDatabaseError(error);
+      throw new DatabasePersistenceError(`Supabase error fetching live session: ${error.message}`, {
+        operation: 'getLiveSessionByMeetingId',
+        entityType: 'LiveSession',
+        category: classification.category,
+        retryable: classification.retryable,
+        cause: error,
+      });
+    }
+    if (!data) return null;
+    return mapDbLiveSessionToDomain(data);
+  }
+
+  public async getAllLiveSessions(): Promise<LiveSession[]> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('live_sessions')
+      .select('*')
+      .order('scheduled_start_time', { ascending: true });
+    if (error) {
+      if (isTableMissingError(error)) {
+        throw new DatabasePersistenceError(
+          `Authoritative query failed for live sessions: table "live_sessions" does not exist in database or schema cache`,
+          {
+            operation: 'getAllLiveSessions',
+            entityType: 'LiveSession',
+            category: 'SCHEMA_MISSING',
+            retryable: false,
+            cause: error,
+          }
+        );
+      }
+      const classification = classifyDatabaseError(error);
+      throw new DatabasePersistenceError(`Supabase error fetching live sessions: ${error.message}`, {
+        operation: 'getAllLiveSessions',
+        entityType: 'LiveSession',
+        category: classification.category,
+        retryable: classification.retryable,
+        cause: error,
+      });
+    }
+    return (data || []).map(mapDbLiveSessionToDomain);
   }
 
   public async getLiveSessions(batchId: string): Promise<LiveSession[]> {
@@ -1429,7 +2380,28 @@ export class SupabaseAdapter {
       .select('*')
       .eq('batch_id', batchId)
       .order('scheduled_start_time', { ascending: true });
-    if (error) throw new Error(`Supabase error fetching live sessions: ${error.message}`);
+    if (error) {
+      if (isTableMissingError(error)) {
+        throw new DatabasePersistenceError(
+          `Authoritative query failed for live sessions: table "live_sessions" does not exist in database or schema cache`,
+          {
+            operation: 'getLiveSessions',
+            entityType: 'LiveSession',
+            category: 'SCHEMA_MISSING',
+            retryable: false,
+            cause: error,
+          }
+        );
+      }
+      const classification = classifyDatabaseError(error);
+      throw new DatabasePersistenceError(`Supabase error fetching live sessions: ${error.message}`, {
+        operation: 'getLiveSessions',
+        entityType: 'LiveSession',
+        category: classification.category,
+        retryable: classification.retryable,
+        cause: error,
+      });
+    }
     return (data || []).map(mapDbLiveSessionToDomain);
   }
 
@@ -1437,14 +2409,56 @@ export class SupabaseAdapter {
     const client = this.getClient();
     const dbPayload = mapDomainLiveSessionToDb(session);
     const { data, error } = await client.from('live_sessions').upsert(dbPayload).select('*').single();
-    if (error) throw new Error(`Supabase error saving live session: ${error.message}`);
+    if (error) {
+      if (isTableMissingError(error)) {
+        throw new DatabasePersistenceError(
+          `Authoritative persistence failed for LiveSession "${session.id}": table "live_sessions" does not exist in database or schema cache`,
+          {
+            operation: 'saveLiveSession',
+            entityType: 'LiveSession',
+            category: 'SCHEMA_MISSING',
+            retryable: false,
+            cause: error,
+          }
+        );
+      }
+      const classification = classifyDatabaseError(error);
+      throw new DatabasePersistenceError(`Supabase error saving live session: ${error.message}`, {
+        operation: 'saveLiveSession',
+        entityType: 'LiveSession',
+        category: classification.category,
+        retryable: classification.retryable,
+        cause: error,
+      });
+    }
     return mapDbLiveSessionToDomain(data);
   }
 
   public async getAttendance(sessionId: string): Promise<AttendanceRecord[]> {
     const client = this.getClient();
     const { data, error } = await client.from('attendance_records').select('*').eq('session_id', sessionId);
-    if (error) throw new Error(`Supabase error fetching attendance: ${error.message}`);
+    if (error) {
+      if (isTableMissingError(error)) {
+        throw new DatabasePersistenceError(
+          `Authoritative query failed for attendance: table "attendance_records" does not exist in database or schema cache`,
+          {
+            operation: 'getAttendance',
+            entityType: 'AttendanceRecord',
+            category: 'SCHEMA_MISSING',
+            retryable: false,
+            cause: error,
+          }
+        );
+      }
+      const classification = classifyDatabaseError(error);
+      throw new DatabasePersistenceError(`Supabase error fetching attendance: ${error.message}`, {
+        operation: 'getAttendance',
+        entityType: 'AttendanceRecord',
+        category: classification.category,
+        retryable: classification.retryable,
+        cause: error,
+      });
+    }
     return (data || []).map(mapDbAttendanceToDomain);
   }
 
@@ -1452,7 +2466,28 @@ export class SupabaseAdapter {
     const client = this.getClient();
     const dbPayload = mapDomainAttendanceToDb(record);
     const { data, error } = await client.from('attendance_records').insert(dbPayload).select('*').single();
-    if (error) throw new Error(`Supabase error recording attendance: ${error.message}`);
+    if (error) {
+      if (isTableMissingError(error)) {
+        throw new DatabasePersistenceError(
+          `Authoritative persistence failed for AttendanceRecord "${record.id}": table "attendance_records" does not exist in database or schema cache`,
+          {
+            operation: 'recordAttendance',
+            entityType: 'AttendanceRecord',
+            category: 'SCHEMA_MISSING',
+            retryable: false,
+            cause: error,
+          }
+        );
+      }
+      const classification = classifyDatabaseError(error);
+      throw new DatabasePersistenceError(`Supabase error recording attendance: ${error.message}`, {
+        operation: 'recordAttendance',
+        entityType: 'AttendanceRecord',
+        category: classification.category,
+        retryable: classification.retryable,
+        cause: error,
+      });
+    }
     return mapDbAttendanceToDomain(data);
   }
 
@@ -1764,12 +2799,24 @@ export class SupabaseAdapter {
 
   public async submitAssignment(submission: AssignmentSubmission, actorEmail: string = 'student@zealosh.com'): Promise<AssignmentSubmission> {
     const client = this.getClient();
-    const dbPayload = mapDomainSubmissionToDb(submission);
-    const { data, error } = await client
+    let dbPayload = mapDomainSubmissionToDb(submission);
+    let { data, error } = await client
       .from('assignment_submissions')
       .upsert(dbPayload)
       .select('*, assignments(course_id, batch_id)')
       .single();
+
+    if (error && (error.message.includes('column') || error.message.includes('schema cache')) && dbPayload.ai_review_suggestions !== undefined) {
+      delete dbPayload.ai_review_suggestions;
+      const retry = await client
+        .from('assignment_submissions')
+        .upsert(dbPayload)
+        .select('*, assignments(course_id, batch_id)')
+        .single();
+      data = retry.data;
+      error = retry.error;
+    }
+
     if (error) {
       throw new Error(`Supabase error submitting assignment: ${error.message}`);
     }
@@ -1788,32 +2835,54 @@ export class SupabaseAdapter {
   public async gradeSubmission(
     submissionId: string,
     grade: {
-      score: number;
+      score?: number;
       feedback?: string;
       rubricScores?: RubricScore[];
+      aiReviewSuggestions?: AiReviewSuggestion;
+      status?: 'SUBMITTED' | 'GRADED' | 'RESUBMISSION_REQUESTED';
       gradedBy: string;
       actorEmail?: string;
     }
   ): Promise<AssignmentSubmission> {
     const client = this.getClient();
     const now = new Date().toISOString();
+    const finalStatus = grade.status || 'GRADED';
     const updatePayload: any = {
-      score: grade.score,
-      feedback: grade.feedback || null,
-      status: 'GRADED',
+      status: finalStatus,
       graded_by_user_id: grade.gradedBy,
       graded_at: now,
       updated_at: now,
     };
+    if (grade.score !== undefined) {
+      updatePayload.score = grade.score;
+    }
+    if (grade.feedback !== undefined) {
+      updatePayload.feedback = grade.feedback || null;
+    }
     if (grade.rubricScores) {
       updatePayload.rubric_scores = grade.rubricScores;
     }
-    const { data, error } = await client
+    if (grade.aiReviewSuggestions) {
+      updatePayload.ai_review_suggestions = grade.aiReviewSuggestions;
+    }
+    let { data, error } = await client
       .from('assignment_submissions')
       .update(updatePayload)
       .eq('id', submissionId)
       .select('*, assignments(course_id, batch_id)')
       .single();
+
+    if (error && (error.message.includes('column') || error.message.includes('schema cache')) && updatePayload.ai_review_suggestions !== undefined) {
+      delete updatePayload.ai_review_suggestions;
+      const retry = await client
+        .from('assignment_submissions')
+        .update(updatePayload)
+        .eq('id', submissionId)
+        .select('*, assignments(course_id, batch_id)')
+        .single();
+      data = retry.data;
+      error = retry.error;
+    }
 
     if (error) {
       throw new Error(`Supabase error grading submission: ${error.message}`);
@@ -1823,13 +2892,750 @@ export class SupabaseAdapter {
       actorUserId: grade.gradedBy,
       actorEmail: grade.actorEmail || 'instructor@zealosh.com',
       actorRole: 'INSTRUCTOR',
-      action: 'ASSIGNMENT_GRADED',
+      action: finalStatus === 'RESUBMISSION_REQUESTED' ? 'ASSIGNMENT_RESUBMISSION_REQUESTED' : 'ASSIGNMENT_GRADED',
       entityType: 'SUBMISSION',
       entityId: submissionId,
-      details: { score: grade.score, submissionId },
+      details: { score: grade.score, submissionId, status: finalStatus },
     });
 
     return mapDbSubmissionToDomain(data);
+  }
+
+  // --------------------------------------------------------------------------
+  // Digital Classroom Stream & Cohort Announcements
+  // --------------------------------------------------------------------------
+  public async getAnnouncements(courseId: string, batchId?: string): Promise<ClassroomAnnouncement[]> {
+    const client = this.getClient();
+    let query = client
+      .from('classroom_announcements')
+      .select('*')
+      .eq('course_id', courseId)
+      .order('is_pinned', { ascending: false })
+      .order('created_at', { ascending: false });
+
+    if (batchId) {
+      query = query.or(`batch_id.eq.${batchId},batch_id.is.null`);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      if (isTableMissingError(error)) {
+        throw new DatabasePersistenceError(
+          `Authoritative query failed for announcements: table "classroom_announcements" does not exist in database or schema cache`,
+          {
+            operation: 'getAnnouncements',
+            entityType: 'ClassroomAnnouncement',
+            category: 'SCHEMA_MISSING',
+            retryable: false,
+            cause: error,
+          }
+        );
+      }
+      const classification = classifyDatabaseError(error);
+      throw new DatabasePersistenceError(`Supabase error fetching announcements: ${error.message}`, {
+        operation: 'getAnnouncements',
+        entityType: 'ClassroomAnnouncement',
+        category: classification.category,
+        retryable: classification.retryable,
+        cause: error,
+      });
+    }
+    return (data || []).map(mapDbAnnouncementToDomain);
+  }
+
+  public async getAnnouncementById(id: string): Promise<ClassroomAnnouncement | null> {
+    const client = this.getClient();
+    const { data, error } = await client.from('classroom_announcements').select('*').eq('id', id).maybeSingle();
+    if (error) {
+      if (isTableMissingError(error)) {
+        throw new DatabasePersistenceError(
+          `Authoritative query failed for announcement "${id}": table "classroom_announcements" does not exist in database or schema cache`,
+          {
+            operation: 'getAnnouncementById',
+            entityType: 'ClassroomAnnouncement',
+            category: 'SCHEMA_MISSING',
+            retryable: false,
+            cause: error,
+          }
+        );
+      }
+      const classification = classifyDatabaseError(error);
+      throw new DatabasePersistenceError(`Supabase error fetching announcement ${id}: ${error.message}`, {
+        operation: 'getAnnouncementById',
+        entityType: 'ClassroomAnnouncement',
+        category: classification.category,
+        retryable: classification.retryable,
+        cause: error,
+      });
+    }
+    if (!data) return null;
+    return mapDbAnnouncementToDomain(data);
+  }
+
+  public async saveAnnouncement(
+    announcement: ClassroomAnnouncement,
+    actorEmail: string = 'instructor@zealosh.com'
+  ): Promise<ClassroomAnnouncement> {
+    const client = this.getClient();
+    const dbPayload = mapDomainAnnouncementToDb(announcement);
+    let { data, error } = await client.from('classroom_announcements').upsert(dbPayload).select('*').single();
+    if (error) {
+      if (isTableMissingError(error)) {
+        throw new DatabasePersistenceError(
+          `Authoritative persistence failed for ClassroomAnnouncement "${announcement.id}": table "classroom_announcements" does not exist in database or schema cache`,
+          {
+            operation: 'saveAnnouncement',
+            entityType: 'ClassroomAnnouncement',
+            category: 'SCHEMA_MISSING',
+            retryable: false,
+            cause: error,
+          }
+        );
+      }
+
+      if (
+        error.message.includes('audience_scope') ||
+        error.message.includes('status') ||
+        error.message.includes('comments') ||
+        error.message.includes('scheduled_publish_at') ||
+        error.message.includes('schema cache')
+      ) {
+        delete dbPayload.audience_scope;
+        delete dbPayload.status;
+        delete dbPayload.comments;
+        delete dbPayload.scheduled_publish_at;
+        const retry = await client.from('classroom_announcements').upsert(dbPayload).select('*').single();
+        if (retry.error) {
+          if (isTableMissingError(retry.error)) {
+            throw new DatabasePersistenceError(
+              `Authoritative persistence failed for ClassroomAnnouncement "${announcement.id}": table "classroom_announcements" does not exist in database or schema cache`,
+              {
+                operation: 'saveAnnouncement',
+                entityType: 'ClassroomAnnouncement',
+                category: 'SCHEMA_MISSING',
+                retryable: false,
+                cause: retry.error,
+              }
+            );
+          }
+          const retryClass = classifyDatabaseError(retry.error);
+          throw new DatabasePersistenceError(`Supabase error saving announcement: ${retry.error.message}`, {
+            operation: 'saveAnnouncement',
+            entityType: 'ClassroomAnnouncement',
+            category: retryClass.category,
+            retryable: retryClass.retryable,
+            cause: retry.error,
+          });
+        }
+        data = retry.data;
+      } else {
+        const classification = classifyDatabaseError(error);
+        throw new DatabasePersistenceError(`Supabase error saving announcement: ${error.message}`, {
+          operation: 'saveAnnouncement',
+          entityType: 'ClassroomAnnouncement',
+          category: classification.category,
+          retryable: classification.retryable,
+          cause: error,
+        });
+      }
+    }
+
+    await this.recordAudit({
+      actorUserId: announcement.authorId,
+      actorEmail,
+      actorRole: announcement.authorRole || 'INSTRUCTOR',
+      action: 'ANNOUNCEMENT_POSTED',
+      entityType: 'ANNOUNCEMENT',
+      entityId: announcement.id,
+      details: { courseId: announcement.courseId, batchId: announcement.batchId, title: announcement.title },
+    });
+
+    return mapDbAnnouncementToDomain(data);
+  }
+
+  public async deleteAnnouncement(id: string, actorEmail: string = 'instructor@zealosh.com'): Promise<boolean> {
+    const client = this.getClient();
+    const { error } = await client.from('classroom_announcements').delete().eq('id', id);
+    if (error) {
+      if (isTableMissingError(error)) {
+        throw new DatabasePersistenceError(
+          `Authoritative delete failed for announcement "${id}": table "classroom_announcements" does not exist in database or schema cache`,
+          {
+            operation: 'deleteAnnouncement',
+            entityType: 'ClassroomAnnouncement',
+            category: 'SCHEMA_MISSING',
+            retryable: false,
+            cause: error,
+          }
+        );
+      }
+      const classification = classifyDatabaseError(error);
+      throw new DatabasePersistenceError(`Supabase error deleting announcement ${id}: ${error.message}`, {
+        operation: 'deleteAnnouncement',
+        entityType: 'ClassroomAnnouncement',
+        category: classification.category,
+        retryable: classification.retryable,
+        cause: error,
+      });
+    }
+
+    await this.recordAudit({
+      actorUserId: 'usr-admin-01',
+      actorEmail,
+      actorRole: 'INSTRUCTOR',
+      action: 'ANNOUNCEMENT_DELETED',
+      entityType: 'ANNOUNCEMENT',
+      entityId: id,
+      details: {},
+    });
+
+    return true;
+  }
+
+  // --------------------------------------------------------------------------
+  // Phase 5A: In-App Notifications
+  // --------------------------------------------------------------------------
+  public async getNotifications(
+    userId: string,
+    filter?: { isRead?: boolean; limit?: number; offset?: number; type?: string }
+  ): Promise<{ notifications: InAppNotification[]; unreadCount: number; totalCount: number }> {
+    const client = this.getClient();
+    let query = client
+      .from('notifications')
+      .select('*', { count: 'exact' })
+      .eq('recipient_user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (filter?.isRead !== undefined) {
+      query = query.eq('is_read', filter.isRead);
+    }
+    if (filter?.type) {
+      query = query.eq('type', filter.type);
+    }
+    if (filter?.limit) {
+      const offset = filter.offset || 0;
+      query = query.range(offset, offset + filter.limit - 1);
+    }
+
+    const { data, count, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return { notifications: [], unreadCount: 0, totalCount: 0 };
+      }
+      throw new Error(`Supabase error fetching notifications: ${error.message}`);
+    }
+
+    // Get unread count
+    const { count: unreadCount, error: unreadErr } = await client
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_user_id', userId)
+      .eq('is_read', false);
+
+    return {
+      notifications: (data || []).map(mapDbNotificationToDomain),
+      unreadCount: unreadCount || 0,
+      totalCount: count || 0,
+    };
+  }
+
+  public async getUnreadNotificationCount(userId: string): Promise<number> {
+    const client = this.getClient();
+    const { count, error } = await client
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_user_id', userId)
+      .eq('is_read', false);
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return 0;
+      }
+      throw new Error(`Supabase error fetching unread count: ${error.message}`);
+    }
+    return count || 0;
+  }
+
+  public async markNotificationRead(notificationId: string, userId: string): Promise<boolean> {
+    const client = this.getClient();
+    const now = new Date().toISOString();
+    const { error } = await client
+      .from('notifications')
+      .update({ is_read: true, read_at: now, updated_at: now })
+      .eq('id', notificationId)
+      .eq('recipient_user_id', userId);
+    if (error) throw new Error(`Supabase error marking notification read: ${error.message}`);
+    return true;
+  }
+
+  public async markAllNotificationsRead(userId: string): Promise<number> {
+    const client = this.getClient();
+    const now = new Date().toISOString();
+    const { data, error } = await client
+      .from('notifications')
+      .update({ is_read: true, read_at: now, updated_at: now })
+      .eq('recipient_user_id', userId)
+      .eq('is_read', false)
+      .select('id');
+    if (error) throw new Error(`Supabase error marking all notifications read: ${error.message}`);
+    return data ? data.length : 0;
+  }
+
+  public async createNotification(
+    notification: Omit<InAppNotification, 'id' | 'createdAt' | 'updatedAt' | 'isRead'>
+  ): Promise<InAppNotification | null> {
+    const client = this.getClient();
+    const id = `ntf-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 8)}`;
+    const now = new Date().toISOString();
+    const full: InAppNotification = {
+      ...notification,
+      id,
+      isRead: false,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const dbPayload = mapDomainNotificationToDb(full);
+
+    let res;
+    if (full.idempotencyKey) {
+      res = await client
+        .from('notifications')
+        .upsert(dbPayload, { onConflict: 'idempotency_key', ignoreDuplicates: true })
+        .select('*')
+        .maybeSingle();
+    } else {
+      res = await client
+        .from('notifications')
+        .insert(dbPayload)
+        .select('*')
+        .single();
+    }
+
+    if (res.error) {
+      if (
+        res.error.code === '23505' ||
+        res.error.message.includes('unique constraint') ||
+        res.error.message.includes('duplicate')
+      ) {
+        const existing = await client
+          .from('notifications')
+          .select('*')
+          .eq('idempotency_key', full.idempotencyKey)
+          .maybeSingle();
+        return existing.data ? mapDbNotificationToDomain(existing.data) : null;
+      }
+      if (res.error.message.includes('relation') || res.error.message.includes('does not exist')) {
+        return null;
+      }
+      throw new Error(`Supabase error creating notification: ${res.error.message}`);
+    }
+
+    return res.data ? mapDbNotificationToDomain(res.data) : null;
+  }
+
+  public async createBatchNotifications(
+    notifications: Array<Omit<InAppNotification, 'id' | 'createdAt' | 'updatedAt' | 'isRead'>>
+  ): Promise<number> {
+    if (!notifications || notifications.length === 0) return 0;
+    const client = this.getClient();
+    const now = new Date().toISOString();
+    const payloads = notifications.map((n, idx) => {
+      const id = `ntf-${Date.now().toString(36)}-${idx}-${Math.random().toString(36).substring(2, 6)}`;
+      const full: InAppNotification = {
+        ...n,
+        id,
+        isRead: false,
+        createdAt: now,
+        updatedAt: now,
+      };
+      return mapDomainNotificationToDb(full);
+    });
+
+    const { data, error } = await client
+      .from('notifications')
+      .upsert(payloads, { onConflict: 'idempotency_key', ignoreDuplicates: true })
+      .select('id');
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return 0;
+      }
+      throw new Error(`Supabase error batch creating notifications: ${error.message}`);
+    }
+    return data ? data.length : 0;
+  }
+
+  // --------------------------------------------------------------------------
+  // Phase 5B: Transactional Email Outbox & Delivery Engine
+  // --------------------------------------------------------------------------
+  public async queueEmailOutboxJob(job: Partial<EmailOutboxJob>): Promise<EmailOutboxJob | null> {
+    const client = this.getClient();
+    const id = job.id || `outbox-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 8)}`;
+    const now = new Date().toISOString();
+    const full: EmailOutboxJob = {
+      id,
+      sourceEventId: job.sourceEventId,
+      eventType: job.eventType || 'SYSTEM_ALERT',
+      recipientUserId: job.recipientUserId,
+      recipientEmail: job.recipientEmail || '',
+      recipientName: job.recipientName,
+      templateId: job.templateId || 'tpl-announcement',
+      templateVersion: job.templateVersion || 'v1',
+      templateVariables: job.templateVariables || {},
+      subject: job.subject || '',
+      htmlBody: job.htmlBody || '',
+      textBody: job.textBody || '',
+      status: job.status || 'QUEUED',
+      attemptCount: job.attemptCount || 0,
+      maxAttempts: job.maxAttempts || 3,
+      nextAttemptAt: job.nextAttemptAt || now,
+      lastAttemptAt: job.lastAttemptAt,
+      lockedAt: job.lockedAt,
+      lockedBy: job.lockedBy,
+      provider: job.provider || 'unconfigured',
+      providerMessageId: job.providerMessageId,
+      errorMessage: job.errorMessage,
+      errorClassification: job.errorClassification,
+      idempotencyKey: job.idempotencyKey,
+      metadata: job.metadata || {},
+      createdAt: job.createdAt || now,
+      updatedAt: now,
+    };
+
+    const dbPayload = mapDomainEmailOutboxToDb(full);
+    const res = await client
+      .from('email_outbox')
+      .upsert(dbPayload, { onConflict: 'idempotency_key', ignoreDuplicates: true })
+      .select('*')
+      .maybeSingle();
+
+    if (res.error) {
+      if (res.error.code === '23505' && full.idempotencyKey) {
+        const existing = await client
+          .from('email_outbox')
+          .select('*')
+          .eq('idempotency_key', full.idempotencyKey)
+          .maybeSingle();
+        return existing.data ? mapDbEmailOutboxToDomain(existing.data) : null;
+      }
+      if (res.error.message.includes('relation') || res.error.message.includes('does not exist')) {
+        return full;
+      }
+      throw new Error(`Supabase error queuing email outbox job: ${res.error.message}`);
+    }
+
+    return res.data ? mapDbEmailOutboxToDomain(res.data) : full;
+  }
+
+  public async queueBatchEmailOutboxJobs(jobs: Partial<EmailOutboxJob>[]): Promise<number> {
+    if (!jobs || jobs.length === 0) return 0;
+    const client = this.getClient();
+    const now = new Date().toISOString();
+    const payloads = jobs.map((job, idx) => {
+      const id = job.id || `outbox-${Date.now().toString(36)}-${idx}-${Math.random().toString(36).substring(2, 6)}`;
+      const full: EmailOutboxJob = {
+        id,
+        sourceEventId: job.sourceEventId,
+        eventType: job.eventType || 'SYSTEM_ALERT',
+        recipientUserId: job.recipientUserId,
+        recipientEmail: job.recipientEmail || '',
+        recipientName: job.recipientName,
+        templateId: job.templateId || 'tpl-announcement',
+        templateVersion: job.templateVersion || 'v1',
+        templateVariables: job.templateVariables || {},
+        subject: job.subject || '',
+        htmlBody: job.htmlBody || '',
+        textBody: job.textBody || '',
+        status: job.status || 'QUEUED',
+        attemptCount: job.attemptCount || 0,
+        maxAttempts: job.maxAttempts || 3,
+        nextAttemptAt: job.nextAttemptAt || now,
+        lastAttemptAt: job.lastAttemptAt,
+        lockedAt: job.lockedAt,
+        lockedBy: job.lockedBy,
+        provider: job.provider || 'unconfigured',
+        providerMessageId: job.providerMessageId,
+        errorMessage: job.errorMessage,
+        errorClassification: job.errorClassification,
+        idempotencyKey: job.idempotencyKey,
+        metadata: job.metadata || {},
+        createdAt: job.createdAt || now,
+        updatedAt: now,
+      };
+      return mapDomainEmailOutboxToDb(full);
+    });
+
+    const { data, error } = await client
+      .from('email_outbox')
+      .upsert(payloads, { onConflict: 'idempotency_key', ignoreDuplicates: true })
+      .select('id');
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return jobs.length;
+      }
+      throw new Error(`Supabase error batch queuing email jobs: ${error.message}`);
+    }
+    return data ? data.length : 0;
+  }
+
+  public async getEmailOutboxJobs(filter?: {
+    status?: EmailOutboxStatus;
+    recipientUserId?: string;
+    limit?: number;
+    offset?: number;
+    search?: string;
+  }): Promise<{ jobs: EmailOutboxJob[]; totalCount: number }> {
+    const client = this.getClient();
+    let query = client
+      .from('email_outbox')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false });
+
+    if (filter?.status) {
+      query = query.eq('status', filter.status);
+    }
+    if (filter?.recipientUserId) {
+      query = query.eq('recipient_user_id', filter.recipientUserId);
+    }
+    if (filter?.search) {
+      query = query.or(`recipient_email.ilike.%${filter.search}%,subject.ilike.%${filter.search}%`);
+    }
+    if (filter?.limit) {
+      const offset = filter.offset || 0;
+      query = query.range(offset, offset + filter.limit - 1);
+    }
+
+    const { data, count, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return { jobs: [], totalCount: 0 };
+      }
+      throw new Error(`Supabase error fetching email outbox jobs: ${error.message}`);
+    }
+
+    return {
+      jobs: (data || []).map(mapDbEmailOutboxToDomain),
+      totalCount: count || 0,
+    };
+  }
+
+  public async getEmailOutboxJobById(id: string): Promise<EmailOutboxJob | null> {
+    const client = this.getClient();
+    const { data, error } = await client.from('email_outbox').select('*').eq('id', id).maybeSingle();
+    if (error || !data) return null;
+    return mapDbEmailOutboxToDomain(data);
+  }
+
+  public async claimEmailOutboxJobs(
+    workerId: string,
+    limit: number = 10,
+    leaseTimeoutMs: number = 300000
+  ): Promise<EmailOutboxJob[]> {
+    const client = this.getClient();
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const leaseCutoff = new Date(now.getTime() - leaseTimeoutMs).toISOString();
+
+    // Query candidate jobs: QUEUED or RETRY_PENDING where next_attempt_at <= now, and not currently locked
+    const { data: candidates, error } = await client
+      .from('email_outbox')
+      .select('*')
+      .in('status', ['QUEUED', 'RETRY_PENDING'])
+      .lte('next_attempt_at', nowIso)
+      .or(`locked_at.is.null,locked_at.lt.${leaseCutoff}`)
+      .order('created_at', { ascending: true })
+      .limit(limit);
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return [];
+      }
+      throw new Error(`Supabase error claiming email jobs: ${error.message}`);
+    }
+
+    if (!candidates || candidates.length === 0) return [];
+
+    const claimed: EmailOutboxJob[] = [];
+    for (const c of candidates) {
+      const { data: updated, error: lockErr } = await client
+        .from('email_outbox')
+        .update({
+          status: 'PROCESSING',
+          locked_at: nowIso,
+          locked_by: workerId,
+          updated_at: nowIso,
+        })
+        .eq('id', c.id)
+        .in('status', ['QUEUED', 'RETRY_PENDING'])
+        .select('*')
+        .maybeSingle();
+
+      if (!lockErr && updated) {
+        claimed.push(mapDbEmailOutboxToDomain(updated));
+      }
+    }
+
+    return claimed;
+  }
+
+  public async updateEmailOutboxJob(id: string, updates: Partial<EmailOutboxJob>): Promise<boolean> {
+    const client = this.getClient();
+    const dbPayload = mapDomainEmailOutboxToDb(updates);
+    delete dbPayload.id; // Protect primary key
+    dbPayload.updated_at = new Date().toISOString();
+
+    const { error } = await client.from('email_outbox').update(dbPayload).eq('id', id);
+    if (error) throw new Error(`Supabase error updating email outbox job: ${error.message}`);
+    return true;
+  }
+
+  public async getEmailOutboxStats(): Promise<{
+    queued: number;
+    processing: number;
+    sent: number;
+    delivered: number;
+    failed: number;
+    retryPending: number;
+    bounced: number;
+    suppressed: number;
+    cancelled: number;
+    total: number;
+  }> {
+    const client = this.getClient();
+    const { data, error } = await client.from('email_outbox').select('status');
+    if (error) {
+      return { queued: 0, processing: 0, sent: 0, delivered: 0, failed: 0, retryPending: 0, bounced: 0, suppressed: 0, cancelled: 0, total: 0 };
+    }
+
+    const counts = {
+      queued: 0,
+      processing: 0,
+      sent: 0,
+      delivered: 0,
+      failed: 0,
+      retryPending: 0,
+      bounced: 0,
+      suppressed: 0,
+      cancelled: 0,
+      total: (data || []).length,
+    };
+
+    (data || []).forEach((row: any) => {
+      if (row.status === 'QUEUED') counts.queued++;
+      else if (row.status === 'PROCESSING') counts.processing++;
+      else if (row.status === 'SENT') counts.sent++;
+      else if (row.status === 'DELIVERED') counts.delivered++;
+      else if (row.status === 'FAILED') counts.failed++;
+      else if (row.status === 'RETRY_PENDING') counts.retryPending++;
+      else if (row.status === 'BOUNCED') counts.bounced++;
+      else if (row.status === 'SUPPRESSED') counts.suppressed++;
+      else if (row.status === 'CANCELLED') counts.cancelled++;
+    });
+
+    return counts;
+  }
+
+  public async recordEmailDeliveryEvent(event: Partial<EmailDeliveryEvent>): Promise<EmailDeliveryEvent | null> {
+    const client = this.getClient();
+    const id = event.id || `evt-dlv-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 8)}`;
+    const full: EmailDeliveryEvent = {
+      id,
+      outboxId: event.outboxId,
+      provider: event.provider || 'mock',
+      providerMessageId: event.providerMessageId,
+      eventType: event.eventType || 'accepted',
+      recipientEmail: event.recipientEmail || '',
+      rawPayload: event.rawPayload || {},
+      occurredAt: event.occurredAt || new Date().toISOString(),
+      createdAt: event.createdAt || new Date().toISOString(),
+    };
+
+    const dbPayload = {
+      id: full.id,
+      outbox_id: full.outboxId || null,
+      provider: full.provider,
+      provider_message_id: full.providerMessageId || null,
+      event_type: full.eventType,
+      recipient_email: full.recipientEmail,
+      raw_payload: full.rawPayload,
+      occurred_at: full.occurredAt,
+      created_at: full.createdAt,
+    };
+
+    const { data, error } = await client.from('email_delivery_events').insert(dbPayload).select('*').maybeSingle();
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return full;
+      throw new Error(`Supabase error recording email delivery event: ${error.message}`);
+    }
+    return data ? mapDbEmailDeliveryEventToDomain(data) : full;
+  }
+
+  public async getEmailDeliveryEvents(outboxId?: string, limit: number = 50): Promise<EmailDeliveryEvent[]> {
+    const client = this.getClient();
+    let query = client.from('email_delivery_events').select('*').order('occurred_at', { ascending: false }).limit(limit);
+    if (outboxId) query = query.eq('outbox_id', outboxId);
+
+    const { data, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return [];
+      throw new Error(`Supabase error fetching email delivery events: ${error.message}`);
+    }
+    return (data || []).map(mapDbEmailDeliveryEventToDomain);
+  }
+
+  public async getUserNotificationPreferences(userId: string): Promise<UserNotificationPreference[]> {
+    const client = this.getClient();
+    const { data, error } = await client.from('user_notification_preferences').select('*').eq('user_id', userId);
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return [];
+      throw new Error(`Supabase error fetching user preferences: ${error.message}`);
+    }
+    return (data || []).map(mapDbUserPreferenceToDomain);
+  }
+
+  public async updateUserNotificationPreference(
+    userId: string,
+    category: string,
+    channel: 'EMAIL' | 'IN_APP',
+    isEnabled: boolean
+  ): Promise<UserNotificationPreference> {
+    const client = this.getClient();
+    const now = new Date().toISOString();
+    const id = `pref-${userId}-${channel}-${category}`;
+    const payload = {
+      id,
+      user_id: userId,
+      channel,
+      category,
+      is_enabled: isEnabled,
+      updated_at: now,
+    };
+
+    const { data, error } = await client
+      .from('user_notification_preferences')
+      .upsert(payload, { onConflict: 'user_id,channel,category' })
+      .select('*')
+      .single();
+
+    if (error) throw new Error(`Supabase error updating user notification preference: ${error.message}`);
+    return mapDbUserPreferenceToDomain(data);
+  }
+
+  public async isEmailNotificationEnabled(userId: string, category: string): Promise<boolean> {
+    // SECURITY critical notices cannot be disabled
+    if (category === 'SECURITY') return true;
+
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('user_notification_preferences')
+      .select('is_enabled')
+      .eq('user_id', userId)
+      .eq('channel', 'EMAIL')
+      .eq('category', category)
+      .maybeSingle();
+
+    if (error || !data) return true; // Default enabled
+    return Boolean(data.is_enabled);
   }
 
   // --------------------------------------------------------------------------
@@ -1948,16 +3754,33 @@ export class SupabaseAdapter {
     if (!blueprint) throw new Error('EXAM_BLUEPRINT_NOT_FOUND');
 
     // Retrieve candidate questions for blueprint
-    let assignedIds: string[];
+    let assignedQuestions: ExamQuestion[] = [];
     if (blueprintId === 'bp-asp-bcsp-v10') {
-      assignedIds = ['q-asp-01', 'q-asp-02', 'q-asp-03', 'q-asp-04', 'q-asp-05'];
+      const allQ = await this.getExamQuestions('ASP');
+      const targetIds = ['q-asp-01', 'q-asp-02', 'q-asp-03', 'q-asp-04', 'q-asp-05'];
+      assignedQuestions = allQ.filter((q) => targetIds.includes(q.id));
     } else {
       const questions = await this.getExamQuestions(blueprint.certificationType);
-      assignedIds = questions.slice(0, blueprint.totalQuestions).map((q) => q.id);
+      assignedQuestions = questions.slice(0, blueprint.totalQuestions);
     }
+    const assignedIds = assignedQuestions.map((q) => q.id);
+
+    const questionSnapshots: FrozenExamQuestionSnapshot[] = assignedQuestions.map((q) => ({
+      id: q.id,
+      domain: q.domain,
+      topic: q.topic,
+      stem: q.stem,
+      type: q.type,
+      options: q.options ? JSON.parse(JSON.stringify(q.options)) : [],
+      points: q.points ?? 1,
+      rubricCriteria: q.rubricCriteria ? JSON.parse(JSON.stringify(q.rubricCriteria)) : undefined,
+      correctOptionIds: [...(q.correctOptionIds || [])],
+      explanation: q.explanation,
+    }));
 
     const now = new Date();
-    const deadline = new Date(now.getTime() + blueprint.durationMinutes * 60 * 1000);
+    const gracePeriodSeconds = blueprint.gracePeriodSeconds ?? 60;
+    const deadline = new Date(now.getTime() + (blueprint.durationMinutes * 60 + gracePeriodSeconds) * 1000);
     const attemptId = `att-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
 
     const newAttempt: ExamAttempt = {
@@ -1968,13 +3791,15 @@ export class SupabaseAdapter {
       status: 'IN_PROGRESS',
       startTime: now.toISOString(),
       deadlineTime: deadline.toISOString(),
+      gracePeriodSeconds,
       assignedQuestionIds: assignedIds,
+      questionSnapshots,
       answers: {},
       bookmarkedQuestionIds: [],
       passingScorePercent: blueprint.passingScorePercent,
     };
 
-    const { error } = await client.from('exam_attempts').insert({
+    const basePayload: any = {
       id: newAttempt.id,
       user_id: newAttempt.userId,
       blueprint_id: newAttempt.blueprintId,
@@ -1986,7 +3811,19 @@ export class SupabaseAdapter {
       answers: newAttempt.answers,
       bookmarked_question_ids: newAttempt.bookmarkedQuestionIds,
       passing_score_percent: newAttempt.passingScorePercent,
+    };
+
+    // Attempt insert with Phase 3 extended snapshot and timer columns; fallback to baseline columns if remote schema cache lacks them
+    let { error } = await client.from('exam_attempts').insert({
+      ...basePayload,
+      grace_period_seconds: gracePeriodSeconds,
+      question_snapshots: questionSnapshots,
     });
+
+    if (error && (error.message.includes('column') || error.message.includes('schema cache'))) {
+      const retry = await client.from('exam_attempts').insert(basePayload);
+      error = retry.error;
+    }
 
     if (error) throw new Error(`Supabase error starting exam attempt: ${error.message}`);
     return newAttempt;
@@ -2068,16 +3905,24 @@ export class SupabaseAdapter {
       return attempt;
     }
 
-    // Authoritative Server-Side Scoring
-    const questions = await this.getExamQuestions(attempt.certificationType);
-    const questionsMap = new Map(questions.map((q) => [q.id, q]));
+    // Authoritative Server-Side Scoring against immutable snapshots
+    const questionsToScore: (ExamQuestion | FrozenExamQuestionSnapshot)[] =
+      (attempt.questionSnapshots && attempt.questionSnapshots.length > 0)
+        ? attempt.questionSnapshots
+        : await this.getExamQuestions(attempt.certificationType);
+    const questionsMap = new Map(questionsToScore.map((q) => [q.id, q]));
 
     let correctCount = 0;
     const domainBreakdown: Record<string, { total: number; correct: number; percent: number }> = {};
+    let requiresManualEvaluation = false;
 
     attempt.assignedQuestionIds.forEach((qId) => {
       const q = questionsMap.get(qId);
       if (!q) return;
+
+      if (q.type === 'SCENARIO_BASED' || (q.rubricCriteria && q.rubricCriteria.length > 0)) {
+        requiresManualEvaluation = true;
+      }
 
       if (!domainBreakdown[q.domain]) {
         domainBreakdown[q.domain] = { total: 0, correct: 0, percent: 0 };
@@ -2106,11 +3951,12 @@ export class SupabaseAdapter {
     const scorePercent = Math.round((correctCount / totalQuestions) * 100);
     const passed = scorePercent >= attempt.passingScorePercent;
     const now = new Date().toISOString();
+    const finalStatus = requiresManualEvaluation ? 'PENDING_MANUAL_EVALUATION' : 'COMPLETED';
 
     const { data, error } = await client
       .from('exam_attempts')
       .update({
-        status: 'COMPLETED',
+        status: finalStatus,
         completed_time: now,
         total_score: scorePercent,
         passed,
@@ -2157,7 +4003,7 @@ export class SupabaseAdapter {
   // --------------------------------------------------------------------------
   public async getCertificates(userId?: string): Promise<CertificateRecord[]> {
     const client = this.getClient();
-    let query = client.from('certificates').select('*').order('issued_date', { ascending: false });
+    let query = client.from('certificates').select('*').order('issue_date', { ascending: false });
     if (userId) query = query.eq('user_id', userId);
     const { data, error } = await query;
     if (error) throw new Error(`Supabase error fetching certificates: ${error.message}`);
@@ -3154,6 +5000,1133 @@ export class SupabaseAdapter {
     const { error } = await client.from('recording_doubts').update(updatePayload).eq('id', doubtId);
     if (error) throw new Error(`Supabase error updating doubt status: ${error.message}`);
     return true;
+  }
+
+  // --------------------------------------------------------------------------
+  // Phase 5C.1: Live Bug Monitoring & Centralized Diagnostics Engine
+  // --------------------------------------------------------------------------
+
+  public async upsertDiagnosticIssue(issue: DiagnosticIssue): Promise<DiagnosticIssue> {
+    const client = this.getClient();
+    const dbPayload = mapDomainDiagnosticIssueToDb(issue);
+    const { data, error } = await client
+      .from('diagnostic_issues')
+      .upsert(dbPayload, { onConflict: 'fingerprint' })
+      .select('*')
+      .single();
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return issue;
+      }
+      throw new Error(`Supabase error upserting diagnostic issue: ${error.message}`);
+    }
+
+    return mapDbDiagnosticIssueToDomain(data);
+  }
+
+  public async getDiagnosticIssues(filter?: {
+    status?: DiagnosticIssueStatus;
+    severity?: DiagnosticSeverity;
+    category?: DiagnosticCategory;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ issues: DiagnosticIssue[]; total: number }> {
+    const client = this.getClient();
+    let query = client.from('diagnostic_issues').select('*', { count: 'exact' });
+
+    if (filter?.status) {
+      query = query.eq('status', filter.status);
+    }
+    if (filter?.severity) {
+      query = query.eq('severity', filter.severity);
+    }
+    if (filter?.category) {
+      query = query.eq('category', filter.category);
+    }
+    if (filter?.search) {
+      query = query.or(`title.ilike.%${filter.search}%,last_error_message.ilike.%${filter.search}%,last_correlation_id.ilike.%${filter.search}%`);
+    }
+
+    query = query.order('last_seen_at', { ascending: false });
+
+    if (filter?.limit) {
+      const from = filter.offset || 0;
+      const to = from + filter.limit - 1;
+      query = query.range(from, to);
+    }
+
+    const { data, count, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return { issues: [], total: 0 };
+      }
+      throw new Error(`Supabase error fetching diagnostic issues: ${error.message}`);
+    }
+
+    return {
+      issues: (data || []).map(mapDbDiagnosticIssueToDomain),
+      total: count || (data ? data.length : 0),
+    };
+  }
+
+  public async getDiagnosticIssueById(id: string): Promise<DiagnosticIssue | null> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('diagnostic_issues')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return null;
+      }
+      throw new Error(`Supabase error fetching issue ${id}: ${error.message}`);
+    }
+
+    return data ? mapDbDiagnosticIssueToDomain(data) : null;
+  }
+
+  public async getDiagnosticIssueByFingerprint(fingerprint: string): Promise<DiagnosticIssue | null> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('diagnostic_issues')
+      .select('*')
+      .eq('fingerprint', fingerprint)
+      .maybeSingle();
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return null;
+      }
+      throw new Error(`Supabase error fetching issue by fingerprint: ${error.message}`);
+    }
+
+    return data ? mapDbDiagnosticIssueToDomain(data) : null;
+  }
+
+  public async updateDiagnosticIssueStatus(
+    id: string,
+    status: DiagnosticIssueStatus,
+    actorId?: string,
+    notes?: string
+  ): Promise<DiagnosticIssue | null> {
+    const client = this.getClient();
+    const now = new Date().toISOString();
+    const updatePayload: any = {
+      status,
+      updated_at: now,
+    };
+
+    if (status === 'ACKNOWLEDGED') {
+      updatePayload.acknowledged_by = actorId || null;
+      updatePayload.acknowledged_at = now;
+    } else if (status === 'RESOLVED') {
+      updatePayload.resolved_by = actorId || null;
+      updatePayload.resolved_at = now;
+      if (notes) updatePayload.resolution_notes = notes;
+    }
+
+    const { data, error } = await client
+      .from('diagnostic_issues')
+      .update(updatePayload)
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return null;
+      }
+      throw new Error(`Supabase error updating issue ${id}: ${error.message}`);
+    }
+
+    return data ? mapDbDiagnosticIssueToDomain(data) : null;
+  }
+
+  public async recordDiagnosticEvent(event: DiagnosticEvent): Promise<DiagnosticEvent> {
+    const client = this.getClient();
+    const dbPayload = mapDomainDiagnosticEventToDb(event);
+    const { data, error } = await client
+      .from('diagnostic_events')
+      .insert(dbPayload)
+      .select('*')
+      .single();
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return event;
+      }
+      throw new Error(`Supabase error inserting diagnostic event: ${error.message}`);
+    }
+
+    return mapDbDiagnosticEventToDomain(data);
+  }
+
+  public async getDiagnosticEventsForIssue(issueId: string, limit: number = 50): Promise<DiagnosticEvent[]> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('diagnostic_events')
+      .select('*')
+      .eq('issue_id', issueId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return [];
+      }
+      throw new Error(`Supabase error fetching events for issue ${issueId}: ${error.message}`);
+    }
+
+    return (data || []).map(mapDbDiagnosticEventToDomain);
+  }
+
+  public async getRecentDiagnosticEvents(limit: number = 100): Promise<DiagnosticEvent[]> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('diagnostic_events')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return [];
+      }
+      throw new Error(`Supabase error fetching recent diagnostic events: ${error.message}`);
+    }
+
+    return (data || []).map(mapDbDiagnosticEventToDomain);
+  }
+
+  public async upsertServiceHealthCheck(check: ServiceHealthCheck): Promise<ServiceHealthCheck> {
+    const client = this.getClient();
+    const dbPayload = mapDomainServiceHealthCheckToDb(check);
+    const { data, error } = await client
+      .from('service_health_checks')
+      .upsert(dbPayload, { onConflict: 'service_name' })
+      .select('*')
+      .single();
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return check;
+      }
+      throw new Error(`Supabase error upserting service health check: ${error.message}`);
+    }
+
+    return mapDbServiceHealthCheckToDomain(data);
+  }
+
+  public async getServiceHealthChecks(): Promise<ServiceHealthCheck[]> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('service_health_checks')
+      .select('*');
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return [];
+      }
+      throw new Error(`Supabase error fetching service health checks: ${error.message}`);
+    }
+
+    return (data || []).map(mapDbServiceHealthCheckToDomain);
+  }
+
+  // --------------------------------------------------------------------------
+  // Phase 5C.3: Support Ticketing, Student Helpdesk & Service Operations
+  // --------------------------------------------------------------------------
+
+  public async generateSupportTicketNumber(): Promise<string> {
+    const client = this.getClient();
+    try {
+      const { data, error } = await client.rpc('next_support_ticket_number');
+      if (!error && data) return data as string;
+    } catch {
+      // Fallback below
+    }
+    const year = new Date().getFullYear();
+    const randomSeq = Math.floor(1000 + Math.random() * 9000);
+    return `ZL-${year}-${randomSeq}`;
+  }
+
+  public async getSupportCategories(activeOnly: boolean = false): Promise<SupportCategory[]> {
+    const client = this.getClient();
+    let query = client.from('support_categories').select('*').order('name', { ascending: true });
+    if (activeOnly) query = query.eq('is_active', true);
+    const { data, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return [];
+      throw new Error(`Supabase error fetching support categories: ${error.message}`);
+    }
+    return (data || []).map(mapDbSupportCategoryToDomain);
+  }
+
+  public async getSupportCategoryById(id: string): Promise<SupportCategory | undefined> {
+    const client = this.getClient();
+    const { data, error } = await client.from('support_categories').select('*').eq('id', id).maybeSingle();
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return undefined;
+      throw new Error(`Supabase error fetching support category by id: ${error.message}`);
+    }
+    return data ? mapDbSupportCategoryToDomain(data) : undefined;
+  }
+
+  public async getSupportTeams(activeOnly: boolean = false): Promise<SupportTeam[]> {
+    const client = this.getClient();
+    let query = client.from('support_teams').select('*').order('name', { ascending: true });
+    if (activeOnly) query = query.eq('is_active', true);
+    const { data, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return [];
+      throw new Error(`Supabase error fetching support teams: ${error.message}`);
+    }
+    return (data || []).map(mapDbSupportTeamToDomain);
+  }
+
+  public async getSupportTeamById(id: string): Promise<SupportTeam | undefined> {
+    const client = this.getClient();
+    const { data, error } = await client.from('support_teams').select('*').eq('id', id).maybeSingle();
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return undefined;
+      throw new Error(`Supabase error fetching support team by id: ${error.message}`);
+    }
+    return data ? mapDbSupportTeamToDomain(data) : undefined;
+  }
+
+  public async getSupportSlaPolicies(activeOnly: boolean = false): Promise<SupportSlaPolicy[]> {
+    const client = this.getClient();
+    let query = client.from('support_sla_policies').select('*').order('priority', { ascending: true });
+    if (activeOnly) query = query.eq('is_active', true);
+    const { data, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return [];
+      throw new Error(`Supabase error fetching SLA policies: ${error.message}`);
+    }
+    return (data || []).map(mapDbSupportSlaPolicyToDomain);
+  }
+
+  public async createSupportTicket(ticket: SupportTicket): Promise<SupportTicket> {
+    const client = this.getClient();
+    const payload = mapDomainSupportTicketToDb(ticket);
+    const { data, error } = await client.from('support_tickets').insert(payload).select('*').single();
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return ticket;
+      throw new Error(`Supabase error creating support ticket: ${error.message}`);
+    }
+    return mapDbSupportTicketToDomain(data);
+  }
+
+  public async getSupportTicketById(id: string): Promise<SupportTicket | undefined> {
+    const client = this.getClient();
+    const { data, error } = await client.from('support_tickets').select('*').eq('id', id).maybeSingle();
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return undefined;
+      throw new Error(`Supabase error fetching support ticket by id: ${error.message}`);
+    }
+    return data ? mapDbSupportTicketToDomain(data) : undefined;
+  }
+
+  public async getSupportTicketByNumber(ticketNumber: string): Promise<SupportTicket | undefined> {
+    const client = this.getClient();
+    const { data, error } = await client.from('support_tickets').select('*').eq('ticket_number', ticketNumber).maybeSingle();
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return undefined;
+      throw new Error(`Supabase error fetching support ticket by number: ${error.message}`);
+    }
+    return data ? mapDbSupportTicketToDomain(data) : undefined;
+  }
+
+  public async updateSupportTicket(ticket: SupportTicket): Promise<SupportTicket> {
+    const client = this.getClient();
+    const payload = mapDomainSupportTicketToDb(ticket);
+    const { data, error } = await client.from('support_tickets').update(payload).eq('id', ticket.id).select('*').single();
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return ticket;
+      throw new Error(`Supabase error updating support ticket: ${error.message}`);
+    }
+    return mapDbSupportTicketToDomain(data);
+  }
+
+  public async getSupportTickets(filter?: SupportTicketFilterParams): Promise<{ tickets: SupportTicket[]; totalCount: number }> {
+    const client = this.getClient();
+    let query = client.from('support_tickets').select('*', { count: 'exact' });
+
+    if (filter?.status && filter.status !== 'ALL') {
+      query = query.eq('status', filter.status);
+    }
+    if (filter?.priority && filter.priority !== 'ALL') {
+      query = query.eq('priority', filter.priority);
+    }
+    if (filter?.categoryId) {
+      query = query.eq('category_id', filter.categoryId);
+    }
+    if (filter?.assignedTeamId) {
+      query = query.eq('assigned_team_id', filter.assignedTeamId);
+    }
+    if (filter?.assignedAgentUserId) {
+      query = query.eq('assigned_agent_user_id', filter.assignedAgentUserId);
+    }
+    if (filter?.requesterUserId) {
+      query = query.eq('requester_user_id', filter.requesterUserId);
+    }
+    if (filter?.courseId) {
+      query = query.eq('related_course_id', filter.courseId);
+    }
+    if (filter?.batchId) {
+      query = query.eq('related_batch_id', filter.batchId);
+    }
+    if (filter?.search) {
+      const term = `%${filter.search}%`;
+      query = query.or(`ticket_number.ilike.${term},subject.ilike.${term},description.ilike.${term},requester_name.ilike.${term}`);
+    }
+
+    query = query.order('created_at', { ascending: false });
+
+    if (filter?.limit) {
+      const from = filter.offset || 0;
+      const to = from + filter.limit - 1;
+      query = query.range(from, to);
+    }
+
+    const { data, count, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return { tickets: [], totalCount: 0 };
+      throw new Error(`Supabase error querying support tickets: ${error.message}`);
+    }
+
+    return {
+      tickets: (data || []).map(mapDbSupportTicketToDomain),
+      totalCount: count ?? (data?.length || 0),
+    };
+  }
+
+  public async createSupportTicketMessage(message: SupportTicketMessage): Promise<SupportTicketMessage> {
+    const client = this.getClient();
+    const payload = mapDomainSupportTicketMessageToDb(message);
+    const { data, error } = await client.from('support_ticket_messages').insert(payload).select('*').single();
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return message;
+      throw new Error(`Supabase error creating support ticket message: ${error.message}`);
+    }
+    return mapDbSupportTicketMessageToDomain(data);
+  }
+
+  public async getSupportTicketMessages(ticketId: string, includeInternal: boolean = false): Promise<SupportTicketMessage[]> {
+    const client = this.getClient();
+    let query = client.from('support_ticket_messages').select('*').eq('ticket_id', ticketId).order('created_at', { ascending: true });
+    if (!includeInternal) {
+      query = query.eq('visibility', 'PUBLIC');
+    }
+    const { data, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return [];
+      throw new Error(`Supabase error fetching support ticket messages: ${error.message}`);
+    }
+    return (data || []).map(mapDbSupportTicketMessageToDomain);
+  }
+
+  public async createSupportTicketEvent(event: SupportTicketEvent): Promise<SupportTicketEvent> {
+    const client = this.getClient();
+    const payload = mapDomainSupportTicketEventToDb(event);
+    const { data, error } = await client.from('support_ticket_events').insert(payload).select('*').single();
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return event;
+      throw new Error(`Supabase error recording support ticket event: ${error.message}`);
+    }
+    return mapDbSupportTicketEventToDomain(data);
+  }
+
+  public async getSupportTicketEvents(ticketId: string, includeInternal: boolean = false): Promise<SupportTicketEvent[]> {
+    const client = this.getClient();
+    let query = client.from('support_ticket_events').select('*').eq('ticket_id', ticketId).order('created_at', { ascending: true });
+    if (!includeInternal) {
+      query = query.not('event_type', 'eq', 'INTERNAL_NOTE_ADDED');
+    }
+    const { data, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return [];
+      throw new Error(`Supabase error fetching support ticket events: ${error.message}`);
+    }
+    return (data || []).map(mapDbSupportTicketEventToDomain);
+  }
+
+  public async createSupportTicketAttachment(attachment: SupportTicketAttachment): Promise<SupportTicketAttachment> {
+    const client = this.getClient();
+    const payload = mapDomainSupportTicketAttachmentToDb(attachment);
+    const { data, error } = await client.from('support_ticket_attachments').insert(payload).select('*').single();
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return attachment;
+      throw new Error(`Supabase error creating support ticket attachment: ${error.message}`);
+    }
+    return mapDbSupportTicketAttachmentToDomain(data);
+  }
+
+  public async getSupportTicketAttachments(ticketId: string): Promise<SupportTicketAttachment[]> {
+    const client = this.getClient();
+    const { data, error } = await client.from('support_ticket_attachments').select('*').eq('ticket_id', ticketId).order('created_at', { ascending: true });
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) return [];
+      throw new Error(`Supabase error fetching support ticket attachments: ${error.message}`);
+    }
+    return (data || []).map(mapDbSupportTicketAttachmentToDomain);
+  }
+
+  // ============================================================================
+  // DIRECT MESSAGING & COHORT CONVERSATIONS PERSISTENCE (ZM-IMPL-01)
+  // ============================================================================
+
+  public async createDirectMessage(message: DirectMessage): Promise<DirectMessage> {
+    const client = this.getClient();
+    // Idempotency check: if clientMessageId is provided, check if already exists for this sender
+    if (message.clientMessageId) {
+      const { data: existing, error: checkErr } = await client
+        .from('direct_messages')
+        .select('*')
+        .eq('sender_id', message.senderId)
+        .eq('client_message_id', message.clientMessageId)
+        .maybeSingle();
+
+      if (!checkErr && existing) {
+        return mapDbDirectMessageToDomain(existing);
+      }
+    }
+
+    const payload = mapDomainDirectMessageToDb(message);
+    const { data, error } = await client
+      .from('direct_messages')
+      .insert(payload)
+      .select('*')
+      .single();
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return message;
+      }
+      throw new Error(`Supabase error creating direct message: ${error.message}`);
+    }
+    return mapDbDirectMessageToDomain(data);
+  }
+
+  public async getDirectMessages(
+    userId: string,
+    courseId?: string,
+    batchId?: string,
+    limit: number = 100,
+    offset: number = 0
+  ): Promise<DirectMessage[]> {
+    const client = this.getClient();
+    let query = client
+      .from('direct_messages')
+      .select('*')
+      .or(`sender_id.eq.${userId},recipient_id.eq.${userId},recipient_id.is.null`);
+
+    if (courseId) {
+      query = query.eq('course_id', courseId);
+    }
+    if (batchId) {
+      query = query.or(`batch_id.is.null,batch_id.eq.${batchId}`);
+    }
+
+    query = query
+      .order('created_at', { ascending: true })
+      .range(offset, offset + limit - 1);
+
+    const { data, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return [];
+      }
+      throw new Error(`Supabase error fetching direct messages: ${error.message}`);
+    }
+    return (data || []).map(mapDbDirectMessageToDomain);
+  }
+
+  public async getDirectMessageById(id: string): Promise<DirectMessage | undefined> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('direct_messages')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return undefined;
+      }
+      throw new Error(`Supabase error fetching direct message by id: ${error.message}`);
+    }
+    return data ? mapDbDirectMessageToDomain(data) : undefined;
+  }
+
+  public async markDirectMessageRead(id: string, readByUserId?: string): Promise<boolean> {
+    const client = this.getClient();
+    let updateQuery = client
+      .from('direct_messages')
+      .update({
+        read: true,
+        read_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (readByUserId) {
+      updateQuery = updateQuery.or(`recipient_id.eq.${readByUserId},recipient_id.is.null`);
+    }
+
+    const { error } = await updateQuery;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return false;
+      }
+      throw new Error(`Supabase error marking direct message read: ${error.message}`);
+    }
+    return true;
+  }
+
+  public async getUnreadDirectMessageCount(userId: string, courseId?: string): Promise<number> {
+    const client = this.getClient();
+    let query = client
+      .from('direct_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('read', false)
+      .eq('recipient_id', userId);
+
+    if (courseId) {
+      query = query.eq('course_id', courseId);
+    }
+
+    const { count, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return 0;
+      }
+      throw new Error(`Supabase error counting unread direct messages: ${error.message}`);
+    }
+    return count || 0;
+  }
+
+  // ==========================================================================
+  // CMS & PAGEBUILDER REPOSITORY METHODS
+  // ==========================================================================
+
+  public async getCmsPages(filter?: { pageType?: string; status?: string }): Promise<CmsPage[]> {
+    const client = this.getClient();
+    let query = client.from('cms_pages').select('*').order('created_at', { ascending: false });
+
+    if (filter?.pageType) {
+      query = query.eq('page_type', filter.pageType);
+    }
+    if (filter?.status) {
+      query = query.eq('status', filter.status);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return [];
+      }
+      throw new Error(`Supabase error fetching cms pages: ${error.message}`);
+    }
+    return (data || []).map(mapDbCmsPageToDomain);
+  }
+
+  public async getCmsPageById(id: string): Promise<CmsPage | undefined> {
+    const client = this.getClient();
+    const { data, error } = await client.from('cms_pages').select('*').eq('id', id).maybeSingle();
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return undefined;
+      }
+      throw new Error(`Supabase error fetching cms page by id: ${error.message}`);
+    }
+    return data ? mapDbCmsPageToDomain(data) : undefined;
+  }
+
+  public async getCmsPageBySlug(slug: string): Promise<CmsPage | undefined> {
+    const client = this.getClient();
+    const { data, error } = await client.from('cms_pages').select('*').eq('slug', slug).maybeSingle();
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return undefined;
+      }
+      throw new Error(`Supabase error fetching cms page by slug: ${error.message}`);
+    }
+    return data ? mapDbCmsPageToDomain(data) : undefined;
+  }
+
+  public async saveCmsPage(page: CmsPage): Promise<CmsPage> {
+    const client = this.getClient();
+    const payload = mapDomainCmsPageToDb(page);
+
+    const { data, error } = await client
+      .from('cms_pages')
+      .upsert(payload, { onConflict: 'id' })
+      .select('*')
+      .single();
+
+    if (error) {
+      throw new Error(`Supabase error saving cms page: ${error.message}`);
+    }
+    if (!data) {
+      throw new Error('Supabase error saving cms page: no data returned');
+    }
+    return mapDbCmsPageToDomain(data);
+  }
+
+  public async deleteCmsPage(id: string): Promise<boolean> {
+    const client = this.getClient();
+    const { error } = await client.from('cms_pages').delete().eq('id', id);
+
+    if (error) {
+      throw new Error(`Supabase error deleting cms page: ${error.message}`);
+    }
+    return true;
+  }
+
+  public async getCmsPageVersions(pageId: string): Promise<CmsPageVersion[]> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('cms_page_versions')
+      .select('*')
+      .eq('page_id', pageId)
+      .order('version_number', { ascending: false });
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return [];
+      }
+      throw new Error(`Supabase error fetching cms page versions: ${error.message}`);
+    }
+    return (data || []).map(mapDbCmsPageVersionToDomain);
+  }
+
+  public async getCmsPageVersionById(id: string): Promise<CmsPageVersion | undefined> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('cms_page_versions')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return undefined;
+      }
+      throw new Error(`Supabase error fetching cms page version by id: ${error.message}`);
+    }
+    return data ? mapDbCmsPageVersionToDomain(data) : undefined;
+  }
+
+  public async saveCmsPageVersion(version: CmsPageVersion): Promise<CmsPageVersion> {
+    const client = this.getClient();
+    const payload = mapDomainCmsPageVersionToDb(version);
+
+    const { data, error } = await client
+      .from('cms_page_versions')
+      .upsert(payload, { onConflict: 'id' })
+      .select('*')
+      .single();
+
+    if (error) {
+      throw new Error(`Supabase error saving cms page version: ${error.message}`);
+    }
+    if (!data) {
+      throw new Error('Supabase error saving cms page version: no data returned');
+    }
+    return mapDbCmsPageVersionToDomain(data);
+  }
+
+  public async getCmsPageNodes(versionId: string): Promise<CmsPageNode[]> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('cms_page_nodes')
+      .select('*')
+      .eq('page_version_id', versionId)
+      .order('position', { ascending: true });
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return [];
+      }
+      throw new Error(`Supabase error fetching cms page nodes: ${error.message}`);
+    }
+    return (data || []).map(mapDbCmsPageNodeToDomain);
+  }
+
+  public async saveCmsPageNodes(versionId: string, nodes: CmsPageNode[]): Promise<CmsPageNode[]> {
+    const client = this.getClient();
+
+    // Delete existing nodes for this version
+    const { error: deleteError } = await client
+      .from('cms_page_nodes')
+      .delete()
+      .eq('page_version_id', versionId);
+
+    if (deleteError) {
+      throw new Error(`Supabase error clearing cms page nodes: ${deleteError.message}`);
+    }
+
+    if (nodes.length === 0) return [];
+
+    const payloads = nodes.map(mapDomainCmsPageNodeToDb);
+    const { data, error: insertError } = await client
+      .from('cms_page_nodes')
+      .insert(payloads)
+      .select('*');
+
+    if (insertError) {
+      throw new Error(`Supabase error inserting cms page nodes: ${insertError.message}`);
+    }
+    if (!data) {
+      throw new Error('Supabase error inserting cms page nodes: no data returned');
+    }
+
+    return (data || []).map(mapDbCmsPageNodeToDomain);
+  }
+
+  public async publishCmsPage(
+    pageId: string,
+    versionId: string,
+    publisherId: string,
+    checksum: string
+  ): Promise<boolean> {
+    const client = this.getClient();
+
+    // 0. Attempt genuinely atomic stored procedure if available
+    try {
+      const { data: rpcData, error: rpcError } = await client.rpc('publish_cms_page_version', {
+        p_page_id: pageId,
+        p_version_id: versionId,
+        p_actor_id: publisherId,
+        p_checksum: checksum,
+      });
+
+      if (!rpcError && rpcData && rpcData.success) {
+        return true;
+      }
+      if (rpcError && !rpcError.message.includes('function') && !rpcError.message.includes('does not exist')) {
+        throw new Error(`Supabase atomic publish error: ${rpcError.message}`);
+      }
+    } catch (rpcEx: any) {
+      if (!rpcEx.message.includes('function') && !rpcEx.message.includes('does not exist')) {
+        throw rpcEx;
+      }
+    }
+
+    // 1. Fallback to multi-statement verified transaction
+    const { data: verData, error: verError } = await client
+      .from('cms_page_versions')
+      .update({
+        status: 'PUBLISHED',
+        published_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', versionId)
+      .select('id');
+
+    if (verError) {
+      throw new Error(`Supabase error updating version to published: ${verError.message}`);
+    }
+    if (!verData || verData.length === 0) {
+      throw new Error(`Supabase zero-row update: version "${versionId}" not found`);
+    }
+
+    // 2. Update page to PUBLISHED, set published_version_id, clear scheduled fields
+    const { data: pageData, error: pageError } = await client
+      .from('cms_pages')
+      .update({
+        status: 'PUBLISHED',
+        published_version_id: versionId,
+        scheduled_publish_at: null,
+        scheduled_version_id: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', pageId)
+      .select('id');
+
+    if (pageError) {
+      throw new Error(`Supabase error setting published version on page: ${pageError.message}`);
+    }
+    if (!pageData || pageData.length === 0) {
+      throw new Error(`Supabase zero-row update: page "${pageId}" not found`);
+    }
+
+    // 3. Record publication audit record
+    const pubRecord = {
+      id: `pub-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      page_id: pageId,
+      version_id: versionId,
+      published_by: publisherId,
+      published_at: new Date().toISOString(),
+      snapshot_checksum: checksum,
+    };
+
+    const { error: pubError } = await client.from('cms_publication_records').insert(pubRecord);
+    if (pubError && !pubError.message.includes('relation') && !pubError.message.includes('does not exist')) {
+      console.warn(`Warning: Could not record publication audit log: ${pubError.message}`);
+    }
+
+    // 4. Mark any queued scheduled publication jobs as COMPLETED
+    try {
+      await client
+        .from('cms_scheduled_publications')
+        .update({
+          status: 'COMPLETED',
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('page_id', pageId)
+        .eq('version_id', versionId)
+        .in('status', ['QUEUED', 'PROCESSING']);
+    } catch {
+      // Non-fatal if table not yet migrated
+    }
+
+    return true;
+  }
+
+  public async rollbackCmsPage(
+    pageId: string,
+    sourceVersionId: string,
+    newVersionId: string,
+    actorId: string,
+    changeSummary: string
+  ): Promise<{ page: CmsPage; version: CmsPageVersion } | null> {
+    const client = this.getClient();
+
+    // 0. Attempt genuinely atomic stored procedure if available
+    try {
+      const { data: rpcData, error: rpcError } = await client.rpc('rollback_cms_page_version', {
+        p_page_id: pageId,
+        p_source_version_id: sourceVersionId,
+        p_new_version_id: newVersionId,
+        p_actor_id: actorId,
+        p_change_summary: changeSummary,
+      });
+
+      if (!rpcError && rpcData && rpcData.success) {
+        return {
+          page: mapDbCmsPageToDomain(rpcData.page),
+          version: mapDbCmsPageVersionToDomain(rpcData.version),
+        };
+      }
+      if (
+        rpcError &&
+        !rpcError.message.includes('function') &&
+        !rpcError.message.includes('does not exist') &&
+        !rpcError.message.includes('fetch failed')
+      ) {
+        throw new Error(`Supabase atomic rollback error: ${rpcError.message}`);
+      }
+    } catch (rpcEx: any) {
+      if (
+        !rpcEx.message.includes('function') &&
+        !rpcEx.message.includes('does not exist') &&
+        !rpcEx.message.includes('fetch failed')
+      ) {
+        throw rpcEx;
+      }
+    }
+
+    // Fallback: Return null indicating caller should use multi-step orchestration
+    return null;
+  }
+
+  public async saveCmsScheduledPublicationJob(
+    job: CmsScheduledPublicationJob
+  ): Promise<CmsScheduledPublicationJob> {
+    const client = this.getClient();
+    const payload = mapDomainCmsScheduledPublicationJobToDb(job);
+
+    const { data, error } = await client
+      .from('cms_scheduled_publications')
+      .upsert(payload, { onConflict: 'id' })
+      .select('*')
+      .single();
+
+    if (error) {
+      throw new Error(`Supabase error saving scheduled publication job: ${error.message}`);
+    }
+    if (!data) {
+      throw new Error('Supabase error saving scheduled publication job: no data returned');
+    }
+    return mapDbCmsScheduledPublicationJobToDomain(data);
+  }
+
+  public async getCmsScheduledPublicationJobs(filter?: {
+    pageId?: string;
+    status?: CmsPublicationJobStatus;
+  }): Promise<CmsScheduledPublicationJob[]> {
+    const client = this.getClient();
+    let query = client.from('cms_scheduled_publications').select('*').order('scheduled_at', { ascending: true });
+
+    if (filter?.pageId) query = query.eq('page_id', filter.pageId);
+    if (filter?.status) query = query.eq('status', filter.status);
+
+    const { data, error } = await query;
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return [];
+      }
+      throw new Error(`Supabase error fetching scheduled publication jobs: ${error.message}`);
+    }
+    return (data || []).map(mapDbCmsScheduledPublicationJobToDomain);
+  }
+
+  public async claimDueCmsScheduledPublicationJobs(
+    workerId: string,
+    limit: number = 5
+  ): Promise<CmsScheduledPublicationJob[]> {
+    const client = this.getClient();
+    const nowIso = new Date().toISOString();
+
+    // Query due jobs
+    const { data: candidates, error: queryErr } = await client
+      .from('cms_scheduled_publications')
+      .select('*')
+      .eq('status', 'QUEUED')
+      .lte('scheduled_at', nowIso)
+      .order('scheduled_at', { ascending: true })
+      .limit(limit);
+
+    if (queryErr) {
+      if (queryErr.message.includes('relation') || queryErr.message.includes('does not exist')) {
+        return [];
+      }
+      throw new Error(`Supabase error querying due publication jobs: ${queryErr.message}`);
+    }
+
+    if (!candidates || candidates.length === 0) return [];
+
+    const claimed: CmsScheduledPublicationJob[] = [];
+    for (const cand of candidates) {
+      const { data: updated, error: lockErr } = await client
+        .from('cms_scheduled_publications')
+        .update({
+          status: 'PROCESSING',
+          locked_at: nowIso,
+          locked_by: workerId,
+          attempt_count: (cand.attempt_count || 0) + 1,
+          updated_at: nowIso,
+        })
+        .eq('id', cand.id)
+        .eq('status', 'QUEUED')
+        .select('*');
+
+      if (!lockErr && updated && updated.length > 0) {
+        claimed.push(mapDbCmsScheduledPublicationJobToDomain(updated[0]));
+      }
+    }
+
+    return claimed;
+  }
+
+  public async updateCmsScheduledPublicationJob(
+    id: string,
+    updates: {
+      status?: CmsPublicationJobStatus;
+      completedAt?: string;
+      errorMessage?: string;
+      lockedAt?: string | null;
+      lockedBy?: string | null;
+    }
+  ): Promise<CmsScheduledPublicationJob | null> {
+    const client = this.getClient();
+    const payload: any = { updated_at: new Date().toISOString() };
+    if (updates.status !== undefined) payload.status = updates.status;
+    if (updates.completedAt !== undefined) payload.completed_at = updates.completedAt;
+    if (updates.errorMessage !== undefined) payload.error_message = updates.errorMessage;
+    if (updates.lockedAt !== undefined) payload.locked_at = updates.lockedAt;
+    if (updates.lockedBy !== undefined) payload.locked_by = updates.lockedBy;
+
+    const { data, error } = await client
+      .from('cms_scheduled_publications')
+      .update(payload)
+      .eq('id', id)
+      .select('*');
+
+    if (error) {
+      throw new Error(`Supabase error updating scheduled publication job: ${error.message}`);
+    }
+    if (!data || data.length === 0) return null;
+    return mapDbCmsScheduledPublicationJobToDomain(data[0]);
+  }
+
+  public async getCmsTemplates(): Promise<CmsTemplate[]> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('cms_templates')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return [];
+      }
+      throw new Error(`Supabase error fetching cms templates: ${error.message}`);
+    }
+    return (data || []).map(mapDbCmsTemplateToDomain);
+  }
+
+  public async saveCmsTemplate(template: CmsTemplate): Promise<CmsTemplate> {
+    const client = this.getClient();
+    const payload = mapDomainCmsTemplateToDb(template);
+
+    const { data, error } = await client
+      .from('cms_templates')
+      .upsert(payload, { onConflict: 'id' })
+      .select('*')
+      .single();
+
+    if (error) {
+      throw new Error(`Supabase error saving cms template: ${error.message}`);
+    }
+    if (!data) {
+      throw new Error('Supabase error saving cms template: no data returned');
+    }
+    return mapDbCmsTemplateToDomain(data);
+  }
+
+  public async getCmsReusableBlocks(): Promise<CmsReusableBlock[]> {
+    const client = this.getClient();
+    const { data, error } = await client
+      .from('cms_reusable_blocks')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        return [];
+      }
+      throw new Error(`Supabase error fetching cms reusable blocks: ${error.message}`);
+    }
+    return (data || []).map(mapDbCmsReusableBlockToDomain);
+  }
+
+  public async saveCmsReusableBlock(block: CmsReusableBlock): Promise<CmsReusableBlock> {
+    const client = this.getClient();
+    const payload = mapDomainCmsReusableBlockToDb(block);
+
+    const { data, error } = await client
+      .from('cms_reusable_blocks')
+      .upsert(payload, { onConflict: 'id' })
+      .select('*')
+      .single();
+
+    if (error) {
+      throw new Error(`Supabase error saving cms reusable block: ${error.message}`);
+    }
+    if (!data) {
+      throw new Error('Supabase error saving cms reusable block: no data returned');
+    }
+    return mapDbCmsReusableBlockToDomain(data);
   }
 }
 

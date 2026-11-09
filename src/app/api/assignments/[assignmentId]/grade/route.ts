@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/store/db';
 import { verifyToken } from '@/lib/auth/jwt';
+import { notificationService } from '@/lib/notifications/notification-service';
 
 export async function POST(
   request: Request,
@@ -50,31 +51,62 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { submissionId, score, feedback, rubricScores } = body;
+    const { submissionId, score, feedback, rubricScores, status, aiReviewDecision } = body;
 
     if (!submissionId) {
       return NextResponse.json({ error: 'submissionId is required' }, { status: 400 });
     }
 
-    const numericScore = Number(score);
-    if (isNaN(numericScore) || numericScore < 0 || numericScore > assignment.maxScore) {
+    const targetStatus = status === 'RESUBMISSION_REQUESTED' ? 'RESUBMISSION_REQUESTED' : 'GRADED';
+
+    let numericScore: number | undefined = undefined;
+    if (score !== undefined && score !== null && score !== '') {
+      numericScore = Number(score);
+      if (isNaN(numericScore) || numericScore < 0 || numericScore > assignment.maxScore) {
+        return NextResponse.json(
+          { error: `Score must be a number between 0 and maximum possible (${assignment.maxScore})` },
+          { status: 400 }
+        );
+      }
+    } else if (targetStatus === 'GRADED') {
       return NextResponse.json(
-        { error: `Score must be a number between 0 and maximum possible (${assignment.maxScore})` },
+        { error: `Score is required to finalize grade (0 to ${assignment.maxScore})` },
         { status: 400 }
       );
+    }
+
+    const existingSubmission = await db.getSubmissionById(submissionId);
+    let aiSuggestions = existingSubmission?.aiReviewSuggestions;
+    if (aiSuggestions && aiReviewDecision) {
+      aiSuggestions = {
+        ...aiSuggestions,
+        status: aiReviewDecision,
+      };
     }
 
     const graded = await db.gradeSubmission(submissionId, {
       score: numericScore,
       feedback: feedback || '',
       rubricScores: Array.isArray(rubricScores) ? rubricScores : undefined,
+      aiReviewSuggestions: aiSuggestions,
+      status: targetStatus,
       gradedBy: payload.userId,
       actorEmail: payload.email,
     });
 
+    // Phase 5A: Dispatch in-app notification to student
+    const course = await db.getCourseById(assignment.courseId);
+    if (targetStatus === 'RESUBMISSION_REQUESTED') {
+      await notificationService.notifyResubmissionRequested(graded, assignment, course?.slug);
+    } else if (targetStatus === 'GRADED') {
+      await notificationService.notifyAssignmentGraded(graded, assignment, course?.slug);
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Submission graded successfully',
+      message: targetStatus === 'RESUBMISSION_REQUESTED'
+        ? 'Resubmission requested from student with feedback'
+        : 'Submission graded successfully',
       submission: graded,
     });
   } catch (err: any) {

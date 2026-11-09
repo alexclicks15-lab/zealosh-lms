@@ -1,0 +1,7 @@
+{
+  "phase1_foundation": "APPLIED",
+  "phase1_fk_safety": "APPLIED",
+  "phase2_learning_delivery": "APPLIED",
+  "phase3_exam_commerce": "APPLIED",
+  "destructive_operations": "NONE (Zero table drops, ON DELETE RESTRICT on audit trails)"
+}

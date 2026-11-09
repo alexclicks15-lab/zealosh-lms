@@ -23,9 +23,14 @@ import {
   HelpCircle,
   Lock,
   Download,
-  ExternalLink
+  ExternalLink,
+  RefreshCw,
+  Bell,
+  Sparkles,
+  ShieldCheck,
+  ShieldAlert
 } from 'lucide-react';
-import { Batch, Assignment, AssignmentSubmission, ClassRecording } from '@/types';
+import { Batch, Assignment, AssignmentSubmission, ClassRecording, LiveSession, CohortInterventionOverview } from '@/types';
 
 
 export default function InstructorDashboard() {
@@ -34,7 +39,32 @@ export default function InstructorDashboard() {
   const [user, setUser] = useState<any>(null);
   const [roster, setRoster] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'batches' | 'grading' | 'schedule' | 'recordings'>('batches');
+  const [activeTab, setActiveTab] = useState<'batches' | 'grading' | 'schedule' | 'recordings' | 'activity' | 'interventions'>('batches');
+  const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);
+  const [tutorActivities, setTutorActivities] = useState<any[]>([]);
+  const [tutorActivityLoading, setTutorActivityLoading] = useState(false);
+
+  // Phase 6: Cohort Academic Interventions State
+  const [cohortOverview, setCohortOverview] = useState<CohortInterventionOverview | null>(null);
+  const [selectedInterventionBatchId, setSelectedInterventionBatchId] = useState<string>('');
+  const [interventionsLoading, setInterventionsLoading] = useState<boolean>(false);
+  const [interventionActionLoading, setInterventionActionLoading] = useState<boolean>(false);
+  const [interventionFeedback, setInterventionFeedback] = useState<string | null>(null);
+
+  // Phase 6: AI Formative Review Suggestions State
+  const [aiSuggestion, setAiSuggestion] = useState<any>(null);
+  const [aiSuggestionLoading, setAiSuggestionLoading] = useState<boolean>(false);
+
+  const fetchTutorActivities = () => {
+    setTutorActivityLoading(true);
+    fetch('/api/activities/tutor')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.events) setTutorActivities(data.events);
+      })
+      .catch(() => {})
+      .finally(() => setTutorActivityLoading(false));
+  };
 
   
   // Grading State
@@ -128,7 +158,16 @@ export default function InstructorDashboard() {
               }
             })
             .catch(() => {});
-          // Fetch recordings
+          // Fetch live sessions
+          fetch('/api/live')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((lData) => {
+              if (lData?.sessions) {
+                setLiveSessions(lData.sessions);
+              }
+            })
+            .catch(() => {});
+          fetchTutorActivities();
           fetch('/api/recordings')
             .then((r) => (r.ok ? r.json() : null))
             .then((recData) => {
@@ -169,6 +208,108 @@ export default function InstructorDashboard() {
     setGradingScore(sub.score !== undefined ? sub.score : 85);
     setGradingFeedback(sub.feedback || '');
     setGradeSuccess(null);
+    setAiSuggestion(sub.aiReviewSuggestions || null);
+  };
+
+  const fetchCohortInterventions = (batchId: string) => {
+    if (!batchId) return;
+    setInterventionsLoading(true);
+    setInterventionFeedback(null);
+    fetch(`/api/instructor/cohort/${batchId}/interventions`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.overview) {
+          setCohortOverview(data.overview);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setInterventionsLoading(false));
+  };
+
+  const handleRequestAiSuggestion = async () => {
+    if (!selectedSubmission) return;
+    setAiSuggestionLoading(true);
+    try {
+      const res = await fetch(`/api/ai/assignment/${selectedSubmission.id}/suggest-review`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (res.ok && data.suggestion) {
+        setAiSuggestion(data.suggestion);
+      } else {
+        alert(data.error || 'Failed to generate AI formative review suggestion');
+      }
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setAiSuggestionLoading(false);
+    }
+  };
+
+  const handleApplyAiSuggestion = () => {
+    if (!aiSuggestion) return;
+    if (aiSuggestion.suggestedOverallScore !== undefined) {
+      setGradingScore(aiSuggestion.suggestedOverallScore);
+    }
+    const combinedFeedback = [
+      aiSuggestion.conceptualFeedback?.join(' '),
+      aiSuggestion.strengths?.length ? `Strengths: ${aiSuggestion.strengths.join(' ')}` : '',
+      aiSuggestion.areasForImprovement?.length ? `Areas for Growth: ${aiSuggestion.areasForImprovement.join(' ')}` : '',
+    ].filter(Boolean).join('\n\n');
+    setGradingFeedback(combinedFeedback);
+    setGradeSuccess('AI formative suggestion applied to draft grade form. Review and finalize below.');
+  };
+
+  const handleDispatchIntervention = async (studentId: string, riskFactor: string, suggestedAction: string) => {
+    const batchId = selectedInterventionBatchId || (batches[0]?.id ?? '');
+    if (!batchId) return;
+    setInterventionActionLoading(true);
+    try {
+      const courseId = cohortOverview?.courseId || batches.find(b => b.id === batchId)?.courseId || 'course-asp-2026';
+      const res = await fetch(`/api/instructor/cohort/${batchId}/interventions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId,
+          studentId,
+          riskFactor,
+          suggestedAction,
+          notes: `Automated intervention advisory triggered by course faculty for risk factor: ${riskFactor}`,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setInterventionFeedback(`Academic intervention dispatched for candidate. In-app and email advisory notifications transmitted.`);
+        fetchCohortInterventions(batchId);
+      } else {
+        alert(data.error || 'Failed to dispatch intervention');
+      }
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setInterventionActionLoading(false);
+    }
+  };
+
+  const handleResolveIntervention = async (interventionId: string) => {
+    const batchId = selectedInterventionBatchId || (batches[0]?.id ?? '');
+    if (!batchId) return;
+    try {
+      const res = await fetch(`/api/instructor/cohort/${batchId}/interventions`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          interventionId,
+          actionTaken: 'Faculty conducted 1-on-1 counseling and remedial study plan review.',
+        }),
+      });
+      if (res.ok) {
+        setInterventionFeedback('Intervention marked as resolved with faculty action record.');
+        fetchCohortInterventions(batchId);
+      }
+    } catch (e: any) {
+      alert(e.message);
+    }
   };
 
   const handleGradeSubmit = async (e: React.FormEvent) => {
@@ -264,29 +405,68 @@ export default function InstructorDashboard() {
 
   return (
     <div className="py-10 px-4 sm:px-8 max-w-7xl mx-auto w-full">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#252c41] to-[#3a7536] text-white rounded-2xl p-6 sm:p-8 mb-8 shadow-lg">
+      {/* Header Banner — Zealosh Green & White Glassmorphism */}
+      <div className="glass-card-green p-6 sm:p-8 mb-8 shadow-sm border border-emerald-500/20">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
-            <div className="text-xs font-bold text-[#99cd92] uppercase tracking-wider mb-1">
-              Instructor Operations Console
+            <div className="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1">
+              Zealosh Faculty Workspace
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               {user?.name || 'Lead Mentor'}
             </h1>
-            <p className="text-sm text-gray-200 mt-1 max-w-xl">
+            <p className="text-sm text-slate-600 mt-1 max-w-xl">
               Moderate live WebRTC classrooms, evaluate student coursework against rubrics, and track cohort completion milestones.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => handleLaunchLiveAsModerator('sess-asp-01')}
-              className="btn-primary bg-[#4f8c4c] hover:bg-[#3a7536] text-white text-xs font-bold py-2.5 px-5 shadow flex items-center gap-2"
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Link
+              href="/classroom"
+              className="btn-secondary text-xs py-2 px-3.5 shadow-xs"
             >
-              <Video className="w-4 h-4" />
-              <span>Launch Live Room as Host</span>
-            </button>
+              <BookOpen className="w-3.5 h-3.5 text-[#4f8c4c]" />
+              <span>Digital Classroom</span>
+            </Link>
+            <Link
+              href="/live"
+              className="btn-secondary text-xs py-2 px-3.5 shadow-xs"
+            >
+              <Video className="w-3.5 h-3.5 text-[#4f8c4c]" />
+              <span>Live Schedule</span>
+            </Link>
+            <Link
+              href="/notifications"
+              className="btn-secondary text-xs py-2 px-3.5 shadow-xs flex items-center gap-2"
+            >
+              <Bell className="w-4 h-4 text-[#4f8c4c]" />
+              <span>Notifications</span>
+            </Link>
+            {liveSessions.length > 0 ? (
+              <button
+                onClick={() => {
+                  const activeLive = liveSessions.find((s) => s.status === 'LIVE');
+                  const target = activeLive || liveSessions[0];
+                  if (target) handleLaunchLiveAsModerator(target.id);
+                }}
+                className="btn-primary bg-[#4f8c4c] hover:bg-[#3a7536] text-white text-xs font-bold py-2.5 px-5 shadow flex items-center gap-2"
+              >
+                <Video className="w-4 h-4" />
+                <span>
+                  {liveSessions.some((s) => s.status === 'LIVE')
+                    ? 'Enter Active Live Room'
+                    : 'Launch Next Scheduled Class'}
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setActiveTab('schedule')}
+                className="btn-primary bg-[#4f8c4c] hover:bg-[#3a7536] text-white text-xs font-bold py-2.5 px-5 shadow flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Schedule First Class</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -340,6 +520,40 @@ export default function InstructorDashboard() {
           <Bookmark className="w-4 h-4" />
           <span>Recordings & Doubts ({recordings.length})</span>
         </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('activity');
+            fetchTutorActivities();
+          }}
+          className={`pb-3 px-4 font-bold text-xs flex items-center gap-2 border-b-2 transition-all ${
+            activeTab === 'activity'
+              ? 'border-[#4f8c4c] text-[#3a7536]'
+              : 'border-transparent text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          <Bell className="w-4 h-4" />
+          <span>Cohort Activity ({tutorActivities.length})</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('interventions');
+            const targetBatchId = selectedInterventionBatchId || (batches[0]?.id ?? '');
+            if (targetBatchId) {
+              setSelectedInterventionBatchId(targetBatchId);
+              fetchCohortInterventions(targetBatchId);
+            }
+          }}
+          className={`pb-3 px-4 font-bold text-xs flex items-center gap-2 border-b-2 transition-all ${
+            activeTab === 'interventions'
+              ? 'border-[#4f8c4c] text-[#3a7536]'
+              : 'border-transparent text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          <ShieldAlert className="w-4 h-4 text-amber-600" />
+          <span>Cohort Interventions</span>
+        </button>
       </div>
 
 
@@ -349,7 +563,7 @@ export default function InstructorDashboard() {
           {/* Batches List */}
           <div className="lg:col-span-8 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-[#252c41] flex items-center gap-2">
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-[#4f8c4c]" />
                 Assigned Cohort Batches
               </h2>
@@ -373,7 +587,7 @@ export default function InstructorDashboard() {
                         Starts: {new Date(batch.startDate).toLocaleDateString()}
                       </span>
                     </div>
-                    <h3 className="font-bold text-base text-[#252c41]">
+                    <h3 className="font-bold text-base text-slate-900">
                       {batch.name}
                     </h3>
                     <p className="text-xs text-gray-500">
@@ -389,13 +603,42 @@ export default function InstructorDashboard() {
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                    <button
-                      onClick={() => handleLaunchLiveAsModerator('sess-asp-01')}
-                      className="btn-outline text-xs py-2 px-4 w-full sm:w-auto flex items-center gap-1.5"
+                    <Link
+                      href={`/classroom?courseId=${batch.courseId}&batchId=${batch.id}`}
+                      className="btn-secondary text-xs py-2 px-3.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-semibold w-full sm:w-auto text-center"
                     >
-                      <Video className="w-3.5 h-3.5 text-[#4f8c4c]" />
-                      <span>Host Session</span>
-                    </button>
+                      <span>Digital Classroom</span>
+                    </Link>
+                    {(() => {
+                      const batchSession = liveSessions.find(
+                        (s) => s.batchId === batch.id && (s.status === 'LIVE' || s.status === 'SCHEDULED')
+                      );
+                      if (batchSession) {
+                        return (
+                          <button
+                            onClick={() => handleLaunchLiveAsModerator(batchSession.id)}
+                            className="btn-outline text-xs py-2 px-4 w-full sm:w-auto flex items-center gap-1.5"
+                          >
+                            <Video className="w-3.5 h-3.5 text-[#4f8c4c]" />
+                            <span>
+                              {batchSession.status === 'LIVE' ? 'Join Live Room' : 'Host Session'}
+                            </span>
+                          </button>
+                        );
+                      }
+                      return (
+                        <button
+                          onClick={() => {
+                            setNewSessionBatchId(batch.id);
+                            setActiveTab('schedule');
+                          }}
+                          className="btn-outline text-xs py-2 px-4 w-full sm:w-auto flex items-center gap-1.5 text-gray-600"
+                        >
+                          <Plus className="w-3.5 h-3.5 text-gray-500" />
+                          <span>Schedule Class</span>
+                        </button>
+                      );
+                    })()}
                   </div>
                 </div>
               ))}
@@ -404,8 +647,8 @@ export default function InstructorDashboard() {
 
           {/* Right Sidebar: Dynamic Student Roster */}
           <div className="lg:col-span-4 space-y-6">
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-5 shadow-xs">
-              <h3 className="font-bold text-base text-[#252c41] mb-4 flex items-center gap-2">
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-5 shadow-xs">
+              <h3 className="font-bold text-base text-slate-900 mb-4 flex items-center gap-2">
                 <Users className="w-4 h-4 text-[#4f8c4c]" />
                 Enrolled Cohort Roster ({roster.length})
               </h3>
@@ -417,10 +660,10 @@ export default function InstructorDashboard() {
                   roster.map((student) => (
                     <div
                       key={student.id}
-                      className="p-3 rounded-lg border border-[#eaedf5] flex items-center justify-between"
+                      className="p-3 rounded-lg border border-[#e2efe1] flex items-center justify-between"
                     >
                       <div>
-                        <div className="font-bold text-[#252c41]">
+                        <div className="font-bold text-slate-900">
                           {student.studentName || 'Learner'}
                         </div>
                         <div className="text-[11px] text-gray-500">
@@ -450,7 +693,7 @@ export default function InstructorDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Submissions List */}
           <div className="lg:col-span-5 space-y-4">
-            <h3 className="font-bold text-base text-[#252c41] flex items-center gap-2">
+            <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
               <FileText className="w-4 h-4 text-[#4f8c4c]" />
               Submitted Coursework
             </h3>
@@ -461,7 +704,7 @@ export default function InstructorDashboard() {
                 className="p-4 rounded-xl border border-[#4f8c4c] bg-green-50/30 cursor-pointer shadow-xs"
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-sm text-[#252c41]">
+                  <span className="font-bold text-sm text-slate-900">
                     {selectedSubmission.studentName || 'Arjun Menon'}
                   </span>
                   <span className="text-[10px] bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded">
@@ -486,14 +729,14 @@ export default function InstructorDashboard() {
           </div>
 
           {/* Grading Evaluation Panel */}
-          <div className="lg:col-span-7 bg-white rounded-xl border border-[#eaedf5] p-6 shadow-xs">
+          <div className="lg:col-span-7 bg-white rounded-xl border border-[#e2efe1] p-6 shadow-xs">
             {selectedSubmission ? (
               <form onSubmit={handleGradeSubmit} className="space-y-5">
                 <div className="border-b border-gray-100 pb-4">
                   <div className="text-xs font-bold uppercase text-[#4f8c4c] mb-1">
                     Grading Evaluation Form
                   </div>
-                  <h3 className="font-bold text-lg text-[#252c41]">
+                  <h3 className="font-bold text-lg text-slate-900">
                     Student: {selectedSubmission.studentName || 'Arjun Menon'}
                   </h3>
                   <p className="text-xs text-gray-500 mt-1">
@@ -509,6 +752,90 @@ export default function InstructorDashboard() {
                     <div className="pt-2 flex items-center gap-2">
                       <FileText className="w-4 h-4 text-[#4f8c4c]" />
                       <span className="font-mono text-gray-600">{selectedSubmission.attachmentFilename || 'report.pdf'}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* AI Review Suggestion Trigger & Evaluation Seam */}
+                <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/40 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[#4f8c4c]" />
+                      <span className="text-xs font-bold text-slate-900">Zealosh AI Formative Rubric Review</span>
+                      <span className="text-[10px] bg-emerald-100 text-[#3a7536] font-bold px-2 py-0.5 rounded border border-emerald-200">
+                        Faculty Sign-Off Enforced
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRequestAiSuggestion}
+                      disabled={aiSuggestionLoading}
+                      className="btn-outline text-xs py-1.5 px-3 flex items-center gap-1.5 bg-white border-[#4f8c4c] text-[#3a7536] hover:bg-emerald-50 font-bold shrink-0"
+                    >
+                      {aiSuggestionLoading ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>Evaluating Submission...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Generate Formative Suggestion</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {aiSuggestion && (
+                    <div className="mt-3 p-3 bg-white rounded-lg border border-emerald-100 text-xs space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-800">
+                          Suggested Grade: <span className="text-[#3a7536] font-extrabold">{aiSuggestion.suggestedOverallScore} / 100</span>
+                        </span>
+                        <span className="text-[10px] text-amber-700 bg-amber-50 font-semibold px-2 py-0.5 rounded border border-amber-200">
+                          Status: {aiSuggestion.status}
+                        </span>
+                      </div>
+
+                      {aiSuggestion.strengths?.length > 0 && (
+                        <div>
+                          <span className="font-semibold text-emerald-800 block text-[11px] mb-0.5">Strengths Identified:</span>
+                          <ul className="list-disc list-inside text-gray-700 space-y-0.5 text-[11px]">
+                            {aiSuggestion.strengths.map((str: string, i: number) => (
+                              <li key={i}>{str}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {aiSuggestion.areasForImprovement?.length > 0 && (
+                        <div>
+                          <span className="font-semibold text-amber-800 block text-[11px] mb-0.5">Formative Feedback & Gaps:</span>
+                          <ul className="list-disc list-inside text-gray-700 space-y-0.5 text-[11px]">
+                            {aiSuggestion.areasForImprovement.map((area: string, i: number) => (
+                              <li key={i}>{area}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                        <button
+                          type="button"
+                          onClick={handleApplyAiSuggestion}
+                          className="btn-primary text-xs py-1 px-3 bg-[#4f8c4c] hover:bg-[#3a7536] text-white font-bold rounded flex items-center gap-1"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Accept & Populate Form</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAiSuggestion(null)}
+                          className="btn-outline text-xs py-1 px-3 text-gray-500 hover:text-gray-700 font-medium"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -579,7 +906,7 @@ export default function InstructorDashboard() {
                       max="100"
                       value={gradingScore}
                       onChange={(e) => setGradingScore(Number(e.target.value))}
-                      className="w-full input-field text-sm font-bold text-[#252c41]"
+                      className="w-full input-field text-sm font-bold text-slate-900"
                       required
                     />
                   </div>
@@ -624,13 +951,13 @@ export default function InstructorDashboard() {
 
       {/* Tab: Schedule Live Sessions */}
       {activeTab === 'schedule' && (
-        <div className="max-w-2xl bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-          <h3 className="font-bold text-lg text-[#252c41] mb-2 flex items-center gap-2">
+        <div className="max-w-2xl bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+          <h3 className="font-bold text-lg text-slate-900 mb-2 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-[#4f8c4c]" />
             Schedule Virtual Classroom Workshop
           </h3>
           <p className="text-xs text-gray-500 mb-6">
-            Configure live BigBlueButton workshops for your assigned cohorts, with options for single classes or recurring weekend series.
+            Configure live classroom workshops for your assigned cohorts, with options for single classes or recurring weekend series.
           </p>
 
           <form onSubmit={handleCreateLiveSession} className="space-y-4">
@@ -704,8 +1031,8 @@ export default function InstructorDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Recordings Selector & Highlights */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-5 shadow-xs">
-              <h2 className="text-sm font-bold text-[#252c41] mb-3 flex items-center gap-2">
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-5 shadow-xs">
+              <h2 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
                 <Bookmark className="w-4 h-4 text-[#4f8c4c]" />
                 Select Recorded Class
               </h2>
@@ -721,7 +1048,7 @@ export default function InstructorDashboard() {
                     }}
                     className={`w-full text-left p-3 rounded-lg border text-xs transition-colors flex items-center justify-between ${
                       selectedRecording?.id === rec.id
-                        ? 'border-[#4f8c4c] bg-green-50/50 font-bold text-[#252c41]'
+                        ? 'border-[#4f8c4c] bg-green-50/50 font-bold text-slate-900'
                         : 'border-gray-200 hover:bg-gray-50 text-gray-700'
                     }`}
                   >
@@ -834,8 +1161,8 @@ export default function InstructorDashboard() {
 
           {/* Right: Doubts Triage Queue */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-5 shadow-xs">
-              <h2 className="text-sm font-bold text-[#252c41] mb-3 flex items-center justify-between">
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-5 shadow-xs">
+              <h2 className="text-sm font-bold text-slate-900 mb-3 flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 text-yellow-500" />
                   Student Doubts ({selectedRecording?.doubts?.length || 0})
@@ -943,6 +1270,268 @@ export default function InstructorDashboard() {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Tab: Cohort Activity Workspace */}
+      {activeTab === 'activity' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <Bell className="w-5 h-5 text-[#4f8c4c]" />
+                Cohort Academic Activity Stream
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Real-time academic events across your assigned courses and cohorts. Strictly scoped to teaching activities.
+              </p>
+            </div>
+            <button
+              onClick={fetchTutorActivities}
+              className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Refresh</span>
+            </button>
+          </div>
+
+          {tutorActivityLoading ? (
+            <div className="py-12 text-center text-xs text-slate-400">Loading cohort activity...</div>
+          ) : tutorActivities.length === 0 ? (
+            <div className="p-8 text-center text-xs text-slate-400 border border-dashed rounded-xl bg-slate-50">
+              No recent cohort activities recorded for your assigned courses.
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 shadow-xs">
+              {tutorActivities.map((ev) => (
+                <div key={ev.id} className="p-4 flex items-start justify-between gap-4 hover:bg-slate-50 transition-colors">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-[#3a7536] border border-emerald-100 uppercase">
+                        {ev.category?.replace(/_/g, ' ')}
+                      </span>
+                      {ev.courseName && (
+                        <span className="text-xs font-semibold text-slate-700">{ev.courseName}</span>
+                      )}
+                      {ev.batchName && (
+                        <span className="text-xs text-slate-400">• {ev.batchName}</span>
+                      )}
+                      <span className="text-[10px] text-slate-400">
+                        {new Date(ev.createdAt).toLocaleString('en-IN', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-sm text-slate-900">{ev.title}</h4>
+                    <p className="text-xs text-slate-600">{ev.description}</p>
+                  </div>
+                  {ev.actionUrl && (
+                    <Link
+                      href={ev.actionUrl}
+                      className="text-xs font-bold text-[#4f8c4c] hover:underline flex items-center gap-1 shrink-0 mt-1"
+                    >
+                      <span>Review</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab: Cohort Interventions & At-Risk Roster */}
+      {activeTab === 'interventions' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-amber-600" />
+                Cohort Academic Interventions & At-Risk Roster
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Multi-factor early warning diagnostics: identifies stalled progression, low attendance, and failing quiz trends.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedInterventionBatchId}
+                onChange={(e) => {
+                  setSelectedInterventionBatchId(e.target.value);
+                  fetchCohortInterventions(e.target.value);
+                }}
+                className="input-field text-xs font-semibold py-1.5 px-3"
+              >
+                {batches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name || b.id}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={() => fetchCohortInterventions(selectedInterventionBatchId || (batches[0]?.id ?? ''))}
+                disabled={interventionsLoading}
+                className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${interventionsLoading ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </button>
+            </div>
+          </div>
+
+          {interventionFeedback && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-lg flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#4f8c4c] shrink-0" />
+              <span>{interventionFeedback}</span>
+            </div>
+          )}
+
+          {/* Overview Metric Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="p-4 rounded-xl border border-gray-200 bg-white shadow-xs">
+              <div className="text-[11px] font-bold text-gray-500 uppercase">Enrolled Candidates</div>
+              <div className="text-2xl font-black text-slate-900 mt-1">
+                {cohortOverview?.totalStudents ?? roster.length}
+              </div>
+            </div>
+            <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/50 shadow-xs">
+              <div className="text-[11px] font-bold text-amber-800 uppercase">At-Risk Candidates</div>
+              <div className="text-2xl font-black text-amber-700 mt-1">
+                {cohortOverview?.atRiskCount ?? (cohortOverview?.atRiskStudents?.length ?? 0)}
+              </div>
+            </div>
+            <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 shadow-xs">
+              <div className="text-[11px] font-bold text-blue-800 uppercase">Active Interventions</div>
+              <div className="text-2xl font-black text-blue-700 mt-1">
+                {cohortOverview?.activeInterventions?.filter((i) => i.status !== 'RESOLVED').length ?? 0}
+              </div>
+            </div>
+            <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 shadow-xs">
+              <div className="text-[11px] font-bold text-emerald-800 uppercase">Resolved Cases</div>
+              <div className="text-2xl font-black text-[#3a7536] mt-1">
+                {cohortOverview?.activeInterventions?.filter((i) => i.status === 'RESOLVED').length ?? 0}
+              </div>
+            </div>
+          </div>
+
+          {/* At-Risk Candidate Roster */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+                At-Risk Candidates Requiring Attention
+              </h3>
+              <span className="text-[11px] text-gray-500">
+                {cohortOverview?.atRiskStudents?.length || 0} candidates flagged
+              </span>
+            </div>
+
+            {interventionsLoading ? (
+              <div className="p-8 text-center text-xs text-gray-400">Loading cohort diagnostics...</div>
+            ) : !cohortOverview?.atRiskStudents || cohortOverview.atRiskStudents.length === 0 ? (
+              <div className="p-8 text-center text-xs text-gray-500 bg-emerald-50/20">
+                <CheckCircle2 className="w-8 h-8 text-[#4f8c4c] mx-auto mb-2" />
+                <span>No at-risk candidates detected in this cohort. All candidates meet participation thresholds.</span>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {cohortOverview.atRiskStudents.map((st) => (
+                  <div key={st.studentId} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-gray-50/50 transition-colors">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-slate-900">{st.studentName}</span>
+                        <span className="text-xs text-gray-500">{st.studentEmail}</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded border uppercase bg-amber-50 text-amber-700 border-amber-200">
+                          Attention Needed
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-600">
+                        <span>Attendance: <strong className={st.attendancePercent < 75 ? 'text-red-600' : 'text-slate-800'}>{st.attendancePercent}%</strong></span>
+                        <span>•</span>
+                        <span>Failed Quizzes: <strong className={st.failedQuizzesCount > 0 ? 'text-red-600' : 'text-slate-800'}>{st.failedQuizzesCount}</strong></span>
+                        <span>•</span>
+                        <span>Progression: <strong className="text-slate-800">{st.progressPercent}%</strong></span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {st.riskFactors.map((rf, idx) => (
+                          <span key={idx} className="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                            {rf}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleDispatchIntervention(st.studentId, st.riskFactors[0] || 'STALLED_PROGRESSION', 'SCHEDULE_REMEDIAL_ADVISORY')}
+                        disabled={interventionActionLoading}
+                        className="btn-primary text-xs py-1.5 px-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded flex items-center gap-1.5 shadow-xs"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Dispatch Advisory</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Active and Historical Interventions */}
+          {cohortOverview?.activeInterventions && cohortOverview.activeInterventions.length > 0 && (
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs">
+              <div className="p-4 border-b border-gray-100">
+                <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#4f8c4c]" />
+                  Dispatched Academic Interventions & Multi-Channel Audit
+                </h3>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {cohortOverview.activeInterventions.map((inv) => (
+                  <div key={inv.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-slate-900">{inv.studentName}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${
+                          inv.status === 'RESOLVED'
+                            ? 'bg-emerald-50 text-[#3a7536] border-emerald-200'
+                            : 'bg-blue-50 text-blue-700 border-blue-200'
+                        }`}>
+                          {inv.status}
+                        </span>
+                        <span className="text-[10px] text-gray-400">
+                          Dispatched: {new Date(inv.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-700">Reason: {inv.reason}</p>
+                      {inv.actionTaken && (
+                        <p className="text-xs text-emerald-700 font-semibold">Resolution: {inv.actionTaken}</p>
+                      )}
+                      <div className="text-[10px] text-gray-500">
+                        Dispatched by Faculty: {inv.instructorName} • In-App Notification Sent • Transactional Email Queued
+                      </div>
+                    </div>
+
+                    {inv.status !== 'RESOLVED' && (
+                      <button
+                        type="button"
+                        onClick={() => handleResolveIntervention(inv.id)}
+                        className="btn-outline text-xs py-1.5 px-3 border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold shrink-0"
+                      >
+                        Mark as Resolved
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -48,48 +48,241 @@ graph TD
 
 ---
 
-## 2. Containerized Platform Deployment (`docker-compose.zealosh-platform.yml`)
+## 2. Controlled Staging Deployment Runbook (Phases 1 through 8)
 
-The platform stack is managed via Docker Compose. Always explicitly supply the environment file flag (`--env-file`) to guarantee deterministic variable loading:
+To prevent accidental data loss, secret leakage, or uncontrolled overwrites, all two-server deployments must follow this sequential, gated runbook across Server 1 (`lms.staging.zealosh.com`) and Server 2 (`media.staging.zealosh.com`).
 
-```bash
-# 1. Transfer or clone repository on target Linux Docker host
-# Option A (Git clone):
-git clone <approved-repo-url> /opt/zealosh
-cd /opt/zealosh
+---
 
-# Option B (Local transfer with ordered filter preserving .env.staging.example):
-# rsync -avz \
-#   --exclude='node_modules/' \
-#   --exclude='.next/' \
-#   --include='/.env.staging.example' \
-#   --exclude='.env*' \
-#   --exclude='/secrets/*.txt' \
-#   ./ ubuntu@<SERVER_1_PUBLIC_IP>:/opt/zealosh/
+### Phase 1 — Local LMS Artifact Packaging & Verification (Workstation)
+*Classification: Local Automated Build & Verification*
 
-# 2. Configure staging secrets directly on the host from template
-cp .env.staging.example .env.staging
-chmod 0600 .env.staging
-nano .env.staging
+1. **Verify Local Repository Integrity & Tests:**
+   ```bash
+   npm test
+   npx tsc --noEmit
+   ```
 
-# Generate administrator file secret (mode 0600)
-mkdir -p secrets && chmod 0700 secrets
-openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' > secrets/moodle_admin_password.txt
-chmod 0600 secrets/moodle_admin_password.txt
+2. **Package Deterministic LMS Deployment Artifact:**
+   ```bash
+   # Generates build/artifacts/zealosh-lms-staging-v<version>-<timestamp>.tar.gz
+   # Generates .sha256 digest and artifact-manifest.json
+   # Strictly excludes .git/, .env*, secrets/, data/zealosh-store.json, node_modules/, .next/, tests/
+   node deploy/package-deployment-artifact.mjs
+   ```
 
-# 3. Validate Compose configuration without exposing secrets
-docker compose --env-file .env.staging -f docker-compose.zealosh-platform.yml config -q
+3. **Verify Generated LMS Artifact Integrity Locally:**
+   ```bash
+   node deploy/verify-deployment-artifact.mjs build/artifacts/zealosh-lms-staging-*.tar.gz
+   ```
 
-# 4. Launch stack with health-based startup order
-docker compose --env-file .env.staging -f docker-compose.zealosh-platform.yml up -d --build
+---
 
-# 5. Verify running health status of all containers
-docker compose --env-file .env.staging -f docker-compose.zealosh-platform.yml ps
+### Phase 2 — Local Classroom Artifact Packaging & Verification (Workstation)
+*Classification: Local Automated Build & Verification*
 
-# 6. Inspect logs with sensitive values redacted
-docker compose --env-file .env.staging -f docker-compose.zealosh-platform.yml logs --tail=50 zealosh-moodle 2>&1 | \
-  sed -E 's/([Pp]assword|[Ss]ecret|[Kk]ey)[=:][^ ]+/\1=[REDACTED]/g'
-```
+1. **Verify Customized BigBlueButton 4.0 HTML5 Client Build:**
+   ```bash
+   # Ensure HTML5 client production bundle is built in zealosh-classroom
+   cd ../zealosh-classroom/bigbluebutton-html5
+   npm run tscheck
+   # Ensure dist/ contains index.html, locales/en.json, bundle.*.js, wasm/
+   ls -la dist/
+   cd ../../zealosh-lms
+   ```
+
+2. **Package Deterministic Classroom Deployment Artifact:**
+   ```bash
+   # Generates build/artifacts/zealosh-classroom-staging-v<version>-<timestamp>.tar.gz
+   # Packages html5-client/ assets and bbb-custom/ branding into a single verified bundle
+   node deploy/package-classroom-artifact.mjs
+   ```
+
+3. **Verify Generated Classroom Artifact Integrity Locally:**
+   ```bash
+   node deploy/verify-classroom-artifact.mjs build/artifacts/zealosh-classroom-staging-*.tar.gz
+   ```
+
+---
+
+### Phase 3 — Secure Artifact Transfer to Server 1 (LMS Core Hub)
+*Classification: Secure File Transfer*
+
+1. **Transfer Only Verified LMS Artifact & Companion Checksum:**
+   ```bash
+   # DO NOT use broad rsync. Transfer only verified, immutable packages:
+   ssh deployer@<SERVER_1_IP> "mkdir -p /opt/zealosh/incoming /opt/zealosh/releases /opt/zealosh/shared/secrets /opt/zealosh/shared/data"
+   scp build/artifacts/zealosh-lms-staging-*.tar.gz* deployer@<SERVER_1_IP>:/opt/zealosh/incoming/
+   ```
+
+---
+
+### Phase 4 — Secure Artifact Transfer to Server 2 (Classroom Media Node)
+*Classification: Secure File Transfer*
+
+1. **Transfer Only Verified Classroom Artifact, Checksum, & Activation Script:**
+   ```bash
+   ssh root@<SERVER_2_IP> "mkdir -p /opt/zealosh/incoming /usr/share/bigbluebutton/html5-client.releases"
+   scp build/artifacts/zealosh-classroom-staging-*.tar.gz* deploy/activate-classroom-release.sh deploy/verify-classroom-artifact.mjs root@<SERVER_2_IP>:/opt/zealosh/incoming/
+   ```
+
+---
+
+### Phase 5 — Server 2 Pre-Activation Verification & Controlled Activation (Media Node)
+*Classification: Server 2 Release Activation*
+
+1. **Dedicated Host Baseline:**
+   - Operating System: Clean Ubuntu 24.04 LTS 64-bit (`noble`).
+   - Hardware: 8 Dedicated vCPUs, 16 GB RAM with 8GB swap, 500 GB NVMe SSD.
+   - Dedicated Public IPv4 with A record: `media.staging.zealosh.com`.
+   - Inbound Firewall Ports: strictly TCP `22` (restricted SSH), TCP `80`, TCP `443`, and UDP `16384-32768` (WebRTC RTP streams). Internal ports (FreeSWITCH 5066, LiveKit 7880/8443) are proxied over HTTPS port 443 and NOT exposed publicly.
+
+2. **Execute Automated BigBlueButton 4.0 Media Host Setup (First-Time Only):**
+   ```bash
+   ssh root@<SERVER_2_IP> "cd /opt/zealosh/incoming && bash deploy/bbb-staging-setup.sh media.staging.zealosh.com admin@zealosh.com"
+   ```
+
+3. **Verify Artifact Integrity & Activate Versioned Classroom Release:**
+   ```bash
+   ssh root@<SERVER_2_IP> "cd /opt/zealosh/incoming && \
+       node verify-classroom-artifact.mjs zealosh-classroom-staging-*.tar.gz && \
+       bash activate-classroom-release.sh --activate zealosh-classroom-staging-*.tar.gz zealosh-classroom-staging-*.tar.gz.sha256"
+   ```
+   *(Note: The activation script unpacks into versioned `/usr/share/bigbluebutton/html5-client.releases/<timestamp>`, backs up `/etc/bigbluebutton/bbb-html5.yml`, switches the active release symlink, applies custom branding, and restarts `bbb-html5` services).*
+
+4. **Verify Media Host Status & Loopback Health:**
+   ```bash
+   ssh root@<SERVER_2_IP> "bbb-conf --check && bash /opt/zealosh/incoming/activate-classroom-release.sh --verify-health"
+   ```
+
+5. **Securely Retrieve Server 2 API Secret (Zero Console / Terminal Exposure):**
+   ```bash
+   # Stream securely directly into a restricted temporary file without terminal stdout echo:
+   ssh deployer@<SERVER_2_IP> "sudo cat /etc/bigbluebutton/zealosh-secret.env" > /tmp/zealosh-media-secret.tmp
+   chmod 0600 /tmp/zealosh-media-secret.tmp
+   ```
+
+---
+
+### Phase 6 — Server 1 Pre-Activation Verification & Controlled Activation (LMS Core Hub)
+*Classification: Server 1 Release Activation*
+
+1. **Verify Checksum and Artifact Safety on Server 1:**
+   ```bash
+   ssh deployer@<SERVER_1_IP> "cd /opt/zealosh/incoming && node verify-deployment-artifact.mjs zealosh-lms-staging-*.tar.gz"
+   ```
+
+2. **Unpack into Versioned Release Directory:**
+   ```bash
+   RELEASE_TAG="release_$(date +%Y%m%d_%H%M%S)"
+   ssh deployer@<SERVER_1_IP> "mkdir -p /opt/zealosh/releases/${RELEASE_TAG} && \
+       tar -xzf /opt/zealosh/incoming/zealosh-lms-staging-*.tar.gz -C /opt/zealosh/releases/${RELEASE_TAG}"
+   ```
+
+3. **Configure Staging Environment & Validate Secrets:**
+   ```bash
+   ssh deployer@<SERVER_1_IP> << 'EOF'
+   cd "/opt/zealosh/releases/${RELEASE_TAG}"
+   cp .env.staging.example .env.staging
+   chmod 0600 .env.staging
+
+   # Safely inject Media Node secret from temporary restricted file:
+   if [ -f /tmp/zealosh-media-secret.tmp ]; then
+       grep -E '^(BBB_SECURITY_SALT|BBB_BASE_URL)=' /tmp/zealosh-media-secret.tmp >> .env.staging
+       rm -f /tmp/zealosh-media-secret.tmp
+   fi
+
+   # Provision Moodle administrator secret file (mode 0600) in shared storage
+   mkdir -p /opt/zealosh/shared/secrets && chmod 0700 /opt/zealosh/shared/secrets
+   if [ ! -f /opt/zealosh/shared/secrets/moodle_admin_password.txt ]; then
+       openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' > /opt/zealosh/shared/secrets/moodle_admin_password.txt
+       chmod 0600 /opt/zealosh/shared/secrets/moodle_admin_password.txt
+   fi
+   ln -sfn /opt/zealosh/shared/secrets secrets
+
+   # Execute Preflight Environment Validator (Asserts zero placeholders, verifies Session Pooler port 5432, zero secret leakage)
+   node deploy/validate-staging-env.mjs .env.staging staging
+   EOF
+   ```
+
+4. **Atomic Symlink Switch to New Release & Service Launch:**
+   ```bash
+   ssh deployer@<SERVER_1_IP> << 'EOF'
+   # Record previous release for atomic rollback
+   if [ -L /opt/zealosh/current ]; then
+       PREV_RELEASE=$(readlink -f /opt/zealosh/current)
+       ln -sfn "$PREV_RELEASE" /opt/zealosh/previous
+   fi
+
+   # Switch active release pointer
+   ln -sfn "/opt/zealosh/releases/${RELEASE_TAG}" /opt/zealosh/current
+   cd /opt/zealosh/current
+
+   # Validate compose config without leaking secrets
+   docker compose --env-file .env.staging -f docker-compose.zealosh-platform.yml config -q
+
+   # Launch containers
+   docker compose --env-file .env.staging -f docker-compose.zealosh-platform.yml up -d --build
+
+   # Verify container health & loopback ingress
+   docker compose --env-file .env.staging -f docker-compose.zealosh-platform.yml ps
+   bash infra/scripts/health-diagnostics.sh http://localhost
+   EOF
+   ```
+
+---
+
+### Phase 7 — Cross-Server Functional Acceptance
+*Classification: End-to-End Acceptance Verification*
+
+1. **Verify Next.js Core Hub Ingress:**
+   - Open `https://lms.staging.zealosh.com` in browser.
+   - Verify green brand palette (`#4f8c4c`), courses catalog, and student login.
+
+2. **Verify Moodle Learning Engine & OIDC SSO:**
+   - Open `https://lms.staging.zealosh.com/learn-engine/`.
+   - Verify `theme_zealosh` renders with header link back to Core Hub.
+   - Click "Log in with Zealosh Core" and verify seamless OIDC single sign-on via `/api/oauth/authorize`, `/api/oauth/token`, and `/api/oauth/userinfo`.
+
+3. **Verify Live Classroom Launch & WebRTC Media (Server 1 $\leftrightarrow$ Server 2):**
+   - Instructor launches assigned session from instructor workplace.
+   - Student enters live classroom via `/live/[sessionId]`.
+   - Verify two-way microphone audio, speaker output, webcam video, and presentation upload on `media.staging.zealosh.com`.
+
+4. **Verify Session Termination Lifecycle & Webhook Ingestion:**
+   - Instructor clicks "End Class" in workplace $\rightarrow$ session transitions through `ENDING` to `ENDED` only after provider confirms meeting is not running.
+   - BigBlueButton `rap-process-worker` processes recording and dispatches webhook callback to `https://lms.staging.zealosh.com/api/webhooks/bbb/recording`.
+   - Verify recording status transitions to `AVAILABLE` on `/learn/[courseId]`.
+
+---
+
+### Phase 8 — Complete Rollback Procedures (Server 1 & Server 2)
+*Classification: Emergency Recovery & Rollback*
+
+1. **Server 1 (LMS Core Hub) Complete Rollback:**
+   ```bash
+   # Execute on Server 1 if health probes fail or regression is detected:
+   ssh deployer@<SERVER_1_IP> << 'EOF'
+   if [ -L /opt/zealosh/previous ]; then
+       PREV=$(readlink -f /opt/zealosh/previous)
+       echo "Rolling back Server 1 to: $PREV"
+       ln -sfn "$PREV" /opt/zealosh/current
+       cd /opt/zealosh/current
+       docker compose --env-file .env.staging -f docker-compose.zealosh-platform.yml up -d
+       bash infra/scripts/health-diagnostics.sh http://localhost
+   else
+       echo "No previous release recorded at /opt/zealosh/previous" >&2
+       exit 1
+   fi
+   EOF
+   ```
+
+2. **Server 2 (Classroom Media Node) Complete Rollback:**
+   ```bash
+   # Execute on Server 2 if classroom frontend or media service encounters failure:
+   ssh root@<SERVER_2_IP> "bash /opt/zealosh/incoming/activate-classroom-release.sh --rollback"
+   ```
+   *(Note: This restores the complete previous known-good `/usr/share/bigbluebutton/html5-client` release directory, restores `/etc/bigbluebutton/bbb-html5.yml.bak`, restarts `bbb-html5`, and verifies BBB health).*
 
 ### Container Health Checks & Network Isolation:
 - `zealosh-hub`: Probes `http://localhost:3000/api/health/liveness` every 10s inside container. Connected to Supabase Project 1 via HTTPS/TLS.
@@ -161,9 +354,9 @@ sudo bash /tmp/bbb-install.sh \
   -v noble-400 \
   -s media.staging.zealosh.com \
   -e admin@zealosh.com \
-  -a -w
+  -w
 rm -f /tmp/bbb-install.sh
-# (Note: Existing deploy/bbb-staging-setup.sh currently references classroom.staging.zealosh.com; alignment to media.staging.zealosh.com is scheduled in Step B).
+# (Note: deploy/bbb-staging-setup.sh defaults canonically to media.staging.zealosh.com and noble-400; API demo flag -a is excluded for security).
 
 # 3. Apply Zealosh Live Classroom Custom Branding Overlay
 cd /opt/zealosh/bbb-custom
@@ -173,7 +366,7 @@ sudo bash apply-branding.sh
 # The setup script writes the secret to /etc/bigbluebutton/zealosh-secret.env (mode 0600) on Server 2.
 # Do NOT run `sudo cat` directly in an interactive shell, which prints the plaintext salt to the terminal and scrollback logs.
 # Instead, append it directly into Server 1's /opt/zealosh/.env.staging via SSH pipe without terminal stdout echo:
-ssh deployer@<SERVER_2_IP> "sudo cat /etc/bigbluebutton/zealosh-secret.env" | grep "^BIGBLUEBUTTON_SECRET=" >> /opt/zealosh/.env.staging
+ssh deployer@<SERVER_2_IP> "sudo cat /etc/bigbluebutton/zealosh-secret.env" | grep -E '^(BBB_SECURITY_SALT|BBB_BASE_URL)=' >> /opt/zealosh/.env.staging
 chmod 0600 /opt/zealosh/.env.staging
 ```
 
@@ -181,30 +374,91 @@ chmod 0600 /opt/zealosh/.env.staging
 
 ## 5. Authoritative Disaster Recovery & Backup Protocol
 
-The platform implements a 4-tier decoupled backup strategy fully detailed in [docs/BACKUP_AND_RESTORE_RUNBOOK.md](file:///C:/Users/alexc/.gemini/antigravity-ide/scratch/zealosh-lms/docs/BACKUP_AND_RESTORE_RUNBOOK.md):
+The platform implements an authoritative decoupled backup strategy across both Supabase cloud databases, host file systems, and media storage:
 
-1. **Tier 1: Cloud-Managed Supabase Snapshots:**
-   - Both Supabase projects (Core Hub and Moodle Engine) maintain independent daily cloud snapshots.
-   - Point-in-Time Recovery (PITR) requires an active paid add-on on the specific project plan and is managed through the Supabase Dashboard.
-2. **Tier 2: Cold Logical SQL Dumps (`pg_dump`):**
+### A. Dual-Project PostgreSQL Database Backups (`pg_dump`):
+Native PostgreSQL logical backups (`pg_dump`) must be performed using direct connections where available, or Session Mode poolers (port 5432). Never use Transaction Mode poolers (port 6543) for backup tools.
+
+1. **Secure Credential Handling via `~/.pgpass`:**
+   To guarantee zero password exposure in process lists (`ps aux`), shell history, or logs, credentials are provisioned in an access-restricted `~/.pgpass` file:
    ```bash
-   # Moodle Engine (Supabase Project 2) logical export via Session Pooler:
-   PGPASSWORD="$MOODLE_DATABASE_PASSWORD" pg_dump \
-       -h "$MOODLE_DATABASE_HOST" -p 5432 -U "$MOODLE_DATABASE_USER" -d postgres \
+   # Create protected .pgpass (mode 0600)
+   cat << 'EOF' > ~/.pgpass
+   # hostname:port:database:username:password
+   db.<project-1-ref>.supabase.co:5432:postgres:postgres:<project-1-db-password>
+   db.<project-2-ref>.supabase.co:5432:postgres:postgres:<project-2-db-password>
+   # If using Supavisor Session Pooler (port 5432):
+   # aws-0-<region>.pooler.supabase.com:5432:postgres:postgres.<project-2-ref>:<project-2-db-password>
+   EOF
+   chmod 0600 ~/.pgpass
+   ```
+
+2. **Project 1: Zealosh LMS Core Database Backup:**
+   ```bash
+   mkdir -p /opt/zealosh/backups && chmod 0700 /opt/zealosh/backups
+   LMS_DUMP="/opt/zealosh/backups/zealosh_lms_core_$(date +%Y%m%d_%H%M%S).dump"
+
+   # Execute pg_dump using direct connection (or session pooler port 5432):
+   pg_dump -h "db.<project-1-ref>.supabase.co" -p 5432 -U postgres -d postgres \
        --no-owner --no-privileges --format=custom \
-       --file="/opt/zealosh/backups/zealosh_moodle_$(date +%Y%m%d_%H%M%S).dump"
+       --file="$LMS_DUMP"
+
+   # Verify dump readability and archive integrity:
+   pg_restore --list "$LMS_DUMP" >/dev/null && echo "[PASS] LMS Core backup dump verified"
+   sha256sum "$LMS_DUMP" > "${LMS_DUMP}.sha256"
+   chmod 0600 "$LMS_DUMP" "${LMS_DUMP}.sha256"
    ```
-3. **Tier 3: Moodle Persistent File Assets (`moodledata`):**
+
+3. **Project 2: Moodle 5.3 PostgreSQL Database Backup:**
    ```bash
-   docker run --rm -v moodledata_data:/var/moodledata:ro -v /opt/zealosh/backups:/backup \
-       alpine tar -czf "/backup/moodledata_$(date +%Y%m%d_%H%M%S).tar.gz" \
-       --exclude="cache" --exclude="localcache" --exclude="temp" --exclude="trashdir" \
-       -C /var/moodledata .
+   MOODLE_DUMP="/opt/zealosh/backups/zealosh_moodle_$(date +%Y%m%d_%H%M%S).dump"
+
+   # Put Moodle in maintenance mode before backup to ensure transactional write consistency:
+   docker exec zealosh-moodle php /var/www/html/admin/cli/maintenance.php --enable
+
+   pg_dump -h "$MOODLE_DATABASE_HOST" -p 5432 -U "$MOODLE_DATABASE_USER" -d "$MOODLE_DATABASE_NAME" \
+       --no-owner --no-privileges --format=custom \
+       --file="$MOODLE_DUMP"
+
+   # Disable maintenance mode immediately after dump:
+   docker exec zealosh-moodle php /var/www/html/admin/cli/maintenance.php --disable
+
+   # Verify dump readability:
+   pg_restore --list "$MOODLE_DUMP" >/dev/null && echo "[PASS] Moodle database backup dump verified"
+   sha256sum "$MOODLE_DUMP" > "${MOODLE_DUMP}.sha256"
+   chmod 0600 "$MOODLE_DUMP" "${MOODLE_DUMP}.sha256"
    ```
-4. **Tier 4: Secrets & Configuration:**
-   - `.env.production` backed up to encrypted, access-restricted cold storage.
-5. **Non-Destructive Staging Restore Verification:**
-   - When staging infrastructure is provisioned, disaster recovery sign-off requires restoring the dump into a disposable test database (`zealosh_moodle_drill`) and validating table row counts (`mdl_course`, `mdl_user`) and retrieval of an uploaded learning file asset.
+
+### B. Moodle Persistent File Assets (`moodledata`):
+Moodle file assets are stored in Docker volume `moodledata_data` mounted at `/var/moodledata` inside the container. Ephemeral directories (`cache`, `localcache`, `temp`, `trashdir`) are explicitly excluded to maintain consistency and prevent bloated backups.
+```bash
+MOODLEDATA_BACKUP="/opt/zealosh/backups/moodledata_$(date +%Y%m%d_%H%M%S).tar.gz"
+
+docker run --rm \
+    -v moodledata_data:/var/moodledata:ro \
+    -v /opt/zealosh/backups:/backup \
+    alpine tar -czf "/backup/$(basename "$MOODLEDATA_BACKUP")" \
+    --exclude="cache" --exclude="localcache" --exclude="temp" --exclude="trashdir" \
+    -C /var/moodledata .
+
+# Verify archive integrity:
+tar -tzf "$MOODLEDATA_BACKUP" >/dev/null && echo "[PASS] moodledata backup verified"
+sha256sum "$MOODLEDATA_BACKUP" > "${MOODLEDATA_BACKUP}.sha256"
+chmod 0600 "$MOODLEDATA_BACKUP" "${MOODLEDATA_BACKUP}.sha256"
+```
+
+### C. BigBlueButton Recording Storage (Server 2):
+During staging, live classroom recordings are preserved on Server 2 under `/var/bigbluebutton/published/` and `/var/bigbluebutton/recording/raw/`. S3 private storage sync remains explicitly deferred to milestone CP-8.15.
+
+### D. Comprehensive Backup Coverage Matrix:
+
+| Data Source | Project / Host | Primary Path / Endpoint | Backup Method | Retention | Encryption | Integrity & Restore Validation |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **LMS Core Database** | Supabase Project 1 | `db.<ref>.supabase.co:5432` | `pg_dump -F c` via direct connection / `.pgpass` | 7 daily / 4 weekly | TLS in transit, AES-256 at rest | `pg_restore --list` validation; disposable schema drill |
+| **Moodle Database** | Supabase Project 2 | `db.<ref>.supabase.co:5432` (or Session Pooler `:5432`) | `pg_dump -F c` with Moodle maintenance mode | 7 daily / 4 weekly | TLS in transit, AES-256 at rest | `pg_restore --list` validation; `zealosh_moodle_drill` schema import |
+| **Moodle File Data** | Server 1 | Volume `moodledata_data` (`/var/moodledata`) | Read-only tar.gz excluding `cache/temp` | 7 daily | Server-side disk encryption | `tar -tzf` archive integrity check; staging extract test |
+| **Classroom Recordings** | Server 2 | `/var/bigbluebutton/published/` | Native BBB local recording storage | Host retention policy | Host volume encryption | Webhook callback playback check; S3 sync deferred (CP-8.15) |
+| **Canonical JSON Fallback**| `zealosh-lms` | `data/zealosh-store.json` | Protected local immutable reference | Permanent baseline | Workspace access control | SHA-256 exact byte match assertion (`F1CB59D0...`) |
 
 ---
 

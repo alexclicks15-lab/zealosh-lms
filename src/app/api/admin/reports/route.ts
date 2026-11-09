@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/store/db';
 import { verifyToken } from '@/lib/auth/jwt';
 import { ReportDataset, ReportFormat } from '@/types';
+import { sanitizeCsvCell } from '@/lib/reporting/csv-sanitizer';
 
 function getUserFromRequest(request: Request) {
   const authHeader = request.headers.get('authorization');
@@ -18,16 +19,11 @@ function getUserFromRequest(request: Request) {
 function convertToCSV(data: Record<string, unknown>[]): string {
   if (data.length === 0) return '';
   const headers = Object.keys(data[0]);
-  const headerRow = headers.map((h) => `"${h.replace(/"/g, '""')}"`).join(',');
+  const headerRow = headers.map((h) => sanitizeCsvCell(h)).join(',');
 
   const rows = data.map((row) =>
     headers
-      .map((header) => {
-        const val = row[header];
-        if (val === null || val === undefined) return '""';
-        const stringVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
-        return `"${stringVal.replace(/"/g, '""')}"`;
-      })
+      .map((header) => sanitizeCsvCell(row[header]))
       .join(',')
   );
 

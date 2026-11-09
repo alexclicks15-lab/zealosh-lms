@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { courseId, batchId, currency = 'INR', gateway = 'RAZORPAY', billingAddress } = body;
+    const { courseId, batchId, offeringId, currency = 'INR', gateway = 'RAZORPAY', billingAddress } = body;
 
     if (!courseId || !batchId) {
       return NextResponse.json(
@@ -40,6 +40,7 @@ export async function POST(request: Request) {
       userId: targetUserId,
       courseId,
       batchId,
+      offeringId,
       currency: currency as 'INR' | 'USD',
       gateway: gateway as PaymentGateway,
       billingAddress: billingAddress as BillingAddress,

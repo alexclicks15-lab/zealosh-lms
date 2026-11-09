@@ -45,8 +45,8 @@ The Zealosh platform is deployed across **two physical/virtual nodes** to isolat
 
 2. **Server 2 (`zealosh-staging-media`):**
    - **Specs:** 8 Dedicated vCPUs, 16GB RAM, 500GB SSD, Dedicated Public IPv4.
-   - **Stack:** BigBlueButton 2.7+ Cluster (FreeSWITCH, mediasoup SFU, custom Zealosh HTML5 skin).
-   - **DNS Record:** `classroom.staging.zealosh.com` -> Server 2 IP.
+   - **Stack:** BigBlueButton 4.0 Media Node (noble-400 / Ubuntu 24.04 LTS: FreeSWITCH, LiveKit SFU, custom Zealosh HTML5 client).
+   - **DNS Record:** `media.staging.zealosh.com` -> Server 2 IP.
 
 ---
 
@@ -96,12 +96,12 @@ bash infra/scripts/health-diagnostics.sh
 SSH into Server 2 as root:
 ```bash
 # 1. Execute automated installer with your target domain
-sudo bash deploy/bbb-staging-setup.sh classroom.staging.zealosh.com admin@zealosh.com
+sudo bash deploy/bbb-staging-setup.sh media.staging.zealosh.com admin@zealosh.com
 
 # 2. Retrieve your BBB secret
 bbb-conf --secret
 ```
-Insert the retrieved `BBB_SECURITY_SALT` into `.env.production` on Server 1 and restart `zealosh-hub`.
+Insert the retrieved `BBB_SECURITY_SALT` into `.env.staging` (or `.env.production`) on Server 1 and restart `zealosh-hub`.
 
 ---
 

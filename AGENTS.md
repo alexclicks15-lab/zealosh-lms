@@ -112,6 +112,7 @@ The following capabilities are installed locally in `.agents/skills/`:
 | `typescript-development` | Advanced TypeScript patterns, strict type-safety, generics, discriminated unions, branded types |
 | `web-animation-and-motion` | Fluid web animations, Framer Motion, CSS transforms/transitions, spring physics |
 | `website-audit` | Comprehensive website page reader, full-site crawler, UX/content auditor, SEO reviewer |
+| `wj-page-builder` | Create, modify, review, or refactor WebJET CMS PageBuilder (PB) HTML blocks |
 | `zealosh-architecture` | Authoritative software architecture and data boundary runbook for Zealosh LMS |
 | `zealosh-production-readiness` | Comprehensive deployment verification, production readiness, and release auditing |
 | `zealosh-ui-system` | Authoritative Design System and UI Component runbook for Zealosh LMS |

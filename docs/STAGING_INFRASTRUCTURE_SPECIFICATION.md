@@ -22,19 +22,19 @@ graph TD
         Redis[(Redis 7 Cache)]
     end
     
-    subgraph S2["Server 2: zealosh-staging-media (Dedicated VPS / Bare-Metal: 8 vCPU, 16GB RAM)"]
-        BBB["BigBlueButton 2.7+ Cluster (Ubuntu 22.04 LTS)"]
-        WebRTC["Kurento / mediasoup SFU Audio/Video Engine"]
+    subgraph S2["Server 2: zealosh-staging-media (Dedicated VPS / Bare-Metal: 8 Dedicated vCPUs, 16GB RAM)"]
+        BBB["BigBlueButton 4.0 Media Node (noble-400 / Ubuntu 24.04 LTS)"]
+        WebRTC["LiveKit SFU / FreeSWITCH Audio & Video Engine"]
         BBB_Skin["Zealosh Live Classroom Branded Skin"]
     end
 
     DNS -->|lms.staging.zealosh.com| Nginx
-    DNS -->|classroom.staging.zealosh.com| BBB
+    DNS -->|media.staging.zealosh.com| BBB
     Nginx --> NextJS
     Nginx --> Moodle
     NextJS --> PG
     Moodle --> PG
-    NextJS -.->|Signed Join Tokens| BBB
+    NextJS -.->|Signed Join Tokens & Webhooks| BBB
 ```
 
 ---
@@ -70,7 +70,7 @@ Configure the following DNS `A` records with your DNS registrar (e.g. Cloudflare
 | Hostname | Type | Target Value | Purpose |
 | :--- | :--- | :--- | :--- |
 | `lms.staging.zealosh.com` | `A` | **App Host Public IP** | Zealosh Core Hub, Superadmin, Moodle Engine, OIDC SSO |
-| `classroom.staging.zealosh.com`| `A` | **Media Host Public IP** | BigBlueButton Live WebRTC Media Server (Deferred) |
+| `media.staging.zealosh.com`| `A` | **Media Host Public IP** | BigBlueButton 4.0 Live WebRTC Media Server |
 
 ---
 
@@ -122,13 +122,13 @@ Follow the step-by-step guide in [moodle-custom/README.md](file:///C:/Users/alex
 SSH into Server 2 as root and execute the automated BBB setup:
 ```bash
 # Execute on Server 2 (Replace with your actual domain):
-sudo bash deploy/bbb-staging-setup.sh classroom.staging.zealosh.com admin@zealosh.com
+sudo bash deploy/bbb-staging-setup.sh media.staging.zealosh.com admin@zealosh.com
 ```
 
 ### Step 4: Link BBB Media Secret into Server 1
-Copy the secret output by `bbb-conf --secret` on Server 2 into `.env.production` on Server 1:
+Copy the secret output by `bbb-conf --secret` on Server 2 into `.env.staging` on Server 1:
 ```ini
-BBB_BASE_URL=https://classroom.staging.zealosh.com/bigbluebutton/api
+BBB_BASE_URL=https://media.staging.zealosh.com/bigbluebutton/api
 BBB_SECURITY_SALT=<shared-salt-from-server-2>
 ```
 Reload Zealosh Hub container:
@@ -143,4 +143,4 @@ docker compose -f docker-compose.zealosh-platform.yml restart zealosh-hub
 - [ ] **Next.js Hub:** `https://lms.staging.zealosh.com` loads with green palette `#4f8c4c`.
 - [ ] **Moodle Engine:** `https://lms.staging.zealosh.com/learn-engine/` renders with `theme_zealosh` and persistent "Return to Zealosh Hub" link.
 - [ ] **Single Sign-On (SSO):** Clicking "Log in with Zealosh Core" on Moodle signs the user in without a second password prompt.
-- [ ] **Live Classroom WebRTC:** Launching `/live/[sessionId]` opens `classroom.staging.zealosh.com` with two-way audio, presenter video, and collaborative whiteboard.
+- [ ] **Live Classroom WebRTC:** Launching `/live/[sessionId]` opens `media.staging.zealosh.com` with two-way audio, presenter video, and collaborative whiteboard.

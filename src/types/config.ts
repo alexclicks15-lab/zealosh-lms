@@ -15,6 +15,8 @@ export interface PlatformSettings {
   registrationMode: 'PUBLIC' | 'INVITE_ONLY' | 'DISABLED';
   sessionTimeoutMinutes: number;
   maxLoginAttempts: number;
+  admissionsAutoEnrollEnabled?: boolean; // Institutional auto-enrollment policy gate (default: false pending BDR-01 approval)
+  maxDocumentSizeBytes?: number; // Configurable document upload ceiling in bytes
   termsOfServiceUrl?: string;
   privacyPolicyUrl?: string;
   notificationPreferences: {
@@ -28,10 +30,10 @@ export interface BrandingTheme {
   primaryGreen: string;      // default '#4f8c4c'
   deepGreen: string;         // default '#3a7536'
   accentGreen: string;       // default '#2ea033'
-  darkNeutral: string;       // default '#252c41'
+  darkNeutral: string;       // default '#0f172a'
   surfaceColor: string;      // default '#ffffff'
-  lightSurfaceColor: string; // default '#f7f9fc'
-  secondarySurface: string;  // default '#eaedf5'
+  lightSurfaceColor: string; // default '#ffffff'
+  secondarySurface: string;  // default '#e2efe1'
   fontFamily: 'Inter' | 'Outfit' | 'System';
   borderRadius: 'none' | 'sm' | 'md' | 'lg' | 'full';
   layoutDensity: 'compact' | 'comfortable' | 'spacious';
@@ -96,7 +98,18 @@ export type PermissionCode =
   | 'integrations.manage'
   | 'users.manage'
   | 'roles.manage'
-  | 'audit.read';
+  | 'audit.read'
+  | 'academic.manage'
+  | 'admissions.manage'
+  | 'admissions.import'
+  | 'profiles.manage'
+  | 'transfers.manage'
+  | 'support.tickets.read'
+  | 'support.tickets.manage'
+  | 'support.tickets.reply'
+  | 'support.tickets.assign'
+  | 'support.tickets.resolve'
+  | 'support.analytics.read';
 
 export interface PermissionDefinition {
   code: PermissionCode;
@@ -178,6 +191,7 @@ export interface NotificationTemplate {
 
 export interface IntegrationServiceConfig {
   name: 'Moodle' | 'BigBlueButton' | 'Razorpay' | 'Supabase' | 'EmailSMTP';
+  displayName?: string;
   enabled: boolean;
   status: 'CONNECTED' | 'DISCONNECTED' | 'SIMULATED' | 'ERROR';
   endpointUrl: string;
@@ -190,17 +204,25 @@ export interface IntegrationServiceConfig {
 export interface CertificateRecord {
   id: string;
   userId: string;
-  userName: string;
-  userEmail: string;
+  userName?: string;
+  userEmail?: string;
   courseId: string;
-  courseTitle: string;
+  courseTitle?: string;
   certificationType: string;
-  certificateCode: string; // e.g. "ZEALOSH-ASP-2026-8941"
+  certificateCode: string; // e.g. "ZEALOSH-ASP-2026-8941" or "ZEI/EXAM/2026/000001"
+  certificationNumber?: string;
+  certificateType?: string;
+  enrollmentId?: string;
+  studentName?: string;
   issueDate: string;
   expiryDate?: string;
-  scorePercent: number;
+  scorePercent?: number;
   status: 'ISSUED' | 'REVOKED';
   revocationReason?: string;
-  qrVerificationUrl: string;
-  issuedBy: string;
+  qrVerificationUrl?: string;
+  verificationUrl?: string;
+  issuedBy?: string;
+  metadata?: any;
+  createdAt?: string;
+  updatedAt?: string;
 }

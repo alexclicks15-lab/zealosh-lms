@@ -4,6 +4,8 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ThemeProvider from '@/components/ThemeProvider';
 import PwaProvider from '@/components/PwaProvider';
+import { MaintenanceBanner } from '@/components/maintenance/MaintenanceBanner';
+import { ErrorBoundary } from '@/components/diagnostics/ErrorBoundary';
 
 export const viewport: Viewport = {
   themeColor: '#4f8c4c',
@@ -49,9 +51,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Zealosh LMS" />
       </head>
-      <body className="min-h-screen flex flex-col bg-[#f7f9fc] text-[#252c41] antialiased">
+      <body className="min-h-screen flex flex-col bg-[#f4f9f3] text-slate-900 antialiased">
         <ThemeProvider>
           <PwaProvider>
+            <MaintenanceBanner />
             <Navbar />
             <main className="flex-1">{children}</main>
             <Footer />

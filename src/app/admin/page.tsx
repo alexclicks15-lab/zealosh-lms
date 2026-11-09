@@ -31,18 +31,21 @@ import {
   Search, 
   Clock, 
   Users,
+  MessageSquare,
   Eye,
   Check,
   ChevronRight,
   Flame,
   Globe,
+  Layers,
   Sliders,
   DollarSign,
   FileText,
   Video,
   Lock,
   Unlock,
-  Play
+  Play,
+  LifeBuoy
 } from 'lucide-react';
 import { 
   PlatformSettings, 
@@ -65,6 +68,8 @@ import {
   RecordingBatchAccess
 } from '@/types';
 import { useTheme } from '@/components/ThemeProvider';
+import { CmsPageList } from '@/components/cms/CmsPageList';
+import { CmsEditorWorkspace } from '@/components/cms/CmsEditorWorkspace';
 
 export default function SuperadminControlCenter() {
   const { updateTheme: setLiveTheme } = useTheme();
@@ -73,7 +78,7 @@ export default function SuperadminControlCenter() {
   const [activeTab, setActiveTab] = useState<
     'overview' | 'settings' | 'branding' | 'navigation' | 'features' | 'users' | 'enrollments' | 'assignments' | 'roles' | 
     'courses' | 'batches' | 'recordings' | 'exams' | 'certificates' | 'workflows' | 'templates' | 
-    'integrations' | 'audits' | 'reports'
+    'integrations' | 'audits' | 'reports' | 'cms' | 'academic'
   >('overview');
 
   const [loading, setLoading] = useState(true);
@@ -120,6 +125,22 @@ export default function SuperadminControlCenter() {
   const [selectedReportDataset, setSelectedReportDataset] = useState<'enrollments' | 'exams' | 'certificates' | 'revenue'>('enrollments');
   const [reportData, setReportData] = useState<any[]>([]);
   const [loadingReport, setLoadingReport] = useState(false);
+
+  // Visual Page Builder & CMS State
+  const [activeCmsPageId, setActiveCmsPageId] = useState<string | null>(null);
+  const [cmsHeroHeadline, setCmsHeroHeadline] = useState('Master Your ASP, CSP, CRSP & CIT Examinations');
+  const [cmsHeroSubtitle, setCmsHeroSubtitle] = useState('India\'s Premier HSE Professional Academy. Accredited live cohorts, rigorous diagnostic mock exams, and personalized technical mentorship.');
+  const [cmsPrimaryCta, setCmsPrimaryCta] = useState('Explore Accredited Courses');
+  const [cmsSecondaryCta, setCmsSecondaryCta] = useState('Attend Live Orientation');
+  const [cmsStatAlumni, setCmsStatAlumni] = useState('1,250+');
+  const [cmsStatPassRate, setCmsStatPassRate] = useState('98.4%');
+  const [cmsStatCountries, setCmsStatCountries] = useState('12+ Nations');
+  const [cmsPreviewMode, setCmsPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [cmsSaving, setCmsSaving] = useState(false);
+
+  // Academic Hierarchy Tree State
+  const [academicTree, setAcademicTree] = useState<any>(null);
+  const [loadingAcademicTree, setLoadingAcademicTree] = useState(false);
 
   // Search/Filter states
   const [courseSearch, setCourseSearch] = useState('');
@@ -684,23 +705,25 @@ export default function SuperadminControlCenter() {
     { id: 'integrations', label: 'Integration Health', icon: Sliders },
     { id: 'audits', label: 'Audit & Rollback', icon: History },
     { id: 'reports', label: 'Reports & Export', icon: BarChart3 },
+    { id: 'cms', label: 'Visual Page Builder & CMS', icon: Globe },
+    { id: 'academic', label: 'Academic Hierarchy', icon: Layers },
   ];
 
   return (
     <div className="py-8 px-4 sm:px-8 max-w-7xl mx-auto w-full">
-      {/* Top Banner */}
-      <div className="bg-[#252c41] text-white rounded-2xl p-6 sm:p-8 mb-8 shadow-xl border border-white/10 relative overflow-hidden">
-        <div className="absolute right-0 top-0 bottom-0 w-96 bg-gradient-to-l from-[#4f8c4c]/20 to-transparent pointer-events-none" />
+      {/* Top Banner — Zealosh Green & White */}
+      <div className="glass-card-green p-6 sm:p-8 mb-8 shadow-sm border border-emerald-500/20 relative overflow-hidden">
+        <div className="absolute right-0 top-0 bottom-0 w-96 bg-gradient-to-l from-[#4f8c4c]/10 to-transparent pointer-events-none" />
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 bg-[#4f8c4c] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full mb-2 tracking-wider">
+            <div className="inline-flex items-center gap-2 bg-[#4f8c4c] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full mb-2 tracking-wider shadow-xs">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>SUPERADMIN CENTRAL GOVERNANCE CONSOLE</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Zealosh Operations & Configuration Center
             </h1>
-            <p className="text-xs text-gray-300 mt-1 max-w-2xl">
+            <p className="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
               Authoritative platform governance without source-code edits. Configure business parameters, branding tokens, course catalogs, examination blueprints, and integration adapters in real-time.
             </p>
           </div>
@@ -714,6 +737,105 @@ export default function SuperadminControlCenter() {
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               <span>Refresh</span>
             </button>
+
+            <Link
+              href="/admin/admissions"
+              className="inline-flex items-center gap-1.5 bg-[#4f8c4c] hover:bg-[#3a7536] text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors shadow-xs"
+              title="Open 14-Stage Admissions Pipeline & Decoupled Commerce Center"
+            >
+              <Users className="w-3.5 h-3.5 text-white" />
+              <span>Admissions & Pipeline</span>
+            </Link>
+
+            <Link
+              href="/admin/calendar"
+              className="inline-flex items-center gap-1.5 bg-[#4f8c4c] hover:bg-[#3a7536] text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors shadow-xs"
+              title="Open Unified Institutional Calendar & Scheduling Center"
+            >
+              <Calendar className="w-3.5 h-3.5 text-white" />
+              <span>Calendar</span>
+            </Link>
+
+            <Link
+              href="/admin/questions"
+              className="inline-flex items-center gap-1.5 bg-[#4f8c4c]/90 hover:bg-[#3a7536] text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors shadow-xs"
+              title="Open Central Question Bank & Item Analytics"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-white" />
+              <span>Question Bank</span>
+            </Link>
+
+            <Link
+              href="/admin/testimonials"
+              className="inline-flex items-center gap-1.5 bg-[#4f8c4c]/90 hover:bg-[#3a7536] text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors shadow-xs"
+              title="Open Verified Reviews & Testimonials Moderation Queue"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-white" />
+              <span>Testimonials</span>
+            </Link>
+
+            <Link
+              href="/admin/operations"
+              className="inline-flex items-center gap-1.5 bg-[#4f8c4c]/90 hover:bg-[#3a7536] text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors shadow-xs"
+              title="Open Central Operations, PWA & Event Synchronization Control Centre"
+            >
+              <Activity className="w-3.5 h-3.5 text-white" />
+              <span>Operations & Sync</span>
+            </Link>
+
+            <Link
+              href="/admin/reports"
+              className="inline-flex items-center gap-1.5 bg-[#4f8c4c]/80 hover:bg-[#3a7536] text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors border border-emerald-500/30"
+              title="Open Institutional Reporting, Academic Analytics & Cohort Telemetry"
+            >
+              <BarChart3 className="w-3.5 h-3.5 text-emerald-300" />
+              <span>Reports</span>
+            </Link>
+
+            <Link
+              href="/admin/diagnostics"
+              className="inline-flex items-center gap-1.5 bg-rose-900/60 hover:bg-rose-900 text-rose-100 text-xs font-semibold px-3 py-2 rounded-xl transition-colors border border-rose-500/30"
+              title="Open Live Diagnostics & Bug Monitoring Console"
+            >
+              <Activity className="w-3.5 h-3.5 text-rose-400" />
+              <span>Diagnostics</span>
+            </Link>
+
+            <Link
+              href="/admin/email"
+              className="inline-flex items-center gap-1.5 bg-slate-700/60 hover:bg-slate-700 text-slate-100 text-xs font-semibold px-3 py-2 rounded-xl transition-colors border border-slate-600/30"
+              title="Open Transactional Email Console"
+            >
+              <Mail className="w-3.5 h-3.5 text-slate-300" />
+              <span>Email Console</span>
+            </Link>
+
+            <Link
+              href="/classroom"
+              className="inline-flex items-center gap-1.5 bg-emerald-900/60 hover:bg-emerald-900 text-emerald-100 text-xs font-semibold px-3 py-2 rounded-xl transition-colors border border-emerald-500/30"
+              title="Open Digital Classroom Hub"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-emerald-300" />
+              <span>Classroom Hub</span>
+            </Link>
+
+            <Link
+              href="/live"
+              className="inline-flex items-center gap-1.5 bg-rose-900/60 hover:bg-rose-900 text-rose-100 text-xs font-semibold px-3 py-2 rounded-xl transition-colors border border-rose-500/30"
+              title="Open Live Sessions & WebRTC Conferencing"
+            >
+              <Video className="w-3.5 h-3.5 text-rose-300" />
+              <span>Live Control</span>
+            </Link>
+
+            <Link
+              href="/admin/support"
+              className="inline-flex items-center gap-1.5 bg-sky-900/60 hover:bg-sky-900 text-sky-100 text-xs font-semibold px-3 py-2 rounded-xl transition-colors border border-sky-500/30"
+              title="Open Support Ticketing & Triage Desk"
+            >
+              <LifeBuoy className="w-3.5 h-3.5 text-sky-300" />
+              <span>Helpdesk Triage</span>
+            </Link>
 
             <Link
               href="/"
@@ -742,7 +864,7 @@ export default function SuperadminControlCenter() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Navigation Sidebar */}
         <aside className="lg:col-span-1">
-          <div className="bg-white rounded-xl border border-[#eaedf5] p-2 shadow-xs sticky top-20">
+          <div className="bg-white rounded-xl border border-[#e2efe1] p-2 shadow-xs sticky top-20">
             <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 py-2">
               Control Modules
             </div>
@@ -757,7 +879,7 @@ export default function SuperadminControlCenter() {
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
                       isActive
                         ? 'bg-[#4f8c4c] text-white font-bold shadow-xs'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-[#252c41]'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-slate-900'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -769,6 +891,57 @@ export default function SuperadminControlCenter() {
                 );
               })}
             </nav>
+
+            <div className="mt-4 pt-3 border-t border-gray-100">
+              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 py-1 mb-1">
+                Dedicated Sub-Consoles
+              </div>
+              <div className="space-y-1">
+                <Link
+                  href="/admin/reports"
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-emerald-800 bg-emerald-50/70 hover:bg-emerald-100/80 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Academic & Cohort Analytics</span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-emerald-400" />
+                </Link>
+
+                <Link
+                  href="/admin/diagnostics"
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50/60 hover:bg-rose-100/80 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-3.5 h-3.5 text-rose-600" />
+                    <span>Live Bug Diagnostics</span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-rose-400" />
+                </Link>
+
+                <Link
+                  href="/admin/email"
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Transactional Outbox</span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                </Link>
+
+                <Link
+                  href="/admin/support"
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-sky-800 bg-sky-50/70 hover:bg-sky-100/80 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <LifeBuoy className="w-3.5 h-3.5 text-sky-600" />
+                    <span>Support Triage & Helpdesk</span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-sky-400" />
+                </Link>
+              </div>
+            </div>
           </div>
         </aside>
 
@@ -781,13 +954,13 @@ export default function SuperadminControlCenter() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="card-elevated p-4">
                   <div className="text-xs text-gray-500 font-bold uppercase">Active Students</div>
-                  <div className="text-2xl font-black text-[#252c41] mt-1">{metrics?.activeStudents || '1,250+'}</div>
+                  <div className="text-2xl font-black text-slate-900 mt-1">{metrics?.activeStudents || '1,250+'}</div>
                   <div className="text-[10px] text-[#4f8c4c] mt-1 font-semibold">Registered Candidates</div>
                 </div>
 
                 <div className="card-elevated p-4">
                   <div className="text-xs text-gray-500 font-bold uppercase">Published Courses</div>
-                  <div className="text-2xl font-black text-[#252c41] mt-1">{courses.length}</div>
+                  <div className="text-2xl font-black text-slate-900 mt-1">{courses.length}</div>
                   <div className="text-[10px] text-gray-500 mt-1 font-semibold">ASP, CSP, CRSP, CIT</div>
                 </div>
 
@@ -805,9 +978,9 @@ export default function SuperadminControlCenter() {
               </div>
 
               {/* Integration Telemetry Quick Cards */}
-              <div className="bg-white rounded-xl border border-[#eaedf5] p-6 shadow-xs">
+              <div className="bg-white rounded-xl border border-[#e2efe1] p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-sm font-bold text-[#252c41] flex items-center gap-2">
+                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                     <Activity className="w-4 h-4 text-[#4f8c4c]" />
                     <span>Real-Time Integration Telemetry</span>
                   </h2>
@@ -821,9 +994,9 @@ export default function SuperadminControlCenter() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {integrations.slice(0, 3).map((item) => (
-                    <div key={item.name} className="p-4 rounded-xl border border-[#eaedf5] bg-gray-50/50">
+                    <div key={item.name} className="p-4 rounded-xl border border-[#e2efe1] bg-gray-50/50">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="font-bold text-xs text-[#252c41]">{item.name}</span>
+                        <span className="font-bold text-xs text-slate-900">{item.displayName || item.name}</span>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
                           item.status === 'CONNECTED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
                         }`}>
@@ -840,9 +1013,9 @@ export default function SuperadminControlCenter() {
               </div>
 
               {/* Recent Security & Operational Audit Log */}
-              <div className="bg-white rounded-xl border border-[#eaedf5] p-6 shadow-xs">
+              <div className="bg-white rounded-xl border border-[#e2efe1] p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-sm font-bold text-[#252c41] flex items-center gap-2">
+                  <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-[#4f8c4c]" />
                     <span>Authoritative Security & Operational Audit Trail</span>
                   </h2>
@@ -851,7 +1024,7 @@ export default function SuperadminControlCenter() {
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#eaedf5]">
+                    <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#e2efe1]">
                       <tr>
                         <th className="py-2.5 px-3">Timestamp</th>
                         <th className="py-2.5 px-3">Actor</th>
@@ -861,15 +1034,15 @@ export default function SuperadminControlCenter() {
                         <th className="py-2.5 px-3">Details</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#eaedf5]">
+                    <tbody className="divide-y divide-[#e2efe1]">
                       {auditLogs.slice(0, 8).map((log) => (
                         <tr key={log.id} className="hover:bg-gray-50/50">
                           <td className="py-2.5 px-3 text-gray-500 font-mono whitespace-nowrap">
                             {new Date(log.timestamp).toLocaleTimeString()}
                           </td>
-                          <td className="py-2.5 px-3 font-semibold text-[#252c41]">{log.actorEmail}</td>
+                          <td className="py-2.5 px-3 font-semibold text-slate-900">{log.actorEmail}</td>
                           <td className="py-2.5 px-3">
-                            <span className="text-[10px] bg-[#eaedf5] text-[#252c41] font-bold px-2 py-0.5 rounded">
+                            <span className="text-[10px] bg-[#e2efe1] text-slate-900 font-bold px-2 py-0.5 rounded">
                               {log.actorRole}
                             </span>
                           </td>
@@ -889,10 +1062,10 @@ export default function SuperadminControlCenter() {
 
           {/* TAB 2: GENERAL SETTINGS */}
           {activeTab === 'settings' && settings && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="flex items-center justify-between border-b border-[#eaedf5] pb-4 mb-6">
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="flex items-center justify-between border-b border-[#e2efe1] pb-4 mb-6">
                 <div>
-                  <h2 className="text-base font-bold text-[#252c41]">General Platform Configuration</h2>
+                  <h2 className="text-base font-bold text-slate-900">General Platform Configuration</h2>
                   <p className="text-xs text-gray-500 mt-0.5">Control global branding identity, operational defaults, contact routes, and security limits.</p>
                 </div>
                 <button
@@ -1002,7 +1175,7 @@ export default function SuperadminControlCenter() {
                   </div>
                 </div>
 
-                <div className="border-t border-[#eaedf5] pt-4">
+                <div className="border-t border-[#e2efe1] pt-4">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
@@ -1029,10 +1202,10 @@ export default function SuperadminControlCenter() {
 
           {/* TAB 3: BRANDING & THEMES */}
           {activeTab === 'branding' && branding && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#eaedf5] pb-4 mb-6 gap-3">
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#e2efe1] pb-4 mb-6 gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-[#252c41]">Branding & Visual Design System</h2>
+                  <h2 className="text-base font-bold text-slate-900">Branding & Visual Design System</h2>
                   <p className="text-xs text-gray-500 mt-0.5">Customise brand tokens, theme palettes, and UI styles. All changes dynamically apply across the application.</p>
                 </div>
 
@@ -1056,7 +1229,7 @@ export default function SuperadminControlCenter() {
               </div>
 
               {/* Live Preview Strip */}
-              <div className="p-4 rounded-xl border border-[#eaedf5] mb-6 bg-gray-50">
+              <div className="p-4 rounded-xl border border-[#e2efe1] mb-6 bg-gray-50">
                 <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Live Theme Token Preview</div>
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-white text-xs font-bold" style={{ backgroundColor: branding.primaryGreen }}>
@@ -1149,7 +1322,7 @@ export default function SuperadminControlCenter() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-[#eaedf5] pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-[#e2efe1] pt-4">
                   <div>
                     <label className="block font-bold text-gray-700 mb-1">Font Family</label>
                     <select
@@ -1204,9 +1377,9 @@ export default function SuperadminControlCenter() {
 
           {/* TAB 4: FEATURE GOVERNANCE */}
           {activeTab === 'features' && features && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="border-b border-[#eaedf5] pb-4 mb-6">
-                <h2 className="text-base font-bold text-[#252c41]">Modular Feature Governance</h2>
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="border-b border-[#e2efe1] pb-4 mb-6">
+                <h2 className="text-base font-bold text-slate-900">Modular Feature Governance</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Enable or disable LMS core modules without redeploying code. Dependencies are automatically safeguarded.</p>
               </div>
 
@@ -1220,7 +1393,7 @@ export default function SuperadminControlCenter() {
                     }`}
                   >
                     <div>
-                      <div className="font-bold text-xs text-[#252c41] flex items-center gap-1.5">
+                      <div className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
                         <span className={`w-2 h-2 rounded-full ${isEnabled ? 'bg-[#4f8c4c]' : 'bg-gray-400'}`} />
                         <span>{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</span>
                       </div>
@@ -1240,10 +1413,10 @@ export default function SuperadminControlCenter() {
 
           {/* TAB: USERS & ROLES */}
           {activeTab === 'users' && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#eaedf5] pb-4 mb-6">
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#e2efe1] pb-4 mb-6">
                 <div>
-                  <h2 className="text-base font-bold text-[#252c41]">User Account & Role Governance</h2>
+                  <h2 className="text-base font-bold text-slate-900">User Account & Role Governance</h2>
                   <p className="text-xs text-gray-500 mt-0.5">Authoritative user accounts, role delegations, and enterprise identity management.</p>
                 </div>
                 <button
@@ -1258,8 +1431,8 @@ export default function SuperadminControlCenter() {
               {/* User Metric Pills & Search */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs bg-[#eaedf5] text-gray-700 font-semibold px-2.5 py-1 rounded-lg">
-                    Total: <strong className="text-[#252c41]">{usersList.length}</strong>
+                  <span className="text-xs bg-[#e2efe1] text-gray-700 font-semibold px-2.5 py-1 rounded-lg">
+                    Total: <strong className="text-slate-900">{usersList.length}</strong>
                   </span>
                   <span className="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-1 rounded-lg border border-emerald-200">
                     Students: <strong>{usersList.filter(u => u.role === 'STUDENT').length}</strong>
@@ -1284,9 +1457,9 @@ export default function SuperadminControlCenter() {
               </div>
 
               {/* Users Table */}
-              <div className="overflow-x-auto border border-[#eaedf5] rounded-xl">
+              <div className="overflow-x-auto border border-[#e2efe1] rounded-xl">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#eaedf5]">
+                  <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#e2efe1]">
                     <tr>
                       <th className="py-3 px-4">User</th>
                       <th className="py-3 px-4">Email</th>
@@ -1296,7 +1469,7 @@ export default function SuperadminControlCenter() {
                       <th className="py-3 px-4">Created Date</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#eaedf5]">
+                  <tbody className="divide-y divide-[#e2efe1]">
                     {usersList
                       .filter((u) => {
                         if (!userSearch) return true;
@@ -1311,10 +1484,10 @@ export default function SuperadminControlCenter() {
                         <tr key={u.id} className="hover:bg-gray-50/60 transition-colors">
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-7 h-7 rounded-full bg-[#252c41] text-white flex items-center justify-center font-bold text-xs uppercase">
+                              <div className="w-7 h-7 rounded-full bg-[#1e481c] text-white flex items-center justify-center font-bold text-xs uppercase">
                                 {u.name.slice(0, 2)}
                               </div>
-                              <span className="font-bold text-[#252c41]">{u.name}</span>
+                              <span className="font-bold text-slate-900">{u.name}</span>
                             </div>
                           </td>
                           <td className="py-3 px-4 font-mono text-gray-600">{u.email}</td>
@@ -1356,7 +1529,7 @@ export default function SuperadminControlCenter() {
               {newUserModal && (
                 <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
                   <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
-                    <h3 className="text-base font-bold text-[#252c41] mb-2">Create Enterprise User Account</h3>
+                    <h3 className="text-base font-bold text-slate-900 mb-2">Create Enterprise User Account</h3>
                     <p className="text-xs text-gray-500 mb-4">Provision credentials for a candidate, instructor, or administrator.</p>
                     <form onSubmit={handleCreateUser} className="space-y-4 text-xs">
                       <div>
@@ -1417,17 +1590,17 @@ export default function SuperadminControlCenter() {
 
           {/* TAB: ENROLLMENTS */}
           {activeTab === 'enrollments' && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="border-b border-[#eaedf5] pb-4 mb-6">
-                <h2 className="text-base font-bold text-[#252c41]">Student Enrollments & Cohort Roster</h2>
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="border-b border-[#e2efe1] pb-4 mb-6">
+                <h2 className="text-base font-bold text-slate-900">Student Enrollments & Cohort Roster</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Authoritative student lifecycle management, syllabus progression tracking, and status overrides.</p>
               </div>
 
               {/* Enrollment Metrics */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                <div className="p-3 bg-gray-50 rounded-xl border border-[#eaedf5]">
+                <div className="p-3 bg-gray-50 rounded-xl border border-[#e2efe1]">
                   <div className="text-[11px] text-gray-500 font-bold uppercase">Total Enrollments</div>
-                  <div className="text-2xl font-black text-[#252c41] mt-1">{enrollmentsList.length}</div>
+                  <div className="text-2xl font-black text-slate-900 mt-1">{enrollmentsList.length}</div>
                 </div>
                 <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
                   <div className="text-[11px] text-emerald-700 font-bold uppercase">Active Students</div>
@@ -1450,9 +1623,9 @@ export default function SuperadminControlCenter() {
               </div>
 
               {/* Enrollments Table */}
-              <div className="overflow-x-auto border border-[#eaedf5] rounded-xl">
+              <div className="overflow-x-auto border border-[#e2efe1] rounded-xl">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#eaedf5]">
+                  <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#e2efe1]">
                     <tr>
                       <th className="py-3 px-4">Student</th>
                       <th className="py-3 px-4">Cohort Batch</th>
@@ -1462,7 +1635,7 @@ export default function SuperadminControlCenter() {
                       <th className="py-3 px-4">Lifecycle Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#eaedf5]">
+                  <tbody className="divide-y divide-[#e2efe1]">
                     {enrollmentsList.map((e) => {
                       const student = usersList.find(u => u.id === e.userId);
                       const batch = batches.find(b => b.id === e.batchId);
@@ -1470,7 +1643,7 @@ export default function SuperadminControlCenter() {
                         <tr key={e.id} className="hover:bg-gray-50/60 transition-colors">
                           <td className="py-3 px-4">
                             <div>
-                              <span className="font-bold text-[#252c41] block">{student?.name || e.userId}</span>
+                              <span className="font-bold text-slate-900 block">{student?.name || e.userId}</span>
                               <span className="text-[11px] text-gray-400 font-mono">{student?.email || e.userId}</span>
                             </div>
                           </td>
@@ -1546,10 +1719,10 @@ export default function SuperadminControlCenter() {
 
           {/* TAB: ASSIGNMENTS & RUBRICS */}
           {activeTab === 'assignments' && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#eaedf5] pb-4 mb-6">
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#e2efe1] pb-4 mb-6">
                 <div>
-                  <h2 className="text-base font-bold text-[#252c41]">Coursework Assignments & Grading Rubrics</h2>
+                  <h2 className="text-base font-bold text-slate-900">Coursework Assignments & Grading Rubrics</h2>
                   <p className="text-xs text-gray-500 mt-0.5">Author authoritative technical case studies, HAZOP matrices, and multi-criteria rubrics.</p>
                 </div>
                 <button
@@ -1564,21 +1737,21 @@ export default function SuperadminControlCenter() {
               {/* Assignment Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {assignmentsList.map((asg) => (
-                  <div key={asg.id} className="p-5 rounded-xl border border-[#eaedf5] bg-gray-50/40 hover:border-[#4f8c4c]/40 transition-all flex flex-col justify-between">
+                  <div key={asg.id} className="p-5 rounded-xl border border-[#e2efe1] bg-gray-50/40 hover:border-[#4f8c4c]/40 transition-all flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <span className="text-[10px] font-bold bg-[#4f8c4c]/10 text-[#3a7536] px-2.5 py-0.5 rounded-full border border-[#4f8c4c]/20 uppercase">
                           {asg.courseId}
                         </span>
-                        <span className="text-xs font-mono font-bold text-[#252c41] bg-white px-2 py-0.5 rounded border border-[#eaedf5]">
+                        <span className="text-xs font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-[#e2efe1]">
                           {asg.maxScore} Pts Max
                         </span>
                       </div>
-                      <h3 className="font-extrabold text-sm text-[#252c41] mb-1.5">{asg.title}</h3>
+                      <h3 className="font-extrabold text-sm text-slate-900 mb-1.5">{asg.title}</h3>
                       <p className="text-xs text-gray-600 line-clamp-2 mb-3">{asg.description}</p>
                       
                       {asg.rubric?.criteria && (
-                        <div className="mb-3 p-2.5 bg-white rounded-lg border border-[#eaedf5]">
+                        <div className="mb-3 p-2.5 bg-white rounded-lg border border-[#e2efe1]">
                           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">
                             Grading Rubric Breakdown ({asg.rubric.criteria.length} Criteria)
                           </span>
@@ -1594,7 +1767,7 @@ export default function SuperadminControlCenter() {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between pt-3 border-t border-[#eaedf5] text-[11px] text-gray-500">
+                    <div className="flex items-center justify-between pt-3 border-t border-[#e2efe1] text-[11px] text-gray-500">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5 text-gray-400" />
                         Due: {new Date(asg.dueDate).toLocaleDateString()}
@@ -1611,7 +1784,7 @@ export default function SuperadminControlCenter() {
               {newAssignmentModal && (
                 <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
                   <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl">
-                    <h3 className="text-base font-bold text-[#252c41] mb-2">Create Technical Coursework Assignment</h3>
+                    <h3 className="text-base font-bold text-slate-900 mb-2">Create Technical Coursework Assignment</h3>
                     <p className="text-xs text-gray-500 mb-4">Assign problem sets, industrial hygiene calculations, or HAZOP worksheets.</p>
                     <form onSubmit={handleCreateAssignment} className="space-y-4 text-xs">
                       <div>
@@ -1689,10 +1862,10 @@ export default function SuperadminControlCenter() {
 
           {/* TAB 5: ROLES & PERMISSIONS */}
           {activeTab === 'roles' && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="flex items-center justify-between border-b border-[#eaedf5] pb-4 mb-6">
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="flex items-center justify-between border-b border-[#e2efe1] pb-4 mb-6">
                 <div>
-                  <h2 className="text-base font-bold text-[#252c41]">Roles & Permission Matrix</h2>
+                  <h2 className="text-base font-bold text-slate-900">Roles & Permission Matrix</h2>
                   <p className="text-xs text-gray-500 mt-0.5">Authoritative role-based access control. Assign granular permissions across modules.</p>
                 </div>
                 <button
@@ -1707,12 +1880,12 @@ export default function SuperadminControlCenter() {
               {/* Roles List */}
               <div className="space-y-4">
                 {roles.map((r) => (
-                  <div key={r.id} className="p-4 rounded-xl border border-[#eaedf5] bg-gray-50/40">
+                  <div key={r.id} className="p-4 rounded-xl border border-[#e2efe1] bg-gray-50/40">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-xs text-[#252c41]">{r.name}</span>
+                        <span className="font-extrabold text-xs text-slate-900">{r.name}</span>
                         {r.isSystem && (
-                          <span className="text-[10px] bg-[#eaedf5] text-gray-700 font-bold px-2 py-0.5 rounded">
+                          <span className="text-[10px] bg-[#e2efe1] text-gray-700 font-bold px-2 py-0.5 rounded">
                             IMMUTABLE SYSTEM ROLE
                           </span>
                         )}
@@ -1737,7 +1910,7 @@ export default function SuperadminControlCenter() {
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {r.permissions.map((p) => (
-                          <span key={p} className="text-[10px] bg-white border border-[#eaedf5] text-gray-700 font-mono px-2 py-0.5 rounded">
+                          <span key={p} className="text-[10px] bg-white border border-[#e2efe1] text-gray-700 font-mono px-2 py-0.5 rounded">
                             {p}
                           </span>
                         ))}
@@ -1751,7 +1924,7 @@ export default function SuperadminControlCenter() {
               {newRoleModal && (
                 <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
                   <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-                    <h3 className="text-base font-bold text-[#252c41] mb-2">Create Custom Operational Role</h3>
+                    <h3 className="text-base font-bold text-slate-900 mb-2">Create Custom Operational Role</h3>
                     <form onSubmit={handleCreateRole} className="space-y-4 text-xs">
                       <div>
                         <label className="block font-bold text-gray-700 mb-1">Role Title</label>
@@ -1823,10 +1996,10 @@ export default function SuperadminControlCenter() {
 
           {/* TAB 6: COURSES & CURRICULUM */}
           {activeTab === 'courses' && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#eaedf5] pb-4 mb-6 gap-3">
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#e2efe1] pb-4 mb-6 gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-[#252c41]">Course Catalog & Program Offerings</h2>
+                  <h2 className="text-base font-bold text-slate-900">Course Catalog & Program Offerings</h2>
                   <p className="text-xs text-gray-500 mt-0.5">Authoritative HSE certification prep courses, duration, pricing, and curriculum modules.</p>
                 </div>
                 <div className="relative w-full sm:w-64">
@@ -1845,20 +2018,20 @@ export default function SuperadminControlCenter() {
                 {courses
                   .filter((c) => c.title.toLowerCase().includes(courseSearch.toLowerCase()) || c.certificationType.toLowerCase().includes(courseSearch.toLowerCase()))
                   .map((course) => (
-                    <div key={course.id} className="p-4 rounded-xl border border-[#eaedf5] bg-gray-50/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div key={course.id} className="p-4 rounded-xl border border-[#e2efe1] bg-gray-50/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] bg-[#e1f0df] text-[#3a7536] font-bold px-2 py-0.5 rounded">
                             {course.certificationType}
                           </span>
-                          <span className="text-[10px] bg-[#eaedf5] text-gray-700 font-bold px-2 py-0.5 rounded">
+                          <span className="text-[10px] bg-[#e2efe1] text-gray-700 font-bold px-2 py-0.5 rounded">
                             {course.deliveryModel}
                           </span>
                           <span className="text-[10px] bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded">
                             {course.status}
                           </span>
                         </div>
-                        <h3 className="font-extrabold text-sm text-[#252c41] mt-1.5">{course.title}</h3>
+                        <h3 className="font-extrabold text-sm text-slate-900 mt-1.5">{course.title}</h3>
                         <p className="text-[11px] text-gray-500 mt-0.5">{course.headline}</p>
                         <div className="flex items-center gap-4 mt-2 text-[11px] text-gray-600 font-semibold">
                           <span>₹{course.priceInr.toLocaleString()} (${course.priceUsd})</span>
@@ -1886,9 +2059,9 @@ export default function SuperadminControlCenter() {
 
           {/* TAB 7: COHORTS & BATCHES */}
           {activeTab === 'batches' && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="border-b border-[#eaedf5] pb-4 mb-6">
-                <h2 className="text-base font-bold text-[#252c41]">Scheduled Cohort Batches & Seat Capacity</h2>
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="border-b border-[#e2efe1] pb-4 mb-6">
+                <h2 className="text-base font-bold text-slate-900">Scheduled Cohort Batches & Seat Capacity</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Manage live class schedules, multi-instructor cohort allocations, and transaction-safe seat caps.</p>
               </div>
 
@@ -1897,11 +2070,11 @@ export default function SuperadminControlCenter() {
                   const course = courses.find((c) => c.id === batch.courseId);
                   const isFull = batch.enrolledCount >= batch.capacity;
                   return (
-                    <div key={batch.id} className="p-4 rounded-xl border border-[#eaedf5] bg-gray-50/40">
+                    <div key={batch.id} className="p-4 rounded-xl border border-[#e2efe1] bg-gray-50/40">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-xs text-[#252c41]">{batch.name}</span>
+                            <span className="font-bold text-xs text-slate-900">{batch.name}</span>
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
                               batch.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'
                             }`}>
@@ -1925,7 +2098,7 @@ export default function SuperadminControlCenter() {
                         </div>
                       </div>
 
-                      <div className="p-3 bg-white border border-[#eaedf5] rounded-lg text-[11px] text-gray-600 flex flex-wrap justify-between items-center gap-2 mt-3">
+                      <div className="p-3 bg-white border border-[#e2efe1] rounded-lg text-[11px] text-gray-600 flex flex-wrap justify-between items-center gap-2 mt-3">
                         <div className="flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5 text-[#4f8c4c]" />
                           <span>{batch.scheduleDescription}</span>
@@ -1945,14 +2118,14 @@ export default function SuperadminControlCenter() {
           {activeTab === 'recordings' && (
             <div className="space-y-6">
               {/* Header Card */}
-              <div className="bg-white rounded-xl border border-[#eaedf5] p-6 shadow-xs">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#eaedf5] pb-4 mb-6">
+              <div className="bg-white rounded-xl border border-[#e2efe1] p-6 shadow-xs">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#e2efe1] pb-4 mb-6">
                   <div>
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-lg bg-[#e1f0df] flex items-center justify-center text-[#3a7536]">
                         <Video className="w-4 h-4" />
                       </div>
-                      <h2 className="text-base font-bold text-[#252c41]">
+                      <h2 className="text-base font-bold text-slate-900">
                         Class Recordings Governance & Cross-Cohort Access
                       </h2>
                     </div>
@@ -1974,26 +2147,26 @@ export default function SuperadminControlCenter() {
 
                 {/* Metrics Bar */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                  <div className="p-4 bg-gray-50 rounded-xl border border-[#eaedf5]">
+                  <div className="p-4 bg-gray-50 rounded-xl border border-[#e2efe1]">
                     <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Total Recordings</span>
-                    <div className="text-xl font-black text-[#252c41] mt-1">{recordingsList.length}</div>
+                    <div className="text-xl font-black text-slate-900 mt-1">{recordingsList.length}</div>
                     <span className="text-[10px] text-gray-400">In authoritative catalog</span>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-xl border border-[#eaedf5]">
+                  <div className="p-4 bg-gray-50 rounded-xl border border-[#e2efe1]">
                     <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Downloads Enabled</span>
                     <div className="text-xl font-black text-[#3a7536] mt-1">
                       {recordingsList.filter((r) => r.isDownloadable).length}
                     </div>
                     <span className="text-[10px] text-gray-400">Offline MP4 authorized</span>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-xl border border-[#eaedf5]">
+                  <div className="p-4 bg-gray-50 rounded-xl border border-[#e2efe1]">
                     <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Active Cross-Batch Grants</span>
                     <div className="text-xl font-black text-[#4f8c4c] mt-1">
                       {grantsList.filter((g) => g.status === 'ACTIVE').length}
                     </div>
                     <span className="text-[10px] text-gray-400">Previous cohorts enabled</span>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-xl border border-[#eaedf5]">
+                  <div className="p-4 bg-gray-50 rounded-xl border border-[#e2efe1]">
                     <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Archived / Revoked</span>
                     <div className="text-xl font-black text-amber-600 mt-1">
                       {recordingsList.filter((r) => r.status !== 'AVAILABLE').length}
@@ -2003,7 +2176,7 @@ export default function SuperadminControlCenter() {
                 </div>
 
                 {/* Search & Filter Toolbar */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 bg-gray-50/70 p-3 rounded-xl border border-[#eaedf5]">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 bg-gray-50/70 p-3 rounded-xl border border-[#e2efe1]">
                   <div className="relative w-full sm:w-80">
                     <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
@@ -2031,8 +2204,8 @@ export default function SuperadminControlCenter() {
                 </div>
 
                 {/* Recordings Catalog Table */}
-                <div className="border border-[#eaedf5] rounded-xl overflow-hidden mb-8">
-                  <div className="bg-[#f7f9fc] px-4 py-2.5 border-b border-[#eaedf5] flex items-center justify-between">
+                <div className="border border-[#e2efe1] rounded-xl overflow-hidden mb-8">
+                  <div className="bg-[#f7f9fc] px-4 py-2.5 border-b border-[#e2efe1] flex items-center justify-between">
                     <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">
                       Authoritative Class Recordings ({recordingsList.length})
                     </span>
@@ -2047,7 +2220,7 @@ export default function SuperadminControlCenter() {
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#eaedf5]">
+                        <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#e2efe1]">
                           <tr>
                             <th className="py-2.5 px-4">Recording Details</th>
                             <th className="py-2.5 px-4">Course & Batch</th>
@@ -2058,7 +2231,7 @@ export default function SuperadminControlCenter() {
                             <th className="py-2.5 px-4 text-right">Actions</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#eaedf5]">
+                        <tbody className="divide-y divide-[#e2efe1]">
                           {recordingsList
                             .filter((rec) => {
                               if (recordingStatusFilter !== 'ALL' && rec.status !== recordingStatusFilter) return false;
@@ -2081,7 +2254,7 @@ export default function SuperadminControlCenter() {
                               return (
                                 <tr key={rec.id} className="hover:bg-gray-50/50">
                                   <td className="py-3 px-4">
-                                    <div className="font-bold text-[#252c41]">{rec.title}</div>
+                                    <div className="font-bold text-slate-900">{rec.title}</div>
                                     <div className="text-[10px] text-gray-400 font-mono mt-0.5">ID: {rec.id}</div>
                                     {rec.description && (
                                       <p className="text-[11px] text-gray-500 mt-1 line-clamp-1">{rec.description}</p>
@@ -2179,9 +2352,9 @@ export default function SuperadminControlCenter() {
 
                 {/* Section: Cross-Cohort Access Grants Governance */}
                 <div>
-                  <div className="flex items-center justify-between border-b border-[#eaedf5] pb-3 mb-4">
+                  <div className="flex items-center justify-between border-b border-[#e2efe1] pb-3 mb-4">
                     <div>
-                      <h3 className="text-sm font-bold text-[#252c41]">Active Cross-Cohort Access Grants</h3>
+                      <h3 className="text-sm font-bold text-slate-900">Active Cross-Cohort Access Grants</h3>
                       <p className="text-[11px] text-gray-500 mt-0.5">
                         Batches authorized to stream or download classes originally recorded for another cohort.
                       </p>
@@ -2192,13 +2365,13 @@ export default function SuperadminControlCenter() {
                   </div>
 
                   {grantsList.length === 0 ? (
-                    <div className="p-6 bg-gray-50 rounded-xl border border-[#eaedf5] text-center text-xs text-gray-400">
+                    <div className="p-6 bg-gray-50 rounded-xl border border-[#e2efe1] text-center text-xs text-gray-400">
                       No cross-batch access grants active. Click &quot;+ Grant Access&quot; on any recording above to grant access to previous or parallel batches.
                     </div>
                   ) : (
-                    <div className="border border-[#eaedf5] rounded-xl overflow-hidden">
+                    <div className="border border-[#e2efe1] rounded-xl overflow-hidden">
                       <table className="w-full text-left text-xs">
-                        <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#eaedf5]">
+                        <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#e2efe1]">
                           <tr>
                             <th className="py-2.5 px-4">Recording</th>
                             <th className="py-2.5 px-4">Source Cohort</th>
@@ -2209,7 +2382,7 @@ export default function SuperadminControlCenter() {
                             <th className="py-2.5 px-4 text-right">Governance</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#eaedf5]">
+                        <tbody className="divide-y divide-[#e2efe1]">
                           {grantsList.map((g) => {
                             const rec = recordingsList.find((r) => r.id === g.recordingId);
                             const srcBtc = batches.find((b) => b.id === g.sourceBatchId);
@@ -2218,7 +2391,7 @@ export default function SuperadminControlCenter() {
                             return (
                               <tr key={g.id} className="hover:bg-gray-50/50">
                                 <td className="py-3 px-4">
-                                  <div className="font-bold text-[#252c41]">{rec?.title || g.recordingId}</div>
+                                  <div className="font-bold text-slate-900">{rec?.title || g.recordingId}</div>
                                   <div className="text-[10px] text-gray-400 font-mono">Grant ID: {g.id}</div>
                                 </td>
                                 <td className="py-3 px-4 text-gray-600 font-medium">
@@ -2280,10 +2453,10 @@ export default function SuperadminControlCenter() {
               {/* Grant Access Modal */}
               {grantModalOpen && selectedRecForGrant && (
                 <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-                  <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#eaedf5] animate-in fade-in zoom-in-95 duration-150">
-                    <div className="flex items-center justify-between border-b border-[#eaedf5] pb-3 mb-4">
+                  <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#e2efe1] animate-in fade-in zoom-in-95 duration-150">
+                    <div className="flex items-center justify-between border-b border-[#e2efe1] pb-3 mb-4">
                       <div>
-                        <h3 className="text-base font-bold text-[#252c41]">
+                        <h3 className="text-base font-bold text-slate-900">
                           Grant Previous-Batch Recording Access
                         </h3>
                         <p className="text-xs text-gray-500 mt-0.5">
@@ -2301,7 +2474,7 @@ export default function SuperadminControlCenter() {
                     <form onSubmit={handleSubmitGrant} className="space-y-4 text-xs">
                       <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
                         <span className="text-[10px] text-gray-400 uppercase font-bold block">Selected Recording</span>
-                        <div className="font-bold text-[#252c41] text-sm mt-0.5">{selectedRecForGrant.title}</div>
+                        <div className="font-bold text-slate-900 text-sm mt-0.5">{selectedRecForGrant.title}</div>
                         <div className="text-[11px] text-gray-500 mt-0.5">
                           Original Batch: {batches.find((b) => b.id === selectedRecForGrant.batchId)?.name || selectedRecForGrant.batchId}
                         </div>
@@ -2388,9 +2561,9 @@ export default function SuperadminControlCenter() {
 
           {/* TAB 8: EXAM ENGINE & QUESTION BANK */}
           {activeTab === 'exams' && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="border-b border-[#eaedf5] pb-4 mb-6">
-                <h2 className="text-base font-bold text-[#252c41]">Examination Engine & Question Bank</h2>
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="border-b border-[#e2efe1] pb-4 mb-6">
+                <h2 className="text-base font-bold text-slate-900">Examination Engine & Question Bank</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Authoritative blueprints, BCSP/BCRSP domain weighting, and calculation stem bank.</p>
               </div>
 
@@ -2399,14 +2572,14 @@ export default function SuperadminControlCenter() {
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Examination Blueprints</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {blueprints.map((bp) => (
-                    <div key={bp.id} className="p-4 rounded-xl border border-[#eaedf5] bg-gray-50/40">
+                    <div key={bp.id} className="p-4 rounded-xl border border-[#e2efe1] bg-gray-50/40">
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-[10px] bg-[#e1f0df] text-[#3a7536] font-bold px-2 py-0.5 rounded">
                           {bp.certificationType} Track
                         </span>
                         <span className="text-xs font-mono font-bold text-gray-500">ID: {bp.id}</span>
                       </div>
-                      <h4 className="font-bold text-xs text-[#252c41]">{bp.title}</h4>
+                      <h4 className="font-bold text-xs text-slate-900">{bp.title}</h4>
                       <div className="mt-2 text-[11px] text-gray-600 flex items-center gap-3">
                         <span>{bp.totalQuestions} Questions</span>
                         <span>&bull;</span>
@@ -2434,7 +2607,7 @@ export default function SuperadminControlCenter() {
                 </h3>
                 <div className="space-y-3">
                   {questions.map((q) => (
-                    <div key={q.id} className="p-4 rounded-xl border border-[#eaedf5] bg-white">
+                    <div key={q.id} className="p-4 rounded-xl border border-[#e2efe1] bg-white">
                       <div className="flex items-center justify-between mb-1.5 text-[10px]">
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-bold text-[#4f8c4c]">{q.id}</span>
@@ -2442,7 +2615,7 @@ export default function SuperadminControlCenter() {
                         </div>
                         <span className="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">{q.difficulty}</span>
                       </div>
-                      <p className="text-xs font-semibold text-[#252c41] mt-1">{q.stem}</p>
+                      <p className="text-xs font-semibold text-slate-900 mt-1">{q.stem}</p>
                       <div className="grid grid-cols-2 gap-2 mt-3 text-[11px]">
                         {q.options.map((opt) => {
                           const isCorrect = q.correctOptionIds.includes(opt.id);
@@ -2464,9 +2637,9 @@ export default function SuperadminControlCenter() {
 
           {/* TAB 9: CERTIFICATES REGISTRY */}
           {activeTab === 'certificates' && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="border-b border-[#eaedf5] pb-4 mb-6">
-                <h2 className="text-base font-bold text-[#252c41]">Issued Credentials & Accreditation Registry</h2>
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="border-b border-[#e2efe1] pb-4 mb-6">
+                <h2 className="text-base font-bold text-slate-900">Issued Credentials & Accreditation Registry</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Authoritative certificate records. Inspect cryptographic codes, print verification sheets, and manage revocations.</p>
               </div>
 
@@ -2477,7 +2650,7 @@ export default function SuperadminControlCenter() {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#eaedf5]">
+                    <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#e2efe1]">
                       <tr>
                         <th className="py-2.5 px-3">Certificate Code</th>
                         <th className="py-2.5 px-3">Student</th>
@@ -2487,7 +2660,7 @@ export default function SuperadminControlCenter() {
                         <th className="py-2.5 px-3 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#eaedf5]">
+                    <tbody className="divide-y divide-[#e2efe1]">
                       {certificates.map((cert) => (
                         <tr key={cert.id} className="hover:bg-gray-50/50">
                           <td className="py-2.5 px-3 font-mono font-bold text-[#3a7536]">
@@ -2497,16 +2670,16 @@ export default function SuperadminControlCenter() {
                             </Link>
                           </td>
                           <td className="py-2.5 px-3">
-                            <div className="font-bold text-[#252c41]">{cert.userName}</div>
+                            <div className="font-bold text-slate-900">{cert.userName}</div>
                             <div className="text-[10px] text-gray-400">{cert.userEmail}</div>
                           </td>
                           <td className="py-2.5 px-3">
                             <div className="font-medium text-gray-700">{cert.courseTitle}</div>
-                            <span className="text-[10px] bg-[#eaedf5] text-[#252c41] font-bold px-1.5 py-0.2 rounded">
+                            <span className="text-[10px] bg-[#e2efe1] text-slate-900 font-bold px-1.5 py-0.2 rounded">
                               {cert.certificationType}
                             </span>
                           </td>
-                          <td className="py-2.5 px-3 font-bold text-[#252c41]">{cert.scorePercent}%</td>
+                          <td className="py-2.5 px-3 font-bold text-slate-900">{cert.scorePercent}%</td>
                           <td className="py-2.5 px-3">
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
                               cert.status === 'ISSUED' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -2535,18 +2708,18 @@ export default function SuperadminControlCenter() {
 
           {/* TAB 10: WORKFLOW AUTOMATION */}
           {activeTab === 'workflows' && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="border-b border-[#eaedf5] pb-4 mb-6">
-                <h2 className="text-base font-bold text-[#252c41]">Workflow Automation Engine</h2>
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="border-b border-[#e2efe1] pb-4 mb-6">
+                <h2 className="text-base font-bold text-slate-900">Workflow Automation Engine</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Automated business triggers for exam pass events, automated credential generation, and compliance alerts.</p>
               </div>
 
               <div className="space-y-4">
                 {workflows.map((wf) => (
-                  <div key={wf.id} className="p-4 rounded-xl border border-[#eaedf5] bg-gray-50/40">
+                  <div key={wf.id} className="p-4 rounded-xl border border-[#e2efe1] bg-gray-50/40">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-[#252c41]">{wf.title}</span>
+                        <span className="font-bold text-xs text-slate-900">{wf.title}</span>
                         <span className="text-[10px] bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded">
                           ACTIVE
                         </span>
@@ -2554,7 +2727,7 @@ export default function SuperadminControlCenter() {
                       <span className="text-xs font-mono text-gray-400">ID: {wf.id}</span>
                     </div>
                     <p className="text-[11px] text-gray-500 mb-3">{wf.description}</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-white p-3 rounded-lg border border-[#eaedf5]">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-white p-3 rounded-lg border border-[#e2efe1]">
                       <div>
                         <div className="text-[10px] text-gray-400 font-bold uppercase">Trigger Event:</div>
                         <div className="font-mono font-bold text-[#3a7536] mt-0.5">{wf.trigger}</div>
@@ -2578,22 +2751,22 @@ export default function SuperadminControlCenter() {
 
           {/* TAB 11: NOTIFICATION TEMPLATES */}
           {activeTab === 'templates' && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="border-b border-[#eaedf5] pb-4 mb-6">
-                <h2 className="text-base font-bold text-[#252c41]">Notification & Message Templates</h2>
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="border-b border-[#e2efe1] pb-4 mb-6">
+                <h2 className="text-base font-bold text-slate-900">Notification & Message Templates</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Configurable email, in-app, and push message templates supporting dynamic learner variables.</p>
               </div>
 
               <div className="space-y-4">
                 {templates.map((tpl) => (
-                  <div key={tpl.id} className="p-4 rounded-xl border border-[#eaedf5] bg-gray-50/40">
+                  <div key={tpl.id} className="p-4 rounded-xl border border-[#e2efe1] bg-gray-50/40">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-xs text-[#252c41]">{tpl.titleTemplate}</span>
-                      <span className="text-[10px] bg-[#eaedf5] text-gray-700 font-bold px-2 py-0.5 rounded">
+                      <span className="font-bold text-xs text-slate-900">{tpl.titleTemplate}</span>
+                      <span className="text-[10px] bg-[#e2efe1] text-gray-700 font-bold px-2 py-0.5 rounded">
                         Channel: {tpl.channel}
                       </span>
                     </div>
-                    <div className="p-3 bg-white rounded-lg border border-[#eaedf5] text-xs text-gray-700 font-mono">
+                    <div className="p-3 bg-white rounded-lg border border-[#e2efe1] text-xs text-gray-700 font-mono">
                       {tpl.bodyTemplate}
                     </div>
                     <div className="mt-2 text-[10px] text-gray-400 flex items-center gap-1">
@@ -2612,9 +2785,9 @@ export default function SuperadminControlCenter() {
 
           {/* TAB 12: INTEGRATION HEALTH & TELEMETRY */}
           {activeTab === 'integrations' && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="border-b border-[#eaedf5] pb-4 mb-6">
-                <h2 className="text-base font-bold text-[#252c41]">Integrated External Services Telemetry</h2>
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="border-b border-[#e2efe1] pb-4 mb-6">
+                <h2 className="text-base font-bold text-slate-900">Integrated External Services Telemetry</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Diagnostic handshakes, latency monitoring, and resilient adapter verification.</p>
               </div>
 
@@ -2622,7 +2795,7 @@ export default function SuperadminControlCenter() {
                 <div className={`p-4 rounded-xl text-xs mb-6 border ${testResult.success ? 'bg-green-50 border-green-200 text-green-900' : 'bg-red-50 border-red-200 text-red-900'}`}>
                   <div className="font-bold flex items-center gap-2">
                     {testResult.success ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <AlertCircle className="w-4 h-4 text-red-600" />}
-                    <span>Handshake Result for {testResult.serviceName}</span>
+                    <span>Handshake Result for {testResult.displayName || testResult.serviceName}</span>
                   </div>
                   <p className="mt-1">{testResult.message}</p>
                 </div>
@@ -2630,11 +2803,11 @@ export default function SuperadminControlCenter() {
 
               <div className="space-y-4">
                 {integrations.map((srv) => (
-                  <div key={srv.name} className="p-5 rounded-xl border border-[#eaedf5] bg-gray-50/40">
+                  <div key={srv.name} className="p-5 rounded-xl border border-[#e2efe1] bg-gray-50/40">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-extrabold text-sm text-[#252c41]">{srv.name}</h3>
+                          <h3 className="font-extrabold text-sm text-slate-900">{srv.displayName || srv.name}</h3>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
                             srv.status === 'CONNECTED' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
                           }`}>
@@ -2676,10 +2849,10 @@ export default function SuperadminControlCenter() {
 
           {/* TAB 13: CONFIG AUDIT & ROLLBACK */}
           {activeTab === 'audits' && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#eaedf5] pb-4 mb-6 gap-3">
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#e2efe1] pb-4 mb-6 gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-[#252c41]">Configuration Version History & Rollback</h2>
+                  <h2 className="text-base font-bold text-slate-900">Configuration Version History & Rollback</h2>
                   <p className="text-xs text-gray-500 mt-0.5">Every administrative change is versioned. Roll back unintended changes with one click.</p>
                 </div>
                 <div className="relative w-full sm:w-64">
@@ -2703,13 +2876,13 @@ export default function SuperadminControlCenter() {
                   {configAudits
                     .filter((a) => a.section.toLowerCase().includes(auditSearch.toLowerCase()) || (a.changeReason && a.changeReason.toLowerCase().includes(auditSearch.toLowerCase())))
                     .map((item) => (
-                      <div key={item.id} className="p-4 rounded-xl border border-[#eaedf5] bg-gray-50/40">
+                      <div key={item.id} className="p-4 rounded-xl border border-[#e2efe1] bg-gray-50/40">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] bg-[#252c41] text-white font-bold px-2 py-0.5 rounded">
+                            <span className="text-[10px] bg-[#1e481c] text-white font-bold px-2 py-0.5 rounded">
                               v{item.version}
                             </span>
-                            <span className="font-bold text-xs text-[#252c41]">{item.section}</span>
+                            <span className="font-bold text-xs text-slate-900">{item.section}</span>
                             {item.isRollback && (
                               <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">
                                 ROLLBACK EVENT
@@ -2723,7 +2896,7 @@ export default function SuperadminControlCenter() {
                             </span>
                             <button
                               onClick={() => handleRollback(item.id)}
-                              className="text-xs text-[#3a7536] hover:text-[#4f8c4c] font-bold inline-flex items-center gap-1 bg-white border border-[#eaedf5] px-2.5 py-1 rounded-lg shadow-2xs hover:bg-gray-50"
+                              className="text-xs text-[#3a7536] hover:text-[#4f8c4c] font-bold inline-flex items-center gap-1 bg-white border border-[#e2efe1] px-2.5 py-1 rounded-lg shadow-2xs hover:bg-gray-50"
                             >
                               <RotateCcw className="w-3 h-3" />
                               <span>Rollback to this state</span>
@@ -2745,16 +2918,16 @@ export default function SuperadminControlCenter() {
 
           {/* TAB 14: REPORTS & ANALYTICS */}
           {activeTab === 'reports' && metrics && (
-            <div className="bg-white rounded-xl border border-[#eaedf5] p-6 sm:p-8 shadow-xs">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#eaedf5] pb-4 mb-6 gap-3">
+            <div className="bg-white rounded-xl border border-[#e2efe1] p-6 sm:p-8 shadow-xs">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#e2efe1] pb-4 mb-6 gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-[#252c41]">Enterprise Analytics & Compliance Reports</h2>
+                  <h2 className="text-base font-bold text-slate-900">Enterprise Analytics & Compliance Reports</h2>
                   <p className="text-xs text-gray-500 mt-0.5">Authoritative audit ledger and regulatory reports for BCSP, ISO 9001/29993, and financial governance.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleDownloadReportJSON}
-                    className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-[#252c41] text-xs font-bold px-3 py-2 rounded-lg transition-colors border border-gray-200"
+                    className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-slate-900 text-xs font-bold px-3 py-2 rounded-lg transition-colors border border-gray-200"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Export JSON</span>
@@ -2771,27 +2944,27 @@ export default function SuperadminControlCenter() {
 
               {/* KPI Summary Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-                <div className="p-4 bg-gray-50 rounded-xl border border-[#eaedf5]">
+                <div className="p-4 bg-gray-50 rounded-xl border border-[#e2efe1]">
                   <div className="text-[11px] text-gray-500 font-bold uppercase">Pass Rate</div>
                   <div className="text-2xl font-black text-[#3a7536] mt-1">{metrics.passRate}%</div>
                   <p className="text-[10px] text-gray-500 mt-0.5">BCSP benchmarked</p>
                 </div>
 
-                <div className="p-4 bg-gray-50 rounded-xl border border-[#eaedf5]">
+                <div className="p-4 bg-gray-50 rounded-xl border border-[#e2efe1]">
                   <div className="text-[11px] text-gray-500 font-bold uppercase">Enrolled Students</div>
-                  <div className="text-2xl font-black text-[#252c41] mt-1">{metrics.activeStudents}</div>
+                  <div className="text-2xl font-black text-slate-900 mt-1">{metrics.activeStudents}</div>
                   <p className="text-[10px] text-gray-500 mt-0.5">Active candidates</p>
                 </div>
 
-                <div className="p-4 bg-gray-50 rounded-xl border border-[#eaedf5]">
+                <div className="p-4 bg-gray-50 rounded-xl border border-[#e2efe1]">
                   <div className="text-[11px] text-gray-500 font-bold uppercase">Certificates Issued</div>
                   <div className="text-2xl font-black text-[#4f8c4c] mt-1">{metrics.totalCertificates}</div>
                   <p className="text-[10px] text-gray-500 mt-0.5">Cryptographically signed</p>
                 </div>
 
-                <div className="p-4 bg-gray-50 rounded-xl border border-[#eaedf5]">
+                <div className="p-4 bg-gray-50 rounded-xl border border-[#e2efe1]">
                   <div className="text-[11px] text-gray-500 font-bold uppercase">Verified Revenue</div>
-                  <div className="text-2xl font-black text-[#252c41] mt-1">₹{Number(metrics.estimatedRevenue || 34999).toLocaleString()}</div>
+                  <div className="text-2xl font-black text-slate-900 mt-1">₹{Number(metrics.estimatedRevenue || 34999).toLocaleString()}</div>
                   <p className="text-[10px] text-gray-500 mt-0.5">Inclusive of 18% GST</p>
                 </div>
               </div>
@@ -2809,8 +2982,8 @@ export default function SuperadminControlCenter() {
                     onClick={() => loadReportPreview(tab.id as any)}
                     className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${
                       selectedReportDataset === tab.id
-                        ? 'bg-white text-[#252c41] shadow-xs'
-                        : 'text-gray-500 hover:text-[#252c41]'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-gray-500 hover:text-slate-900'
                     }`}
                   >
                     {tab.label}
@@ -2819,8 +2992,8 @@ export default function SuperadminControlCenter() {
               </div>
 
               {/* Live Preview Table */}
-              <div className="border border-[#eaedf5] rounded-xl overflow-hidden">
-                <div className="bg-[#f7f9fc] px-4 py-2.5 border-b border-[#eaedf5] flex items-center justify-between">
+              <div className="border border-[#e2efe1] rounded-xl overflow-hidden">
+                <div className="bg-[#f7f9fc] px-4 py-2.5 border-b border-[#e2efe1] flex items-center justify-between">
                   <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">
                     Live Dataset Preview: {selectedReportDataset.toUpperCase()} ({reportData.length} Records)
                   </span>
@@ -2851,7 +3024,7 @@ export default function SuperadminControlCenter() {
                 ) : (
                   <div className="overflow-x-auto max-h-96">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#eaedf5] sticky top-0">
+                      <thead className="bg-gray-50 text-gray-500 uppercase border-b border-[#e2efe1] sticky top-0">
                         <tr>
                           {Object.keys(reportData[0]).map((header) => (
                             <th key={header} className="py-2.5 px-3 whitespace-nowrap">
@@ -2860,7 +3033,7 @@ export default function SuperadminControlCenter() {
                           ))}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#eaedf5]">
+                      <tbody className="divide-y divide-[#e2efe1]">
                         {reportData.map((row, idx) => (
                           <tr key={idx} className="hover:bg-gray-50/50">
                             {Object.values(row).map((val: any, cIdx) => (
@@ -2876,6 +3049,109 @@ export default function SuperadminControlCenter() {
                     </table>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* =============================================================== */}
+          {/* TAB: VISUAL PAGE BUILDER & CMS                                  */}
+          {/* =============================================================== */}
+          {activeTab === 'cms' && (
+            <div>
+              {activeCmsPageId ? (
+                <CmsEditorWorkspace
+                  pageId={activeCmsPageId}
+                  onExit={() => setActiveCmsPageId(null)}
+                />
+              ) : (
+                <CmsPageList onOpenEditor={(id) => setActiveCmsPageId(id)} />
+              )}
+            </div>
+          )}
+
+          {/* =============================================================== */}
+          {/* TAB: ACADEMIC HIERARCHY TREE                                    */}
+          {/* =============================================================== */}
+          {activeTab === 'academic' && (
+            <div className="space-y-6">
+              <div className="card-elevated p-6 bg-gradient-to-r from-emerald-50 via-white to-white border border-emerald-500/20">
+                <span className="badge-green text-[10px] font-bold">ACADEMIC MANAGEMENT & CURRICULUM ARCHITECTURE</span>
+                <h2 className="text-xl font-bold text-slate-900 mt-1">8-Tier Academic Hierarchy Tree</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Authoritative institutional taxonomy: Academic Year &rarr; Department &rarr; Programme &rarr; Course &rarr; Module &rarr; Topic &rarr; Subtopic &rarr; Learning Activity.
+                </p>
+              </div>
+
+              {/* Hierarchy Tree Visualizer */}
+              <div className="card-elevated p-6 space-y-6">
+                <div className="space-y-4">
+                  {/* Tier 1: Academic Year */}
+                  <div className="p-4 rounded-xl bg-slate-900 text-white flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold px-2.5 py-1 rounded bg-[#4f8c4c] text-white">
+                        TIER 1: ACADEMIC YEAR
+                      </span>
+                      <span className="text-sm font-bold">Academic Year 2026-2027</span>
+                    </div>
+                    <span className="text-xs text-emerald-300 font-mono">STATUS: ACTIVE</span>
+                  </div>
+
+                  {/* Tier 2: Department */}
+                  <div className="ml-4 sm:ml-8 p-4 rounded-xl bg-slate-800 text-white flex items-center justify-between border-l-4 border-l-[#4f8c4c]">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-700 text-emerald-300">
+                        TIER 2: DEPARTMENT
+                      </span>
+                      <span className="text-sm font-bold">Dept. of Health, Safety & Environmental Sciences (HSE)</span>
+                    </div>
+                    <span className="text-xs text-slate-400">Head: Dr. K. Ravindran</span>
+                  </div>
+
+                  {/* Tier 3: Programme */}
+                  <div className="ml-8 sm:ml-16 p-4 rounded-xl bg-slate-700 text-white flex items-center justify-between border-l-4 border-l-[#3a7536]">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-600 text-emerald-200">
+                        TIER 3: PROGRAMME
+                      </span>
+                      <span className="text-sm font-bold">International HSE Professional Certification Track</span>
+                    </div>
+                    <span className="text-xs text-slate-300">Accredited by BCSP & BCRSP</span>
+                  </div>
+
+                  {/* Tier 4: Courses */}
+                  <div className="ml-12 sm:ml-24 space-y-3">
+                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Tier 4: Authoritative Certification Prep Courses ({courses.length})
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {courses.map((c) => (
+                        <div key={c.id} className="card-elevated p-4 space-y-2 border-l-4 border-l-[#4f8c4c]">
+                          <div className="flex items-start justify-between">
+                            <span className="text-xs font-bold text-slate-900">{c.title}</span>
+                            <span className="badge-navy text-[9px]">{c.deliveryModel || 'HYBRID'}</span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 line-clamp-2">{c.headline || c.description}</p>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[10px] text-slate-400">
+                            <span>{c.totalLessons || 12} Lessons &bull; {c.durationWeeks || 8} Weeks</span>
+                            <span className="text-emerald-700 font-bold">₹{c.priceInr.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Tiers 5-8 Summary Box */}
+                  <div className="ml-12 sm:ml-24 p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-900 space-y-2">
+                    <div className="font-bold flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-[#4f8c4c]" />
+                      <span>Curriculum Breakdown: Tiers 5 through 8</span>
+                    </div>
+                    <p className="text-slate-600 text-[11px]">
+                      Modules contain ordered Topics, Subtopics, and versioned Learning Activities (Prerecorded Video with playback checkpoints, Reading documents, Formative quizzes, Coursework assignments, and Live WebRTC Sessions with verified attendance).
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           )}

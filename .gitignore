@@ -5,6 +5,11 @@
 
 # Testing
 /coverage
+/test-results
+/playwright-report
+/.next-e2e
+/scratch
+/.arena
 
 # Next.js build
 /.next/

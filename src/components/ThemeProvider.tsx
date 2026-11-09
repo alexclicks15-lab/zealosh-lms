@@ -7,10 +7,10 @@ const defaultBrandingTheme: BrandingTheme = {
   primaryGreen: '#4f8c4c',
   deepGreen: '#3a7536',
   accentGreen: '#2ea033',
-  darkNeutral: '#252c41',
+  darkNeutral: '#0f172a',
   surfaceColor: '#ffffff',
-  lightSurfaceColor: '#f7f9fc',
-  secondarySurface: '#eaedf5',
+  lightSurfaceColor: '#ffffff',
+  secondarySurface: '#e2efe1',
   fontFamily: 'Inter',
   borderRadius: 'md',
   layoutDensity: 'comfortable',
@@ -58,10 +58,10 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
       root.style.setProperty('--brand-primary', theme.primaryGreen || '#4f8c4c');
       root.style.setProperty('--brand-dark', theme.deepGreen || '#3a7536');
       root.style.setProperty('--brand-accent', theme.accentGreen || '#2ea033');
-      root.style.setProperty('--navy-header', theme.darkNeutral || '#252c41');
+      root.style.setProperty('--navy-header', theme.darkNeutral || '#0f172a');
       root.style.setProperty('--bg-surface', theme.surfaceColor || '#ffffff');
-      root.style.setProperty('--bg-page', theme.lightSurfaceColor || '#f7f9fc');
-      root.style.setProperty('--border-color', theme.secondarySurface || '#eaedf5');
+      root.style.setProperty('--bg-page', theme.lightSurfaceColor || '#f4f9f3');
+      root.style.setProperty('--border-color', theme.secondarySurface || '#e2efe1');
     }
   }, [theme]);
 

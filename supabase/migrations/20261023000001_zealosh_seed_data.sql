@@ -111,7 +111,7 @@ VALUES
     'usr-admin-01',
     'Dr. K. Ravindran (Super Admin)',
     'admin@zealosh.com',
-    '$2a$10$wT0jV1Y3W4M7VvW2g7W2ceUq4i8w.U/fF8Rk3V3eK1.z2',
+    '$2a$10$viTQBigRQD8AZWec4zjEG.iO8zqrf1xTz0RCXnfept9ZUCm4KXm7i',
     'SUPER_ADMIN',
     'org-zealosh-main',
     NULL
@@ -120,7 +120,7 @@ VALUES
     'usr-inst-01',
     'Vishnu Rajendran, CSP, CRSP',
     'vishnu@zealosh.com',
-    '$2a$10$wT0jV1Y3W4M7VvW2g7W2ceUq4i8w.U/fF8Rk3V3eK1.z2',
+    '$2a$10$viTQBigRQD8AZWec4zjEG.iO8zqrf1xTz0RCXnfept9ZUCm4KXm7i',
     'INSTRUCTOR',
     'org-zealosh-main',
     NULL
@@ -129,7 +129,7 @@ VALUES
     'usr-std-01',
     'Arjun Menon',
     'student@zealosh.com',
-    '$2a$10$wT0jV1Y3W4M7VvW2g7W2ceUq4i8w.U/fF8Rk3V3eK1.z2',
+    '$2a$10$viTQBigRQD8AZWec4zjEG.iO8zqrf1xTz0RCXnfept9ZUCm4KXm7i',
     'STUDENT',
     'org-zealosh-main',
     'mdl-user-501'

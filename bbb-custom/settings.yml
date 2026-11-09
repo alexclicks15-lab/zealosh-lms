@@ -1,0 +1,22 @@
+# ==============================================================================
+# Zealosh Live Classroom — BigBlueButton 4.0 HTML5 Settings Override
+# Applied via: /etc/bigbluebutton/bbb-html5.yml (noble-400 on Ubuntu 24.04 LTS)
+# ==============================================================================
+public:
+  app:
+    clientTitle: "Zealosh Live Classroom"
+    brandName: "Zealosh Live Classroom"
+    helpLink: "https://lms.staging.zealosh.com/support"
+    feedback:
+      enabled: false
+    customLogo: "/playback/presentation/2.3/logo.png"
+    favicon: "/playback/presentation/2.3/favicon.png"
+    customStyleUrl: "/assets/css/zealosh.css"
+  presentation:
+    defaultPresentationFile: "/var/bigbluebutton/playback/presentation/2.3/default.pdf"
+    allowDownload: true
+  whiteboard:
+    multiUser: true
+  chat:
+    systemMessage: "Welcome to Zealosh Live Classroom. Professional HSE mentorship session."
+

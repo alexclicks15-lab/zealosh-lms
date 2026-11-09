@@ -33,38 +33,57 @@ export async function POST(
     // Submit and score authoritative attempt
     const completedAttempt = await db.submitExamAttempt(attemptId, payload.userId);
 
-    // Build comprehensive review breakdown with official explanations
-    const allQuestions = await db.getExamQuestions(completedAttempt.certificationType);
-    const questionsMap = new Map(allQuestions.map((q) => [q.id, q]));
+    // Build comprehensive review breakdown with official explanations from immutable frozen snapshot
+    let questionReviews: any[];
+    if (completedAttempt.questionSnapshots && completedAttempt.questionSnapshots.length > 0) {
+      questionReviews = completedAttempt.questionSnapshots.map((q) => {
+        const userSelected = completedAttempt.answers[q.id] || [];
+        const isCorrect =
+          userSelected.length === q.correctOptionIds.length &&
+          userSelected.every((opt) => q.correctOptionIds.includes(opt));
+        return {
+          id: q.id,
+          domain: q.domain,
+          topic: q.topic,
+          stem: q.stem,
+          options: q.options,
+          userSelected,
+          correctOptionIds: q.correctOptionIds,
+          isCorrect,
+          explanation: q.explanation,
+        };
+      });
+    } else {
+      const allQuestions = await db.getExamQuestions(completedAttempt.certificationType);
+      const questionsMap = new Map(allQuestions.map((q) => [q.id, q]));
+      const hasMissing = completedAttempt.assignedQuestionIds.some((qId) => !questionsMap.has(qId));
+      if (hasMissing) {
+        const fullBank = await db.getExamQuestions();
+        fullBank.forEach((q) => questionsMap.set(q.id, q));
+      }
 
-    // If any assigned question wasn't found in filtered bank, load full question bank asynchronously
-    const hasMissing = completedAttempt.assignedQuestionIds.some((qId) => !questionsMap.has(qId));
-    if (hasMissing) {
-      const fullBank = await db.getExamQuestions();
-      fullBank.forEach((q) => questionsMap.set(q.id, q));
+      questionReviews = completedAttempt.assignedQuestionIds.map((qId) => {
+        const q = questionsMap.get(qId);
+        if (!q) return null;
+        const userSelected = completedAttempt.answers[qId] || [];
+        const isCorrect =
+          userSelected.length === q.correctOptionIds.length &&
+          userSelected.every((opt) => q.correctOptionIds.includes(opt));
+
+        return {
+          id: q.id,
+          domain: q.domain,
+          topic: q.topic,
+          stem: q.stem,
+          options: q.options,
+          userSelected,
+          correctOptionIds: q.correctOptionIds,
+          isCorrect,
+          explanation: q.explanation,
+          referenceSource: q.referenceSource,
+        };
+      }).filter(Boolean);
     }
-
-    const questionReviews = completedAttempt.assignedQuestionIds.map((qId) => {
-      const q = questionsMap.get(qId);
-      if (!q) return null;
-      const userSelected = completedAttempt.answers[qId] || [];
-      const isCorrect =
-        userSelected.length === q.correctOptionIds.length &&
-        userSelected.every((opt) => q.correctOptionIds.includes(opt));
-
-      return {
-        id: q.id,
-        domain: q.domain,
-        topic: q.topic,
-        stem: q.stem,
-        options: q.options,
-        userSelected,
-        correctOptionIds: q.correctOptionIds,
-        isCorrect,
-        explanation: q.explanation,
-        referenceSource: q.referenceSource,
-      };
-    }).filter(Boolean);
 
     let certificate: any = null;
     if (completedAttempt.passed) {

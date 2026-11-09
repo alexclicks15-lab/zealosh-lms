@@ -467,6 +467,16 @@ describe('Zealosh LMS — Class Recordings, Chapters, Resources & Interactive Do
         console.warn('Skipping live Supabase test — missing live credentials.');
         return;
       }
+      try {
+        const ping = await liveClient.from('courses').select('id').limit(1);
+        if (ping.error) {
+          console.warn('Skipping live Supabase test — cannot reach remote Supabase (Profile D cloud-gated):', ping.error.message);
+          return;
+        }
+      } catch (err: any) {
+        console.warn('Skipping live Supabase test — network unreachable (Profile D cloud-gated):', err.message);
+        return;
+      }
 
       // 1. Live Class Recording
       const liveRec: ClassRecording = {

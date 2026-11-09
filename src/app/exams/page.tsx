@@ -70,7 +70,7 @@ export default function ExamsHubPage() {
           <ShieldCheck className="w-4 h-4 text-[#4f8c4c]" />
           <span>AUTHORITATIVE CERTIFICATION ENGINE</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-[#252c41] tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
           HSE Certification Mock Examination Engine
         </h1>
         <p className="text-gray-600 mt-2 text-base max-w-3xl">
@@ -81,7 +81,7 @@ export default function ExamsHubPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Available Blueprints */}
         <div className="lg:col-span-8 space-y-6">
-          <h2 className="text-xl font-bold text-[#252c41] flex items-center gap-2">
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
             <Award className="w-5 h-5 text-[#4f8c4c]" />
             Official Examination Blueprints
           </h2>
@@ -99,12 +99,12 @@ export default function ExamsHubPage() {
                       ? 'border-l-4 border-l-[#4f8c4c]'
                       : isLocked
                       ? 'border-l-4 border-l-amber-400 bg-gray-50/50'
-                      : 'border-l-4 border-l-[#252c41]'
+                      : 'border-l-4 border-l-[#4f8c4c]'
                   }`}
                 >
                   <div className="space-y-3 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="bg-[#252c41] text-white text-xs font-bold px-2.5 py-0.5 rounded">
+                      <span className="bg-[#1e481c] text-white text-xs font-bold px-2.5 py-0.5 rounded">
                         {bp.certificationType}
                       </span>
                       <span className="badge-green text-[11px]">
@@ -136,7 +136,7 @@ export default function ExamsHubPage() {
                       )}
                     </div>
 
-                    <h3 className="font-bold text-lg text-[#252c41]">
+                    <h3 className="font-bold text-lg text-slate-900">
                       {bp.title}
                     </h3>
 
@@ -165,7 +165,7 @@ export default function ExamsHubPage() {
                       </p>
                     )}
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-gray-600 pt-2 border-t border-[#eaedf5]">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-gray-600 pt-2 border-t border-[#e2efe1]">
                       <div>
                         <span className="text-gray-400 block text-[10px] uppercase font-bold">Questions</span>
                         <span className="font-bold text-gray-800">{bp.totalQuestions} Questions</span>
@@ -247,8 +247,8 @@ export default function ExamsHubPage() {
 
         {/* Right Sidebar: Historical Attempts & Rules */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white rounded-xl border border-[#eaedf5] p-5 shadow-xs">
-            <h3 className="font-bold text-base text-[#252c41] mb-4 flex items-center gap-2">
+          <div className="bg-white rounded-xl border border-[#e2efe1] p-5 shadow-xs">
+            <h3 className="font-bold text-base text-slate-900 mb-4 flex items-center gap-2">
               <Clock className="w-4 h-4 text-[#4f8c4c]" />
               Recent Exam Attempts
             </h3>
@@ -262,10 +262,10 @@ export default function ExamsHubPage() {
                 {attempts.map((att) => (
                   <div
                     key={att.id}
-                    className="p-3 rounded-lg border border-[#eaedf5] flex items-center justify-between text-xs"
+                    className="p-3 rounded-lg border border-[#e2efe1] flex items-center justify-between text-xs"
                   >
                     <div>
-                      <div className="font-bold text-[#252c41]">
+                      <div className="font-bold text-slate-900">
                         {att.certificationType} Mock Exam
                       </div>
                       <div className="text-[11px] text-gray-400">
@@ -287,8 +287,8 @@ export default function ExamsHubPage() {
           </div>
 
           {/* Exam Rules & Anti-Cheat Notice */}
-          <div className="bg-[#f7f9fc] rounded-xl border border-[#eaedf5] p-5 text-xs text-gray-600 space-y-2.5">
-            <div className="font-bold text-[#252c41] flex items-center gap-1.5 text-xs">
+          <div className="bg-[#f7f9fc] rounded-xl border border-[#e2efe1] p-5 text-xs text-gray-600 space-y-2.5">
+            <div className="font-bold text-slate-900 flex items-center gap-1.5 text-xs">
               <ShieldCheck className="w-4 h-4 text-[#4f8c4c]" />
               <span>Examination Integrity Guidelines</span>
             </div>

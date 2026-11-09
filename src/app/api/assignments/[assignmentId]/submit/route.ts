@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/store/db';
 import { verifyToken } from '@/lib/auth/jwt';
 import { AssignmentSubmission } from '@/types';
+import { notificationService } from '@/lib/notifications/notification-service';
 
 export async function POST(
   request: Request,
@@ -93,6 +94,10 @@ export async function POST(
     };
 
     const saved = await db.submitAssignment(submission, payload.email);
+
+    // Phase 5A: Dispatch notifications to instructors & confirmation to student
+    const course = await db.getCourseById(assignment.courseId);
+    await notificationService.notifyAssignmentSubmitted(saved, assignment, submission.studentName || payload.name || 'Student', course?.slug);
 
     return NextResponse.json({
       success: true,

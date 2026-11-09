@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/store/db';
 import { verifyToken } from '@/lib/auth/jwt';
 import { RecordingDoubtAnswer } from '@/types';
+import { notificationService } from '@/lib/notifications/notification-service';
 
 function extractUser(request: Request) {
   const authHeader = request.headers.get('authorization');
@@ -55,6 +56,25 @@ export async function POST(
 
     // Auto-mark doubt as RESOLVED if it was OPEN
     await db.resolveRecordingDoubt(doubtId, 'RESOLVED');
+
+    // Phase 5A: Dispatch notification to student author
+    try {
+      const doubts = await db.getRecordingDoubts(recordingId, undefined, true);
+      const doubt = doubts.find((d) => d.id === doubtId);
+      if (doubt && doubt.userId !== user.userId) {
+        const recording = await db.getClassRecording(recordingId);
+        await notificationService.notifyDoubtReplied({
+          doubtId: doubt.id,
+          recipientUserId: doubt.userId,
+          replierName: answer.instructorName || 'Instructor',
+          recordingTitle: recording?.title || 'Class Recording',
+          recordingId,
+          answerSnippet: answer.answerText,
+        });
+      }
+    } catch {
+      // Non-blocking notification dispatch
+    }
 
     return NextResponse.json({ success: true, answer: saved }, { status: 201 });
   } catch (err: any) {

@@ -35,13 +35,22 @@ if (fs.existsSync(envLocalPath)) {
 }
 
 export default defineConfig({
+  oxc: {
+    jsx: {
+      runtime: 'automatic',
+    },
+  },
   test: {
     globals: true,
     environment: 'node',
     include: ['tests/**/*.test.ts', 'scripts/skill-validation/**/*.test.ts'],
     testTimeout: 30000,
     hookTimeout: 30000,
-    env: localEnv,
+    fileParallelism: false,
+    env: {
+      ...localEnv,
+      DATABASE_STORAGE: 'in_memory',
+    },
   },
   resolve: {
     alias: {

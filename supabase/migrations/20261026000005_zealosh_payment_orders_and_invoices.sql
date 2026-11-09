@@ -25,13 +25,15 @@ DO $$
 DECLARE
     v_max_num BIGINT;
 BEGIN
-    SELECT COALESCE(MAX(SUBSTRING(invoice_number FROM '\d+$')::BIGINT), 1000)
-    INTO v_max_num
-    FROM public.invoices
-    WHERE invoice_number ~ '^\w+-\d+-\d+$';
+    IF to_regclass('public.invoices') IS NOT NULL THEN
+        SELECT COALESCE(MAX(SUBSTRING(invoice_number FROM '\d+$')::BIGINT), 1000)
+        INTO v_max_num
+        FROM public.invoices
+        WHERE invoice_number ~ '^\w+-\d+-\d+$';
 
-    IF v_max_num >= 1000 THEN
-        PERFORM setval('public.invoice_number_seq', v_max_num + 1, false);
+        IF v_max_num >= 1000 THEN
+            PERFORM setval('public.invoice_number_seq', v_max_num + 1, false);
+        END IF;
     END IF;
 END $$;
 

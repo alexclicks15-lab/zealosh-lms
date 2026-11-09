@@ -84,8 +84,8 @@ export async function POST(
     // Start authoritative attempt
     const attempt = await db.startExamAttempt(payload.userId, params.examId);
 
-    // Securely project questions without correctOptionIds or explanations
-    const rawQuestions = await db.getQuestionsForClient(attempt.assignedQuestionIds);
+    // Securely project questions without correctOptionIds or explanations (projected from frozen snapshot)
+    const rawQuestions = await db.getQuestionsForAttempt(attempt.id);
     const clientQuestions = rawQuestions.map((q, index) => ({
       ...q,
       index: index + 1,

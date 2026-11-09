@@ -34,7 +34,13 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden: Access to this invoice is restricted' }, { status: 403 });
     }
 
-    return NextResponse.json({ invoice });
+    const creditNotes = await db.getCreditNotes(invoice.id);
+    const creditNote = creditNotes.length > 0 ? creditNotes[0] : (invoice.creditNoteId ? await db.getCreditNote(invoice.creditNoteId) : null);
+    return NextResponse.json({
+      invoice,
+      creditNote: creditNote || null,
+      creditNotes: creditNotes || [],
+    });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

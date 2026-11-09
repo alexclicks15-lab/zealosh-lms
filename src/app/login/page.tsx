@@ -46,8 +46,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen py-16 px-4 flex items-center justify-center bg-[#f7f9fc]">
-      <div className="w-full max-w-md bg-white rounded-2xl border border-[#eaedf5] shadow-xl p-8">
+    <div className="min-h-screen py-16 px-4 flex items-center justify-center bg-gradient-to-b from-[#f4f9f3] via-white to-white relative overflow-hidden">
+      {/* Decorative subtle ambient glows */}
+      <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-[#4f8c4c]/8 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#2ea033]/6 rounded-full blur-2xl pointer-events-none" />
+
+      <div className="w-full max-w-md glass-card p-8 sm:p-9 shadow-xl relative z-10 border border-emerald-500/20">
         {/* Brand Header */}
         <div className="text-center mb-8">
           <div className="relative w-44 h-12 mx-auto mb-3">
@@ -59,10 +63,10 @@ export default function LoginPage() {
               priority
             />
           </div>
-          <h1 className="text-xl font-extrabold text-[#252c41]">
+          <h1 className="text-xl font-black text-slate-900 tracking-tight">
             Sign in to Your Account
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1 font-medium">
             Access your courses, live cohorts, and HSE mock examinations
           </p>
         </div>
@@ -76,7 +80,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               Email Address
             </label>
             <div className="relative">
@@ -86,14 +90,14 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@example.com"
                 required
-                className="w-full px-3.5 py-2.5 pl-10 text-xs rounded-lg border border-gray-300 focus:outline-none focus:border-[#4f8c4c] focus:ring-1 focus:ring-[#4f8c4c]"
+                className="neomorphic-input pl-10"
               />
-              <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+              <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               Password
             </label>
             <div className="relative">
@@ -101,11 +105,11 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="••••••••••••"
                 required
-                className="w-full px-3.5 py-2.5 pl-10 text-xs rounded-lg border border-gray-300 focus:outline-none focus:border-[#4f8c4c] focus:ring-1 focus:ring-[#4f8c4c]"
+                className="neomorphic-input pl-10"
               />
-              <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             </div>
           </div>
 
@@ -118,53 +122,64 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Demo Fast Login */}
-        <div className="mt-8 pt-6 border-t border-[#eaedf5]">
-          <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3 text-center">
-            One-Click Instant Demo Roles
+        {/* Demo Fast Login — Strictly Protected to Local Development Environments */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-8 pt-6 border-t border-[#e2efe1]">
+            <div className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider mb-3 text-center">
+              Development Only: One-Click Instant Demo Roles
+            </div>
+
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => executeLogin('student@zealosh.com', 'Zealosh@2026')}
+                className="w-full text-left p-3 rounded-xl border border-emerald-200 bg-[#f1f8f0]/80 hover:bg-[#e8f3e7] transition-all flex items-center justify-between shadow-xs group"
+              >
+                <div>
+                  <div className="text-xs font-bold text-slate-900 group-hover:text-[#245921]">
+                    Arjun Menon (Student)
+                  </div>
+                  <div className="text-[11px] text-slate-500">Enrolled in ASP Cohort</div>
+                </div>
+                <span className="text-[10px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded shadow-xs">
+                  STUDENT
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => executeLogin('vishnu@zealosh.com', 'Zealosh@2026')}
+                className="w-full text-left p-3 rounded-xl border border-emerald-200 bg-[#f1f8f0]/80 hover:bg-[#e8f3e7] transition-all flex items-center justify-between shadow-xs group"
+              >
+                <div>
+                  <div className="text-xs font-bold text-slate-900 group-hover:text-[#245921]">
+                    Vishnu Rajendran (Lead)
+                  </div>
+                  <div className="text-[11px] text-slate-500">CSP & CRSP Lead Instructor</div>
+                </div>
+                <span className="text-[10px] bg-[#3a7536] text-white font-bold px-2 py-0.5 rounded shadow-xs">
+                  INSTRUCTOR
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => executeLogin('admin@zealosh.com', 'Zealosh@2026')}
+                className="w-full text-left p-3 rounded-xl border border-emerald-200 bg-[#f1f8f0]/80 hover:bg-[#e8f3e7] transition-all flex items-center justify-between shadow-xs group"
+              >
+                <div>
+                  <div className="text-xs font-bold text-slate-900 group-hover:text-[#245921]">
+                    Dr. K. Ravindran
+                  </div>
+                  <div className="text-[11px] text-slate-500">Super Administrator</div>
+                </div>
+                <span className="text-[10px] bg-[#245921] text-white font-bold px-2 py-0.5 rounded shadow-xs">
+                  SUPER ADMIN
+                </span>
+              </button>
+            </div>
           </div>
-
-          <div className="space-y-2">
-            <button
-              onClick={() => executeLogin('student@zealosh.com', 'Zealosh@2026')}
-              className="w-full text-left p-3 rounded-lg border border-green-200 bg-green-50/50 hover:bg-green-100/50 transition-colors flex items-center justify-between"
-            >
-              <div>
-                <div className="text-xs font-bold text-[#252c41]">Arjun Menon (Student)</div>
-                <div className="text-[11px] text-gray-500">Enrolled in ASP Cohort</div>
-              </div>
-              <span className="text-[10px] bg-green-700 text-white font-bold px-2 py-0.5 rounded">
-                STUDENT
-              </span>
-            </button>
-
-            <button
-              onClick={() => executeLogin('vishnu@zealosh.com', 'Zealosh@2026')}
-              className="w-full text-left p-3 rounded-lg border border-blue-200 bg-blue-50/50 hover:bg-blue-100/50 transition-colors flex items-center justify-between"
-            >
-              <div>
-                <div className="text-xs font-bold text-[#252c41]">Vishnu Rajendran (Lead)</div>
-                <div className="text-[11px] text-gray-500">CSP & CRSP Lead Instructor</div>
-              </div>
-              <span className="text-[10px] bg-blue-700 text-white font-bold px-2 py-0.5 rounded">
-                INSTRUCTOR
-              </span>
-            </button>
-
-            <button
-              onClick={() => executeLogin('admin@zealosh.com', 'Zealosh@2026')}
-              className="w-full text-left p-3 rounded-lg border border-purple-200 bg-purple-50/50 hover:bg-purple-100/50 transition-colors flex items-center justify-between"
-            >
-              <div>
-                <div className="text-xs font-bold text-[#252c41]">Dr. K. Ravindran</div>
-                <div className="text-[11px] text-gray-500">Super Administrator</div>
-              </div>
-              <span className="text-[10px] bg-purple-700 text-white font-bold px-2 py-0.5 rounded">
-                SUPER ADMIN
-              </span>
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

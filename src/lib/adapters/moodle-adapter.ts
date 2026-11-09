@@ -26,6 +26,21 @@ export interface MoodleCourseContent {
   }[];
 }
 
+export interface ScormLaunchContext {
+  launchUrl: string;
+  cmid: number;
+  userId: string;
+  isHeadless: boolean;
+  expiresAt: string;
+}
+
+export interface ScormTrackingData {
+  cmiStatus: 'completed' | 'passed' | 'incomplete' | 'failed' | 'not attempted';
+  scoreRaw?: number;
+  totalTime?: string;
+  suspendData?: string;
+}
+
 export class MoodleClientAdapter {
   private baseUrl: string;
   private wsToken: string;
@@ -35,6 +50,14 @@ export class MoodleClientAdapter {
     this.baseUrl = baseUrl || process.env.MOODLE_BASE_URL || 'https://moodle.internal.zealosh.com';
     this.wsToken = wsToken || process.env.MOODLE_WS_TOKEN || 'mock_token';
     this.isMockMode = process.env.MOODLE_MODE !== 'remote';
+  }
+
+  public isOperatingInMockMode(): boolean {
+    return this.isMockMode;
+  }
+
+  public getBaseUrl(): string {
+    return this.baseUrl;
   }
 
   /**
@@ -136,6 +159,54 @@ export class MoodleClientAdapter {
     return {
       completed: data?.completionstatus?.completed || false,
       percent: data?.completionstatus?.completed ? 100 : 50,
+    };
+  }
+
+  /**
+   * Generates a secure, headless launch context for a SCORM package (mod_scorm)
+   */
+  async getScormLaunchContext(cmid: number, userId: string): Promise<ScormLaunchContext> {
+    if (this.isMockMode) {
+      return {
+        launchUrl: `/learn-engine/mod/scorm/player.php?id=${cmid}&mode=normal&seamless=1`,
+        cmid,
+        userId,
+        isHeadless: true,
+        expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
+      };
+    }
+
+    const launchUrl = `${this.baseUrl}/mod/scorm/player.php?id=${cmid}&mode=normal&seamless=1`;
+    return {
+      launchUrl,
+      cmid,
+      userId,
+      isHeadless: true,
+      expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
+    };
+  }
+
+  /**
+   * Retrieves SCORM attempt tracking and CMI runtime state (mod_scorm_get_scorm_user_data)
+   */
+  async getScormTracking(scormId: number, attemptNumber: number = 1): Promise<ScormTrackingData> {
+    if (this.isMockMode) {
+      return {
+        cmiStatus: 'completed',
+        scoreRaw: 85,
+        totalTime: '00:45:20',
+        suspendData: 'lesson_bookmark=slide_14',
+      };
+    }
+
+    const url = `${this.baseUrl}/webservice/rest/server.php?wstoken=${this.wsToken}&wsfunction=mod_scorm_get_scorm_user_data&scormid=${scormId}&attempt=${attemptNumber}&moodlewsrestformat=json`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return {
+      cmiStatus: data?.data?.cmi_core_lesson_status || 'incomplete',
+      scoreRaw: data?.data?.cmi_core_score_raw ? Number(data.data.cmi_core_score_raw) : undefined,
+      totalTime: data?.data?.cmi_core_total_time,
+      suspendData: data?.data?.cmi_suspend_data,
     };
   }
 }

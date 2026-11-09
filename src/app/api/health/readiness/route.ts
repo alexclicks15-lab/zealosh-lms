@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/store/db';
 
 export async function GET() {
-  const [courses, batches, users, enrollments, examQuestions] = await Promise.all([
+  const [courses, batches, users, enrollments, examQuestions, maintenanceConfig] = await Promise.all([
     db.getCourses(),
     db.getBatches(),
     db.getUsers(),
     db.getEnrollments(),
     db.getExamQuestions(),
+    db.getMaintenanceConfig(),
   ]);
 
   const isDbReady = courses.length > 0 && users.length > 0;
@@ -20,7 +21,8 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    status: 'READY',
+    status: maintenanceConfig.enabled ? 'MAINTENANCE' : 'READY',
+    maintenanceMode: maintenanceConfig.mode,
     timestamp: new Date().toISOString(),
     metrics: {
       usersCount: users.length,

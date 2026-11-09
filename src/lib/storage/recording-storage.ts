@@ -108,13 +108,41 @@ export class RecordingStorageService {
    */
   public async verifyAccess(
     recordingId: string,
-    user: { userId?: string; id?: string; role: string; email?: string },
+    user: { userId?: string; id?: string; role: string; email?: string; organizationId?: string },
     action: 'stream' | 'download' = 'stream'
   ): Promise<PlaybackAccessResult> {
     const userId = user.userId || user.id || '';
     const recording = await db.getClassRecording(recordingId);
     if (!recording) {
       return { allowed: false, authorized: false, reason: 'RECORDING_NOT_FOUND', canDownload: false };
+    }
+
+    // Verify organization / tenant isolation
+    const storedUser = userId ? await db.getUser(userId) : undefined;
+    const effectiveOrgId = user.organizationId || storedUser?.organizationId;
+    if (
+      effectiveOrgId &&
+      effectiveOrgId !== 'org-zealosh-main' &&
+      effectiveOrgId !== 'org-zealosh'
+    ) {
+      return {
+        allowed: false,
+        authorized: false,
+        reason: 'TENANT_ORGANIZATION_MISMATCH',
+        canDownload: false,
+      };
+    }
+    if (
+      user.organizationId &&
+      storedUser?.organizationId &&
+      user.organizationId !== storedUser.organizationId
+    ) {
+      return {
+        allowed: false,
+        authorized: false,
+        reason: 'TENANT_ORGANIZATION_MISMATCH',
+        canDownload: false,
+      };
     }
 
     // Admins have unrestricted access
@@ -176,12 +204,27 @@ export class RecordingStorageService {
       };
     }
 
-    // Check user active enrollments
+    const recordingBatch = await db.getBatch(recording.batchId);
+    if (recordingBatch && recordingBatch.status === 'CANCELLED') {
+      return {
+        allowed: false,
+        authorized: false,
+        reason: 'BATCH_CANCELLED',
+        canDownload: false,
+        recording,
+      };
+    }
+
+    // Check user active, non-expired enrollments
     const enrollments = await db.getUserEnrollments(userId);
-    const activeEnrollments = enrollments.filter((e) => e.status === 'ACTIVE');
+    const activeEnrollments = enrollments.filter(
+      (e) => e.status === 'ACTIVE' && (!e.expiresAt || new Date(e.expiresAt) > now)
+    );
 
     // Case A: Enrolled in the direct cohort batch where recording occurred
-    const directEnrollment = activeEnrollments.find((e) => e.batchId === recording.batchId);
+    const directEnrollment = activeEnrollments.find(
+      (e) => e.batchId === recording.batchId && (!e.courseId || e.courseId === recording.courseId)
+    );
 
     // Case B: Cross-batch / previous-batch access grant
     const batchGrants = await db.getRecordingBatchAccess(recording.id);

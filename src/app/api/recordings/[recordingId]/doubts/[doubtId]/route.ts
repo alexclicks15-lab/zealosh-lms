@@ -41,7 +41,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { status, isPublic, question } = body;
+    const { status, isPublic, question, promoteToKnowledgeBase } = body;
 
     // Learners can only edit their own question if still OPEN
     if (!isStaff) {
@@ -53,6 +53,16 @@ export async function PATCH(
         await db.saveRecordingDoubt(existing);
       }
       return NextResponse.json({ success: true, doubt: existing });
+    }
+
+    if (promoteToKnowledgeBase) {
+      const promoted = await db.promoteDoubtToKnowledgeBase(doubtId, user.userId);
+      return NextResponse.json({
+        success: true,
+        doubt: promoted,
+        promotedToKnowledgeBase: true,
+        message: 'Doubt promoted to course knowledge base with student identity anonymized.',
+      });
     }
 
     // Staff can change status and toggle public sharing

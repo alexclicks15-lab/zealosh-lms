@@ -61,14 +61,81 @@ export async function POST(request: Request) {
       }
     }
 
-    // 2. Retrieve the persisted pending order from authoritative persistence
+    // 2. Durable Webhook Replay Deduplication (Recorded with Payload Hash & Event Identity)
+    const payloadHash = crypto.createHash('sha256').update(rawBody).digest('hex');
+    const incomingEventId =
+      request.headers.get('x-razorpay-event-id') ||
+      body.id ||
+      body.event_id ||
+      `evt_${orderId}_${paymentId}_${body.event || 'captured'}`;
+
+    const existingWebhook = await db.getPaymentWebhookEvent(incomingEventId);
+    if (existingWebhook && existingWebhook.status === 'PROCESSED') {
+      const persistedOrder = await db.getPaymentOrder(orderId);
+      const invoice = persistedOrder?.invoiceId ? await db.getInvoice(persistedOrder.invoiceId) : undefined;
+      return NextResponse.json({
+        success: true,
+        duplicateIgnored: true,
+        eventId: incomingEventId,
+        orderId,
+        status: persistedOrder?.status || 'PAID',
+        invoiceId: persistedOrder?.invoiceId,
+        invoiceNumber: invoice?.invoiceNumber,
+        enrollmentId: persistedOrder?.enrollmentId,
+      });
+    }
+
+    const recordedEvent = await db.recordPaymentWebhookEvent({
+      provider: 'RAZORPAY',
+      eventId: incomingEventId,
+      eventType: body.event || 'payment.captured',
+      orderId,
+      paymentId,
+      payloadHash,
+      status: 'RECEIVED',
+    });
+
+    // 3. Retrieve the persisted pending order from authoritative persistence
     const persistedOrder = await db.getPaymentOrder(orderId);
     if (!persistedOrder) {
+      await db.markPaymentWebhookProcessed(recordedEvent.id, 'FAILED', `Payment order ${orderId} not found`);
       return NextResponse.json({ error: `Payment order ${orderId} not found` }, { status: 404 });
     }
 
-    // 3. Idempotency Guard: if already PAID, return idempotent success without re-enrolling or re-invoicing
+    // 4. Handle Refund Webhook Events (occurs on already PAID orders)
+    const eventType = body.event || (body.status ? `payment.${body.status}` : undefined);
+    if (eventType === 'refund.processed' || eventType === 'refund.created') {
+      if (persistedOrder.status === 'PAID') {
+        const refundResult = await db.processRefund(
+          orderId,
+          body.refundReason || 'Gateway refund event',
+          'webhook@gateway.zealosh.com',
+          'SUPER_ADMIN',
+          body.refundId || body.payload?.refund?.entity?.id
+        );
+        await db.markPaymentWebhookProcessed(recordedEvent.id, 'PROCESSED');
+        return NextResponse.json({
+          success: true,
+          orderId,
+          status: refundResult.order.status,
+          refundStatus: refundResult.order.refundStatus,
+          message: 'Payment refund processed from gateway webhook event',
+        });
+      } else if (persistedOrder.status === 'REFUNDED') {
+        await db.markPaymentWebhookProcessed(recordedEvent.id, 'PROCESSED');
+        return NextResponse.json({
+          success: true,
+          duplicateIgnored: true,
+          orderId,
+          status: 'REFUNDED',
+          message: 'Order already refunded',
+        });
+      }
+    }
+
+    // 5. Idempotency Guard: if already PAID, return idempotent success without re-enrolling or re-invoicing
     if (persistedOrder.status === 'PAID') {
+      await db.markPaymentWebhookProcessed(recordedEvent.id, 'PROCESSED');
       const invoice = persistedOrder.invoiceId ? await db.getInvoice(persistedOrder.invoiceId) : undefined;
       return NextResponse.json({
         success: true,
@@ -80,24 +147,24 @@ export async function POST(request: Request) {
       });
     }
 
+    // 6. Handle Failure / Cancellation Events
+    if (eventType === 'payment.failed' || eventType === 'payment.cancelled' || eventType === 'order.cancelled') {
+      return NextResponse.json(
+        { error: `PAYMENT_FAILED: Webhook reported payment failure event ${eventType}` },
+        { status: 400 }
+      );
+    }
+
     if (persistedOrder.status !== 'PENDING') {
+      await db.markPaymentWebhookProcessed(recordedEvent.id, 'FAILED', `INVALID_STATE: Cannot fulfill order in status ${persistedOrder.status}`);
       return NextResponse.json(
         { error: `INVALID_STATE: Cannot fulfill order in status ${persistedOrder.status}` },
         { status: 400 }
       );
     }
 
-    // 4. Validate payment event payload against expected order parameters
-    const eventType = body.event || (body.status ? `payment.${body.status}` : undefined);
+    // 7. Validate payment event payload against expected order parameters
     if (eventType) {
-      const failureEvents = ['payment.failed', 'payment.cancelled', 'order.cancelled'];
-      if (failureEvents.includes(eventType)) {
-        return NextResponse.json(
-          { error: `PAYMENT_FAILED: Webhook reported payment failure event ${eventType}` },
-          { status: 400 }
-        );
-      }
-
       const successEvents = ['payment.captured', 'order.paid', 'payment.authorized', 'payment.paid'];
       if (!successEvents.includes(eventType) && !isMockBypass) {
         return NextResponse.json(
@@ -142,21 +209,28 @@ export async function POST(request: Request) {
     }
 
     // 5. Complete order and issue tax invoice atomically via trusted backend
-    const result = await db.completePaymentOrder(
-      orderId,
-      paymentId,
-      'webhook@gateway.zealosh.com',
-      billingAddress
-    );
+    try {
+      const result = await db.completePaymentOrder(
+        orderId,
+        paymentId,
+        'webhook@gateway.zealosh.com',
+        billingAddress
+      );
 
-    return NextResponse.json({
-      success: true,
-      orderId: result.order.id,
-      status: result.order.status,
-      invoiceId: result.invoice.id,
-      invoiceNumber: result.invoice.invoiceNumber,
-      enrollmentId: result.enrollment.id,
-    });
+      await db.markPaymentWebhookProcessed(recordedEvent.id, 'PROCESSED');
+
+      return NextResponse.json({
+        success: true,
+        orderId: result.order.id,
+        status: result.order.status,
+        invoiceId: result.invoice.id,
+        invoiceNumber: result.invoice.invoiceNumber,
+        enrollmentId: result.enrollment.id,
+      });
+    } catch (completionErr: any) {
+      await db.markPaymentWebhookProcessed(recordedEvent.id, 'FAILED', completionErr.message);
+      throw completionErr;
+    }
   } catch (err: any) {
     const status = err.message.includes('not found') || err.message.includes('ORDER_NOT_FOUND')
       ? 404

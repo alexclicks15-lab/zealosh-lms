@@ -4,46 +4,382 @@
 
 @layer base {
   :root {
-    --brand-primary: #4f8c4c;
+    /* Official Zealosh Green & White Brand Tokens */
+    --zealosh-primary: #4E8C4A;            /* Official Brand Green Primary */
+    --zealosh-secondary: #8CBF4D;          /* Official Brand Secondary Green */
+    --zealosh-grey: #ACACAC;               /* Official Brand Grey */
+    --zealosh-primary-dark: #3a7536;       /* Deep Forest Green */
+    --zealosh-primary-light: #8CBF4D;      /* Secondary Accent Green */
+    --zealosh-primary-vibrant: #2ea033;    /* High-contrast Success/Highlight Green */
+
+    --zealosh-white: #ffffff;
+    --zealosh-background: #ffffff;         /* Clean White Background */
+    --zealosh-surface: #ffffff;            /* Pure White Surfaces */
+    --zealosh-surface-subtle: #fbfdfb;     /* Very subtle luminous surface tint */
+    --zealosh-surface-green: #f1f8f0;      /* Pale Emerald Surface Tint */
+    --zealosh-surface-green-light: #e8f3e7;/* Accent Pill Surface Tint */
+
+    /* Typography: Crisp readable neutrals (Dark slate for WCAG 2.2 AA contrast) */
+    --zealosh-text-primary: #0f172a;       /* Slate 900 */
+    --zealosh-text-secondary: #475569;     /* Slate 600 */
+    --zealosh-text-muted: #64748b;         /* Slate 500 */
+    --zealosh-text-brand: #3a7536;         /* Deep readable brand green text */
+
+    /* Subtle Green-Tinted Borders & Focus */
+    --zealosh-border: #e2efe1;             /* Subtle green-tinted border (replaces legacy ash-grey) */
+    --zealosh-border-subtle: rgba(78, 140, 74, 0.12);
+    --zealosh-border-focus: #4E8C4A;
+    --zealosh-focus-ring: rgba(78, 140, 74, 0.25);
+
+    /* Semantic Alerts */
+    --zealosh-success: #2ea033;
+    --zealosh-warning: #f59e0b;
+    --zealosh-danger: #ef4444;
+    --zealosh-info: #4E8C4A;
+
+    /* Legacy Mappings (Cleanly aligned to Green & White) */
+    --brand-primary: #4E8C4A;
+    --brand-secondary: #8CBF4D;
     --brand-dark: #3a7536;
-    --brand-accent: #2ea033;
-    --navy-header: #252c41;
-    --text-primary: #252c41;
-    --text-muted: #5e5e5e;
-    --border-color: #eaedf5;
+    --brand-accent: #8CBF4D;
+    --navy-header: #0f172a;               /* Redirected to neutral slate 900 */
+    --text-primary: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2efe1;
     --bg-surface: #ffffff;
-    --bg-page: #f7f9fc;
+    --bg-page: #ffffff;
   }
 
   body {
-    background-color: var(--bg-page);
-    color: var(--text-primary);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--zealosh-background);
+    color: var(--zealosh-text-primary);
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* Custom Zealosh utility classes */
-.btn-primary {
-  @apply bg-[#4f8c4c] hover:bg-[#3a7536] text-white font-medium px-5 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow flex items-center justify-center gap-2;
+/* ==========================================================================
+   PART 2 — GLASSMORPHISM FOUNDATION (Green & White Frosted Glass)
+   ========================================================================== */
+.glass-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(79, 140, 76, 0.16);
+  box-shadow: 0 8px 30px rgba(79, 140, 76, 0.06);
+  border-radius: 1rem;
 }
 
+.glass-card-subtle {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  border-radius: 0.75rem;
+}
+
+.glass-card-green {
+  background: rgba(241, 248, 240, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(79, 140, 76, 0.24);
+  box-shadow: 0 8px 30px rgba(79, 140, 76, 0.09);
+  border-radius: 1rem;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(79, 140, 76, 0.14);
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(79, 140, 76, 0.14);
+  box-shadow: 0 2px 10px rgba(79, 140, 76, 0.04);
+}
+
+.glass-modal {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(79, 140, 76, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(79, 140, 76, 0.1);
+}
+
+/* ==========================================================================
+   PART 3 — NEUMORPHISM FOUNDATION (Tactile Physical Controls)
+   ========================================================================== */
+.neomorphic-button,
+.btn-primary {
+  background: #4E8C4A;
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 0.625rem;
+  box-shadow: 2px 3px 6px rgba(58, 117, 54, 0.35), -1px -1px 3px rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(46, 160, 51, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+}
+
+.neomorphic-button:hover,
+.btn-primary:hover {
+  background: #3a7536;
+  box-shadow: 3px 4px 10px rgba(58, 117, 54, 0.45), -2px -2px 5px rgba(255, 255, 255, 0.6);
+  transform: translateY(-1px);
+}
+
+.neomorphic-button:active,
+.btn-primary:active {
+  box-shadow: inset 2px 2px 5px rgba(36, 89, 33, 0.5), inset -1px -1px 3px rgba(255, 255, 255, 0.2);
+  transform: translateY(0);
+}
+
+.neomorphic-button:disabled,
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.neomorphic-button-secondary,
 .btn-secondary {
-  @apply bg-[#252c41] hover:bg-[#1a1f2e] text-white font-medium px-5 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow flex items-center justify-center gap-2;
+  background: #ffffff;
+  color: #3a7536;
+  font-weight: 600;
+  border-radius: 0.625rem;
+  border: 1.5px solid #4E8C4A;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.04), -2px -2px 6px rgba(255, 255, 255, 0.9);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+}
+
+.neomorphic-button-secondary:hover,
+.btn-secondary:hover {
+  background: #f1f8f0;
+  color: #245921;
+  border-color: #3a7536;
+  box-shadow: 3px 4px 10px rgba(78, 140, 74, 0.12), -2px -2px 6px rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+}
+
+.neomorphic-button-secondary:active,
+.btn-secondary:active {
+  box-shadow: inset 1px 1px 4px rgba(78, 140, 74, 0.15), inset -1px -1px 3px rgba(255, 255, 255, 0.8);
+  transform: translateY(0);
 }
 
 .btn-outline {
-  @apply border border-[#4f8c4c] text-[#4f8c4c] hover:bg-[#4f8c4c] hover:text-white font-medium px-5 py-2.5 rounded-lg transition-all duration-200 flex items-center justify-center gap-2;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #334155;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-outline:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.btn-brand-outline {
+  border: 1.5px solid #4E8C4A;
+  color: #3a7536;
+  background: #ffffff;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-brand-outline:hover {
+  background: #4E8C4A;
+  color: #ffffff;
+}
+
+.neomorphic-control {
+  background: #ffffff;
+  border-radius: 0.625rem;
+  box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.03), -2px -2px 6px rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(78, 140, 74, 0.15);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neomorphic-control:hover {
+  box-shadow: 4px 4px 12px rgba(78, 140, 74, 0.08), -3px -3px 8px rgba(255, 255, 255, 1);
+  border-color: rgba(78, 140, 74, 0.35);
+}
+
+.neomorphic-input,
+.zealosh-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.8125rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #0f172a;
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.neomorphic-input:focus,
+.zealosh-input:focus {
+  outline: none;
+  border-color: #4E8C4A;
+  box-shadow: 0 0 0 3px rgba(78, 140, 74, 0.15);
+}
+
+/* ==========================================================================
+   PART 4 — MOTION UI & TRANSITIONS
+   ========================================================================== */
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(79, 140, 76, 0.12), 0 8px 10px -6px rgba(79, 140, 76, 0.08);
 }
 
 .badge-green {
-  @apply bg-[#e1f0df] text-[#3a7536] text-xs font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wider;
+  background: #e8f3e7;
+  color: #245921;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.65rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(79, 140, 76, 0.2);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
+.badge-neutral {
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.65rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid #e2e8f0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Backward-compatible badge alias safely mapped to neutral slate */
 .badge-navy {
-  @apply bg-[#eaedf5] text-[#252c41] text-xs font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wider;
+  background: #f1f5f9;
+  color: #1e293b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.65rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid #e2e8f0;
+}
+
+.badge-amber {
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.65rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid #fde68a;
 }
 
 .card-elevated {
-  @apply bg-white rounded-xl border border-[#eaedf5] shadow-sm hover:shadow-md transition-shadow duration-200;
+  background: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid #e2efe1;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-elevated:hover {
+  border-color: rgba(79, 140, 76, 0.3);
+  box-shadow: 0 10px 25px rgba(79, 140, 76, 0.08);
+}
+
+/* Workspace navigation & structural components */
+.workspace-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  color: #475569;
+  transition: all 0.15s ease;
+}
+
+.workspace-nav-link:hover {
+  color: #245921;
+  background-color: #f1f8f0;
+}
+
+.workspace-nav-link-active {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  background-color: #e8f3e7;
+  color: #245921;
+  border: 1px solid rgba(79, 140, 76, 0.2);
+}
+
+/* ==========================================================================
+   PART 8 — WCAG 2.2 AA ACCESSIBILITY & PREFERS-REDUCED-MOTION
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

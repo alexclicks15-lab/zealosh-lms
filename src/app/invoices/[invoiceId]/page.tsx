@@ -47,9 +47,9 @@ export default function InvoiceDetailsPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f7f9fc] py-16 px-4 text-center">
+      <div className="min-h-screen bg-[#f4f9f3] py-16 px-4 text-center">
         <div className="w-10 h-10 border-4 border-[#4f8c4c] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <h2 className="text-base font-bold text-[#252c41]">Loading Official Tax Invoice...</h2>
+        <h2 className="text-base font-bold text-slate-900">Loading Official Tax Invoice...</h2>
         <p className="text-xs text-gray-500 mt-1">Retrieving verified payment and tax records from Zealosh billing engine.</p>
       </div>
     );
@@ -57,12 +57,12 @@ export default function InvoiceDetailsPage({
 
   if (error || !invoice) {
     return (
-      <div className="min-h-screen bg-[#f7f9fc] py-16 px-4">
-        <div className="max-w-xl mx-auto bg-white rounded-2xl border border-red-200 p-8 text-center shadow-sm">
+      <div className="min-h-screen bg-[#f4f9f3] py-16 px-4">
+        <div className="max-w-xl mx-auto bg-white/95 backdrop-blur-md rounded-2xl border border-red-200 p-8 text-center shadow-sm">
           <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <Receipt className="w-6 h-6" />
           </div>
-          <h1 className="text-xl font-bold text-[#252c41]">Invoice Unavailable</h1>
+          <h1 className="text-xl font-bold text-slate-900">Invoice Unavailable</h1>
           <p className="text-xs text-red-600 mt-2">{error || 'Invoice record could not be found'}</p>
           <div className="mt-6">
             <Link
@@ -82,7 +82,7 @@ export default function InvoiceDetailsPage({
   const sgstAmount = Math.round((invoice.taxAmount - cgstAmount) * 100) / 100;
 
   return (
-    <div className="min-h-screen bg-[#f7f9fc] py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#f4f9f3] py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Navigation & Action Bar (Hidden in Print) */}
         <div className="mb-6 flex items-center justify-between print:hidden">
@@ -96,7 +96,7 @@ export default function InvoiceDetailsPage({
 
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 bg-[#252c41] hover:bg-[#1b2030] text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs transition-colors"
+            className="neomorphic-button inline-flex items-center gap-2 bg-[#1e481c] hover:bg-[#2e682a] text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs transition-colors"
           >
             <Printer className="w-4 h-4" />
             <span>Print / Save PDF Invoice</span>
@@ -104,9 +104,9 @@ export default function InvoiceDetailsPage({
         </div>
 
         {/* Invoice Paper Document */}
-        <div className="bg-white rounded-2xl border border-[#eaedf5] shadow-lg overflow-hidden p-8 sm:p-12 print:shadow-none print:border-none print:p-0">
+        <div className="bg-white rounded-2xl border border-[#e2efe1] shadow-lg overflow-hidden p-8 sm:p-12 print:shadow-none print:border-none print:p-0">
           {/* Header Block */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-8 border-b border-[#eaedf5] gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-8 border-b border-[#e2efe1] gap-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <Image
@@ -134,17 +134,17 @@ export default function InvoiceDetailsPage({
                 <CheckCircle2 className="w-3 h-3" />
                 TAX INVOICE & FEE RECEIPT
               </span>
-              <h1 className="text-xl sm:text-2xl font-black text-[#252c41] tracking-tight">{invoice.invoiceNumber}</h1>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{invoice.invoiceNumber}</h1>
               <p className="text-xs text-gray-400 mt-0.5">Date of Issue: <span className="font-semibold text-gray-600">{new Date(invoice.issuedAt).toLocaleDateString()}</span></p>
               <p className="text-xs text-gray-400">Payment Status: <span className="font-bold text-[#3a7536]">{invoice.status}</span></p>
             </div>
           </div>
 
           {/* Billing Context Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-8 border-b border-[#eaedf5]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-8 border-b border-[#e2efe1]">
             <div>
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">Bill To (Student / Sponsor)</h3>
-              <div className="text-xs text-[#252c41] font-bold text-base mb-1">{invoice.userName}</div>
+              <div className="text-xs text-slate-900 font-bold text-base mb-1">{invoice.userName}</div>
               <p className="text-xs text-gray-600">{invoice.userEmail}</p>
               {invoice.billingAddress?.companyName && (
                 <p className="text-xs text-gray-600 font-medium">{invoice.billingAddress.companyName}</p>
@@ -167,9 +167,9 @@ export default function InvoiceDetailsPage({
           </div>
 
           {/* Itemized Line Items Table */}
-          <div className="py-8 border-b border-[#eaedf5]">
+          <div className="py-8 border-b border-[#e2efe1]">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#f7f9fc] text-gray-500 uppercase border-b border-[#eaedf5]">
+              <thead className="bg-[#f4f9f3] text-gray-500 uppercase border-b border-[#e2efe1]">
                 <tr>
                   <th className="py-3 px-4">Item & Description</th>
                   <th className="py-3 px-4 text-center">HSN/SAC</th>
@@ -178,10 +178,10 @@ export default function InvoiceDetailsPage({
                   <th className="py-3 px-4 text-right">Total Amount</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#eaedf5]">
+              <tbody className="divide-y divide-[#e2efe1]">
                 <tr>
                   <td className="py-4 px-4">
-                    <div className="font-bold text-sm text-[#252c41]">{invoice.courseTitle}</div>
+                    <div className="font-bold text-sm text-slate-900">{invoice.courseTitle}</div>
                     <div className="text-[11px] text-gray-500 mt-0.5">Cohort Enrollment & Certification Access — {invoice.batchName}</div>
                   </td>
                   <td className="py-4 px-4 text-center font-mono text-gray-600">{invoice.hsnCode}</td>
@@ -202,7 +202,7 @@ export default function InvoiceDetailsPage({
           {/* Tax Breakdown & Totals */}
           <div className="py-8 flex flex-col sm:flex-row items-start justify-between gap-6">
             <div className="max-w-xs text-xs text-gray-500">
-              <h4 className="font-bold text-[#252c41] mb-1">Statutory Tax Note</h4>
+              <h4 className="font-bold text-slate-900 mb-1">Statutory Tax Note</h4>
               <p className="text-[11px] leading-relaxed">
                 Services provided are categorized under SAC 999293 (Higher education and professional HSE certifications). All tuition fees are fully credited and subject to Indian GST regulations.
                 {!invoice.providerGstinVerified && ' Note: Official statutory registration is pending final GST authority confirmation.'}
@@ -222,7 +222,7 @@ export default function InvoiceDetailsPage({
                 <span>SGST (9.0%):</span>
                 <span className="font-mono">{invoice.currency === 'INR' ? '₹' : '$'}{sgstAmount.toLocaleString()}</span>
               </div>
-              <div className="pt-2 border-t border-[#eaedf5] flex justify-between text-sm font-black text-[#252c41]">
+              <div className="pt-2 border-t border-[#e2efe1] flex justify-between text-sm font-black text-slate-900">
                 <span>Total Amount Paid:</span>
                 <span className="font-mono text-base text-[#3a7536]">{invoice.currency === 'INR' ? '₹' : '$'}{invoice.totalAmount.toLocaleString()}</span>
               </div>
@@ -230,7 +230,7 @@ export default function InvoiceDetailsPage({
           </div>
 
           {/* Footer Signature & Verification Block */}
-          <div className="pt-8 border-t border-[#eaedf5] flex flex-col sm:flex-row items-center justify-between text-center sm:text-left gap-4 text-xs text-gray-400">
+          <div className="pt-8 border-t border-[#e2efe1] flex flex-col sm:flex-row items-center justify-between text-center sm:text-left gap-4 text-xs text-gray-400">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#4f8c4c]" />
               <span>Cryptographically verified invoice issued by Zealosh Central Governance Engine.</span>

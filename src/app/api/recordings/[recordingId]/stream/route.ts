@@ -67,6 +67,67 @@ export async function GET(request: Request, { params }: { params: { recordingId:
       return NextResponse.json({ error: 'Recording not found' }, { status: 404 });
     }
 
+    const format = searchParams.get('format');
+    const isHls = format === 'hls' || format === 'm3u8' || request.url.includes('.m3u8');
+    const quality = searchParams.get('quality');
+
+    // RFC 8216 Compliant HLS Manifest Generation
+    if (isHls) {
+      if (quality) {
+        // Media segment playlist for specific quality variant
+        const segmentDuration = 10;
+        const totalDuration = recording.durationSeconds || 3600;
+        const totalSegments = Math.max(1, Math.ceil(totalDuration / segmentDuration));
+        const lines: string[] = [
+          '#EXTM3U',
+          '#EXT-X-VERSION:4',
+          `#EXT-X-TARGETDURATION:${segmentDuration}`,
+          '#EXT-X-MEDIA-SEQUENCE:0',
+          '#EXT-X-PLAYLIST-TYPE:VOD',
+        ];
+        for (let i = 0; i < totalSegments; i++) {
+          const isLast = i === totalSegments - 1;
+          const dur = isLast ? ((totalDuration % segmentDuration) || segmentDuration).toFixed(3) : '10.000';
+          lines.push(`#EXTINF:${dur},`);
+          lines.push(`/api/recordings/${recording.id}/segments/${quality}/seg-${i}.ts${token ? `?token=${encodeURIComponent(token)}` : ''}`);
+        }
+        lines.push('#EXT-X-ENDLIST');
+
+        return new NextResponse(lines.join('\n'), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/vnd.apple.mpegurl',
+            'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+            'X-Recording-Id': recording.id,
+            'X-Recording-Quality': quality,
+          },
+        });
+      }
+
+      // Master Playlist with multi-bitrate variant streams
+      const tokenParam = token ? `&token=${encodeURIComponent(token)}` : '';
+      const masterManifest = [
+        '#EXTM3U',
+        '#EXT-X-VERSION:4',
+        '#EXT-X-INDEPENDENT-SEGMENTS',
+        '#EXT-X-STREAM-INF:BANDWIDTH=2500000,RESOLUTION=1280x720,FRAME-RATE=30.000,NAME="720p",CODECS="avc1.4d401f,mp4a.40.2"',
+        `/api/recordings/${recording.id}/stream?format=hls&quality=720p${tokenParam}`,
+        '#EXT-X-STREAM-INF:BANDWIDTH=1200000,RESOLUTION=854x480,FRAME-RATE=30.000,NAME="480p",CODECS="avc1.4d401f,mp4a.40.2"',
+        `/api/recordings/${recording.id}/stream?format=hls&quality=480p${tokenParam}`,
+        '#EXT-X-STREAM-INF:BANDWIDTH=600000,RESOLUTION=640x360,FRAME-RATE=30.000,NAME="360p",CODECS="avc1.4d401f,mp4a.40.2"',
+        `/api/recordings/${recording.id}/stream?format=hls&quality=360p${tokenParam}`,
+      ].join('\n');
+
+      return new NextResponse(masterManifest, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/vnd.apple.mpegurl',
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+          'X-Recording-Id': recording.id,
+        },
+      });
+    }
+
     // Set streaming & delivery headers
     const safeFilename = `${recording.title.replace(/[^a-zA-Z0-9_-]/g, '_')}.mp4`;
     const headers = new Headers();

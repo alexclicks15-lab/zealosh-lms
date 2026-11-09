@@ -11,6 +11,29 @@ export function isSupabaseConfigured(): boolean {
   );
 }
 
+/**
+ * Creates a fresh, request-scoped client using the public anonymous key.
+ * Used for individual user authentication (signIn, signUp, resetPassword).
+ * Strictly isolated per request: never caches session state or leaks identity between concurrent callers.
+ */
+export function createUserAuthClient(): SupabaseClient | null {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!supabaseUrl || !anonKey) {
+    return null;
+  }
+
+  return createSupabaseClient(supabaseUrl, anonKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
 let adminClientInstance: SupabaseClient | null = null;
 let currentKey: string | null = null;
 

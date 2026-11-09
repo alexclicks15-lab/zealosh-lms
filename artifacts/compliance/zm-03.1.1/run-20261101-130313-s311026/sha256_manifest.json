@@ -1,0 +1,114 @@
+{
+  "zm03_1_1_executive_verification_report.md": {
+    "bytes": 3420,
+    "sha256": "719e12c91d3ebceacae3c945a431ab3f757febd60d9630e0e6b2c3f1d785e2fa"
+  },
+  "arena_execution_report.md": {
+    "bytes": 1696,
+    "sha256": "001396aa160807e77690adc77d6690a1dbffb7466d2af27ec69fb7b5bc86843e"
+  },
+  "engineering_skill_execution_report.md": {
+    "bytes": 1897,
+    "sha256": "18eaf5462f3377ce8e6fbc8c33d1028171fc48a06ed919d2defd9ae7acd5f907"
+  },
+  "repository_and_environment_baseline.md": {
+    "bytes": 1531,
+    "sha256": "c5326f0b24a901f205d2c15a47a9a445b87ee710df2deeda782225644bf819fb"
+  },
+  "zm03_1_baseline_reconciliation.md": {
+    "bytes": 1827,
+    "sha256": "0be0b9439a86707bfbbb25ab85f64d92011681d9ff91aacb261aa7a7ab95e4e2"
+  },
+  "examination_snapshot_integrity_report.md": {
+    "bytes": 1262,
+    "sha256": "baa1016afb7338dcb60648f65b5a46fdb45ed4ec2e4bb550dfb3ba96ce0ec8a1"
+  },
+  "examination_timing_and_autosave_report.md": {
+    "bytes": 1219,
+    "sha256": "0aabb5b60a8de0d5998553a3c32b53681e81f8d6b2e7fe6351189035b69f5c02"
+  },
+  "answer_key_security_report.md": {
+    "bytes": 855,
+    "sha256": "ee7e36a8a80cb6c3e6df9ecfe819c34a57a3f338fdd4ef152b86eccd7b93d59e"
+  },
+  "manual_evaluation_and_result_integrity.md": {
+    "bytes": 1161,
+    "sha256": "8739d7522bd4fb1798406fbe36412bbe641425f45959282c81b24ea76a6453af"
+  },
+  "certificate_integrity_report.md": {
+    "bytes": 724,
+    "sha256": "f54b82e222580eeea250997240b12c64ab7427edfdd52f8dd6a58d408f7176ca"
+  },
+  "database_schema_and_migration_audit.md": {
+    "bytes": 796,
+    "sha256": "e9ca2e0c26f6862262ec1a9aa71b3c16b5409552a3addad541dbc7f0801550ea"
+  },
+  "rls_and_authorization_report.md": {
+    "bytes": 890,
+    "sha256": "0fc8823c6c66e2d961ceba2f53780ce6d4ea65df5e3422fa713b5cbb77df96da"
+  },
+  "academic_regression_report.md": {
+    "bytes": 1024,
+    "sha256": "3ca6c7d8966a6b47164f7cec0730fe870127d286822c40d67d01c458a6286f46"
+  },
+  "classroom_integration_report.md": {
+    "bytes": 667,
+    "sha256": "5f6058ec8663f64d8c5b0571d3a2edb27a3dd8c18f2405283a5a8fd3eb84e055"
+  },
+  "payment_webhook_preservation_report.md": {
+    "bytes": 648,
+    "sha256": "bd3f95beaa3b10825927bbf336da8abbf853cfaf9114d12119ccf7f0a5b67cbf"
+  },
+  "financial_deferral_register.md": {
+    "bytes": 920,
+    "sha256": "097365f0ffafb95492aa128bca52a147b6edf5641fcd0fbb30ad01e8011b2b5d"
+  },
+  "performance_and_diagnostics_report.md": {
+    "bytes": 599,
+    "sha256": "274ba573aee19a55990eb62d0c8c9cae3751c93d2561c3f25fe80706503e7f62"
+  },
+  "remediation_and_root_cause_report.md": {
+    "bytes": 1006,
+    "sha256": "71b7aeab925ccbda7bf84be8b4f5e6699056d20c1959d318376eba727e381104"
+  },
+  "automated_test_execution_report.md": {
+    "bytes": 459,
+    "sha256": "9ab150e60be39881261dff7f379cde1ad783ff44ca3a3ece9c9dcf2c117becd9"
+  },
+  "institutional_decision_register.md": {
+    "bytes": 1045,
+    "sha256": "c2a70698be3cd95cb06fcd385e082505e26d8a61f32f227c8b4ac17e6548ed4c"
+  },
+  "production_readiness_recommendation.md": {
+    "bytes": 1057,
+    "sha256": "f6f646fba8dfb1c65dde427c914be79fbddbf9ed7e2900ee83fb41ded078df0c"
+  },
+  "findings_manifest.json": {
+    "bytes": 631,
+    "sha256": "db4fdd5e3327682f4df3bbcfefcdd6148376bd2392b35c431ec29635f1b70704"
+  },
+  "schema_inventory.json": {
+    "bytes": 532,
+    "sha256": "2149672b67168ebf0673bfc5574bda2eb96cc0ef197a5c6a4fada4cc0a3340bb"
+  },
+  "integrity_test_manifest.json": {
+    "bytes": 253,
+    "sha256": "7daabfdfa7d6a7ef692ab99dc780cffc01eb71346332e01cb3619580491506ae"
+  },
+  "security_test_manifest.json": {
+    "bytes": 276,
+    "sha256": "83ce0dcfe179bf652300ef19e533dfc89ace0cdbd062ba2ba52bd9a574ef0559"
+  },
+  "migration_verification_manifest.json": {
+    "bytes": 239,
+    "sha256": "2e239c761e214f9aaf62e8e60c8a5feb16ec491e6aaf3f50b22e56d4d5f8fac3"
+  },
+  "arena_results_manifest.json": {
+    "bytes": 248,
+    "sha256": "22e0e6fba2bfc3b34e757cad1e3dd01a0691698fc671f6b6bb3685cd859bc8d6"
+  },
+  "test_execution_manifest.json": {
+    "bytes": 248,
+    "sha256": "75f87d3d960bb5aca93619396a29be0c1b8666228a14e4c78f5251027b1bf0ca"
+  }
+}

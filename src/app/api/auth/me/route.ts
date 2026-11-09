@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/store/db';
 import { verifyToken } from '@/lib/auth/jwt';
+import { sessionRegistry } from '@/lib/auth/session-registry';
 
 export async function GET(request: Request) {
   try {
@@ -25,6 +26,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized: Invalid or expired token' }, { status: 401 });
     }
 
+    // Check active session registry for revocation
+    const sessionValidation = await sessionRegistry.validateSession(token);
+    if (sessionValidation.reason === 'REVOKED') {
+      const resp = NextResponse.json(
+        { error: 'Unauthorized: Session has been revoked', code: 'SESSION_REVOKED' },
+        { status: 401 }
+      );
+      resp.cookies.set('zealosh_token', '', { maxAge: 0, path: '/' });
+      return resp;
+    }
+
     const user = await db.getUser(payload.userId);
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -41,6 +53,7 @@ export async function GET(request: Request) {
         role: user.role,
         organizationId: user.organizationId,
       },
+      sessionId: sessionValidation.session?.id || payload.sessionId,
       enrollments,
     });
   } catch (err: any) {

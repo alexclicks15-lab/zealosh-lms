@@ -38,7 +38,7 @@ export default function CoursesPage() {
     <div className="py-12 px-4 sm:px-8 max-w-7xl mx-auto w-full">
       {/* Header */}
       <div className="mb-10 text-center sm:text-left">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-[#252c41] tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
           HSE Certification Courses & Batches
         </h1>
         <p className="text-gray-600 mt-2 text-base max-w-3xl">
@@ -47,7 +47,7 @@ export default function CoursesPage() {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#eaedf5] shadow-xs mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-4 sm:p-5 rounded-xl border border-[#e2efe1] shadow-xs mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
           <Filter className="w-4 h-4 text-[#4f8c4c]" />
           <span>Filters:</span>
@@ -81,7 +81,7 @@ export default function CoursesPage() {
                 onClick={() => setDeliveryFilter(opt)}
                 className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
                   deliveryFilter === opt
-                    ? 'bg-[#252c41] text-white shadow-xs'
+                    ? 'bg-[#3a7536] text-white shadow-xs'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -100,7 +100,7 @@ export default function CoursesPage() {
           ))}
         </div>
       ) : courses.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#eaedf5] p-12 text-center">
+        <div className="bg-white rounded-xl border border-[#e2efe1] p-12 text-center">
           <p className="text-gray-500 text-sm">No courses match the selected filters.</p>
           <button
             onClick={() => {
@@ -122,12 +122,16 @@ export default function CoursesPage() {
               <div>
                 <div className="relative h-48 w-full overflow-hidden bg-gray-100">
                   <Image
-                    src={course.coverImage}
+                    src={
+                      course.coverImage && course.coverImage !== '/images/cover.jpg'
+                        ? course.coverImage
+                        : '/logo.png'
+                    }
                     alt={course.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  <div className="absolute top-3 left-3 bg-[#252c41]/90 text-white text-xs font-bold px-2.5 py-1 rounded-md backdrop-blur-xs">
+                  <div className="absolute top-3 left-3 bg-[#1e481c]/90 text-white text-xs font-bold px-2.5 py-1 rounded-md backdrop-blur-xs">
                     {course.certificationType}
                   </div>
                   <div className="absolute top-3 right-3 bg-[#4f8c4c] text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-xs">
@@ -136,7 +140,7 @@ export default function CoursesPage() {
                 </div>
 
                 <div className="p-6">
-                  <h3 className="font-bold text-lg text-[#252c41] mb-2 group-hover:text-[#4f8c4c] transition-colors leading-snug">
+                  <h3 className="font-bold text-lg text-slate-900 mb-2 group-hover:text-[#4f8c4c] transition-colors leading-snug">
                     {course.title}
                   </h3>
                   <p className="text-xs text-gray-500 line-clamp-3 mb-4 leading-relaxed">
@@ -144,7 +148,7 @@ export default function CoursesPage() {
                   </p>
 
                   {/* Highlights */}
-                  <div className="space-y-1.5 text-xs text-gray-600 border-t border-[#eaedf5] pt-3 mb-4">
+                  <div className="space-y-1.5 text-xs text-gray-600 border-t border-[#e2efe1] pt-3 mb-4">
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5 text-gray-500">
                         <Clock className="w-3.5 h-3.5" />
@@ -183,10 +187,10 @@ export default function CoursesPage() {
               </div>
 
               <div className="p-6 pt-0">
-                <div className="flex items-center justify-between pt-3 border-t border-[#eaedf5] mb-4">
+                <div className="flex items-center justify-between pt-3 border-t border-[#e2efe1] mb-4">
                   <div>
                     <div className="text-[10px] text-gray-400 font-semibold uppercase">Fee (India)</div>
-                    <div className="text-xl font-black text-[#252c41]">
+                    <div className="text-xl font-black text-slate-900">
                       ₹{course.priceInr.toLocaleString()}
                     </div>
                   </div>
