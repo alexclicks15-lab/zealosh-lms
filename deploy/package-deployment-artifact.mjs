@@ -29,6 +29,7 @@ const INCLUDED_DIRECTORIES = [
   'src',
   'public',
   'deploy',
+  'supabase',
   'moodle-custom',
   'bbb-custom',
 ];

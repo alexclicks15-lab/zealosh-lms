@@ -1,0 +1,133 @@
+#cloud-config
+# ==============================================================================
+# Zealosh LMS — Server 2 (Live Virtual Classroom & Media Server) Cloud-Init Bootstrap
+# Target OS: Ubuntu 22.04 LTS (Jammy Jellyfish) [Required for BBB 2.7 / 3.0 Compatibility]
+# Role: BigBlueButton 2.7+ Engine, Mediasoup/WebRTC Bridge, Recordings Storage
+# Brand: Zealosh Training & Consultants (Kollam, Kerala, India)
+# Environment: Staging / Production Template
+# NOTE: Zero hardcoded secrets. Environment variables and BBB secrets injected separately.
+# ==============================================================================
+
+hostname: zealosh-media-01
+fqdn: vc.zealosh.com
+manage_etc_hosts: true
+timezone: Asia/Kolkata
+
+# System Updates & Upgrades
+package_update: true
+package_upgrade: true
+package_reboot_if_required: false
+
+# User and Group Configuration
+groups:
+  - zealosh
+
+users:
+  - default
+  - name: zealosh
+    gecos: Zealosh Media Service Account
+    primary_group: zealosh
+    groups: [sudo]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+
+# Essential Packages Installation
+packages:
+  - curl
+  - wget
+  - gnupg
+  - ca-certificates
+  - lsb-release
+  - git
+  - jq
+  - tar
+  - rsync
+  - ufw
+  - fail2ban
+  - unattended-upgrades
+  - logrotate
+  - htop
+  - iotop
+  - sysstat
+  - net-tools
+  - certbot
+  - python3-certbot-nginx
+
+# Filesystem Preparation and Template Deployment
+write_files:
+  # UFW Firewall Defaults
+  - path: /etc/default/ufw
+    owner: root:root
+    permissions: '0644'
+    content: |
+      DEFAULT_INPUT_POLICY="DROP"
+      DEFAULT_OUTPUT_POLICY="ACCEPT"
+      DEFAULT_FORWARD_POLICY="DROP"
+      DEFAULT_APPLICATION_POLICY="SKIP"
+      MANAGE_BUILTINS="no"
+      IPT_SYSCTL="/etc/ufw/sysctl.conf"
+
+  # Fail2ban Jails for Media Host
+  - path: /etc/fail2ban/jail.local
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [DEFAULT]
+      bantime = 1h
+      findtime = 10m
+      maxretry = 5
+      backend = systemd
+
+      [sshd]
+      enabled = true
+      port = 22
+      mode = aggressive
+
+  # Logrotate for Classroom Recordings and Transcripts
+  - path: /etc/logrotate.d/zealosh-classroom
+    owner: root:root
+    permissions: '0644'
+    content: |
+      /var/log/bigbluebutton/*.log {
+          daily
+          missingok
+          rotate 14
+          compress
+          delaycompress
+          notifempty
+          sharedscripts
+      }
+
+# Bootstrap Execution Commands
+runcmd:
+  # 1. Setup Zealosh Classroom Directory Hierarchy
+  - mkdir -p /var/www/zealosh-classroom/recordings
+  - mkdir -p /var/www/zealosh-classroom/backups
+  - mkdir -p /etc/zealosh-classroom
+  - chown -R zealosh:zealosh /var/www/zealosh-classroom
+  - chown -R zealosh:zealosh /etc/zealosh-classroom
+  - chmod 750 /var/www/zealosh-classroom
+  - chmod 750 /etc/zealosh-classroom
+
+  # 2. Configure Firewall Rules (UFW for WebRTC & BigBlueButton)
+  - ufw --force reset
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp comment 'SSH'
+  - ufw allow 80/tcp comment 'HTTP Nginx'
+  - ufw allow 443/tcp comment 'HTTPS Nginx'
+  - ufw allow 16384:32768/udp comment 'WebRTC RTP Audio/Video Streams'
+  - ufw allow 3478/tcp comment 'STUN/TURN TCP'
+  - ufw allow 3478/udp comment 'STUN/TURN UDP'
+  - ufw allow 5349/tcp comment 'TURNS TLS'
+  - ufw --force enable
+
+  # 3. Enable System Services
+  - systemctl enable fail2ban
+  - systemctl restart fail2ban
+  - systemctl enable unattended-upgrades
+
+  # 4. Output Verification Banner
+  - echo "Zealosh LMS Server 2 cloud-init bootstrap completed successfully at $(date -u)" >> /var/log/zealosh-bootstrap.log
+

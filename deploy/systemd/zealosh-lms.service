@@ -1,0 +1,48 @@
+# ==============================================================================
+# Zealosh LMS — Primary Application Systemd Service Unit
+# Path: /etc/systemd/system/zealosh-lms.service
+# Manages the Next.js standalone web server on Server 1 (app.staging.zealosh.com)
+# ==============================================================================
+
+[Unit]
+Description=Zealosh LMS Core Web Application (Next.js App Router)
+Documentation=https://app.staging.zealosh.com/docs
+After=network.target nginx.service
+Wants=nginx.service
+
+[Service]
+Type=simple
+User=zealosh
+Group=zealosh
+WorkingDirectory=/opt/zealosh/current
+ExecStart=/usr/bin/node /opt/zealosh/current/node_modules/next/dist/bin/next start -p 3000 -H 127.0.0.1
+EnvironmentFile=/opt/zealosh/shared/.env.staging
+
+# Restart & Supervision
+Restart=on-failure
+RestartSec=5s
+StartLimitIntervalSec=60s
+StartLimitBurst=3
+
+# Resource Ceilings & Security Hardening
+MemoryMax=3500M
+CPUQuota=300%
+LimitNOFILE=65535
+TimeoutStopSec=15s
+KillSignal=SIGTERM
+
+# Sandboxing & Privilege Separation
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+ReadWritePaths=/opt/zealosh/shared/logs /opt/zealosh/shared/uploads /tmp
+
+# Logging
+StandardOutput=append:/opt/zealosh/shared/logs/zealosh-app.log
+StandardError=append:/opt/zealosh/shared/logs/zealosh-app-error.log
+
+[Install]
+WantedBy=multi-user.target
+

@@ -11,7 +11,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'list',
   webServer: {
-    command: 'node ./node_modules/next/dist/bin/next start -p 3022',
+    command: 'node ./node_modules/next/dist/bin/next start -p 3022 -H 127.0.0.1',
     env: {
       NEXT_DIST_DIR: '.next-e2e',
       PLAYWRIGHT_TEST: 'true',

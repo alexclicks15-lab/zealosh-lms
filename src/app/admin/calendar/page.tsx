@@ -22,6 +22,9 @@ import {
   CalendarDays,
   List,
   Sparkles,
+  Rss,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { CalendarEvent, CalendarEventType, ScheduleConflict, InstitutionalHoliday } from '@/types';
 
@@ -49,6 +52,39 @@ export default function AdminCalendarPage() {
   const [rescheduleReason, setRescheduleReason] = useState('');
   const [rescheduleSubmitting, setRescheduleSubmitting] = useState(false);
   const [rescheduleMessage, setRescheduleMessage] = useState<string | null>(null);
+
+  // iCal Feed Subscription State
+  const [icalModalOpen, setIcalModalOpen] = useState(false);
+  const [feedUrl, setFeedUrl] = useState('');
+  const [webcalUrl, setWebcalUrl] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  async function openIcalModal() {
+    setIcalModalOpen(true);
+    try {
+      const res = await fetch('/api/calendar/feed/token');
+      if (res.ok) {
+        const d = await res.json();
+        setFeedUrl(d.feedUrl);
+        setWebcalUrl(d.webcalUrl);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function handleRotateToken() {
+    try {
+      const res = await fetch('/api/calendar/feed/token', { method: 'POST' });
+      if (res.ok) {
+        const d = await res.json();
+        setFeedUrl(d.feedUrl);
+        setWebcalUrl(d.webcalUrl);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
   const fetchCalendarData = useCallback(async () => {
     setLoading(true);
@@ -170,6 +206,13 @@ export default function AdminCalendarPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={openIcalModal}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 transition-colors border border-emerald-500/30"
+            >
+              <Rss className="w-3.5 h-3.5" />
+              <span>Subscribe Feed (.ics)</span>
+            </button>
             <Link
               href="/admin"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-colors border border-white/10"
@@ -559,6 +602,105 @@ export default function AdminCalendarPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* iCal Calendar Subscription Modal */}
+      {icalModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
+                <Rss className="w-5 h-5 text-[#4f8c4c]" />
+                Subscribe to Institutional Calendar (.ics)
+              </h3>
+              <button
+                onClick={() => setIcalModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-600 mt-3">
+              Sync live workshops, orientation sessions, exam windows, and 1-on-1 mentorship appointments to Apple Calendar, Google Calendar, or Microsoft Outlook via real-time iCal feed.
+            </p>
+
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">WebCal 1-Click Sync Link</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={webcalUrl || 'Loading...'}
+                    className="w-full text-xs p-2 bg-slate-50 border border-gray-200 rounded font-mono text-gray-700"
+                  />
+                  <button
+                    onClick={() => {
+                      if (webcalUrl) {
+                        navigator.clipboard.writeText(webcalUrl);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }
+                    }}
+                    className="p-2 border border-gray-200 rounded hover:bg-gray-100 text-gray-600 shrink-0"
+                    title="Copy WebCal URL"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Standard HTTPS .ics Feed URL</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={feedUrl || 'Loading...'}
+                    className="w-full text-xs p-2 bg-slate-50 border border-gray-200 rounded font-mono text-gray-700"
+                  />
+                  <button
+                    onClick={() => {
+                      if (feedUrl) {
+                        navigator.clipboard.writeText(feedUrl);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }
+                    }}
+                    className="p-2 border border-gray-200 rounded hover:bg-gray-100 text-gray-600 shrink-0"
+                    title="Copy Feed URL"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-lg border border-gray-100 text-[11px] text-gray-500 space-y-1">
+                <p>• <strong>Privacy:</strong> Feeds are protected by cryptographically unique, single-user tokens.</p>
+                <p>• <strong>Auto-Refresh:</strong> External calendars poll updates every 1-4 hours.</p>
+                <p>• <strong>Timezone:</strong> All events are rendered in Asia/Kolkata (IST).</p>
+              </div>
+
+              <div className="pt-2 flex items-center justify-between border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={handleRotateToken}
+                  className="text-xs font-bold text-amber-700 hover:underline"
+                >
+                  Regenerate / Rotate Feed Token
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIcalModalOpen(false)}
+                  className="btn-primary text-xs py-1.5 px-4 bg-[#4f8c4c] text-white font-bold rounded"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

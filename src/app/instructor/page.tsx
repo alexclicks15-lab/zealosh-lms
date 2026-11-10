@@ -31,6 +31,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { Batch, Assignment, AssignmentSubmission, ClassRecording, LiveSession, CohortInterventionOverview } from '@/types';
+import { InstructorOfficeHoursManager } from '@/components/mentorship/InstructorOfficeHoursManager';
 
 
 export default function InstructorDashboard() {
@@ -39,7 +40,7 @@ export default function InstructorDashboard() {
   const [user, setUser] = useState<any>(null);
   const [roster, setRoster] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'batches' | 'grading' | 'schedule' | 'recordings' | 'activity' | 'interventions'>('batches');
+  const [activeTab, setActiveTab] = useState<'batches' | 'grading' | 'schedule' | 'recordings' | 'activity' | 'interventions' | 'mentorship'>('batches');
   const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);
   const [tutorActivities, setTutorActivities] = useState<any[]>([]);
   const [tutorActivityLoading, setTutorActivityLoading] = useState(false);
@@ -553,6 +554,18 @@ export default function InstructorDashboard() {
         >
           <ShieldAlert className="w-4 h-4 text-amber-600" />
           <span>Cohort Interventions</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('mentorship')}
+          className={`pb-3 px-4 font-bold text-xs flex items-center gap-2 border-b-2 transition-all ${
+            activeTab === 'mentorship'
+              ? 'border-[#4f8c4c] text-[#3a7536]'
+              : 'border-transparent text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          <Clock className="w-4 h-4 text-[#4f8c4c]" />
+          <span>1-on-1 Mentorship</span>
         </button>
       </div>
 
@@ -1533,6 +1546,11 @@ export default function InstructorDashboard() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Tab: 1-on-1 Mentorship & Office Hours */}
+      {activeTab === 'mentorship' && (
+        <InstructorOfficeHoursManager />
       )}
     </div>
   );

@@ -41,9 +41,11 @@ import {
   StudentRequiringAttentionItem,
   ReportingDateRangePreset,
 } from '@/types/reporting';
+import { VisualConversionFunnel } from '@/components/analytics/VisualConversionFunnel';
 
 type TabKey =
   | 'overview'
+  | 'funnel'
   | 'enrollments'
   | 'attendance'
   | 'assessments'
@@ -315,6 +317,7 @@ export default function AdminReportsPage() {
         <div className="flex items-center gap-1 border-b border-[#e2efe1] bg-white px-3 py-1.5 rounded-xl shadow-xs overflow-x-auto">
           {[
             { key: 'overview', label: 'Executive Overview', icon: BarChart3 },
+            { key: 'funnel', label: 'Admissions Funnel', icon: TrendingUp },
             { key: 'enrollments', label: 'Enrollment & Cohorts', icon: Users },
             { key: 'attendance', label: 'Live Attendance', icon: Video },
             { key: 'assessments', label: 'Assessments & HSE Exams', icon: Award },
@@ -490,6 +493,11 @@ export default function AdminReportsPage() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* TAB: VISUAL CONVERSION FUNNEL & EXECUTIVE KPIS */}
+        {activeTab === 'funnel' && (
+          <VisualConversionFunnel />
         )}
 
         {/* TAB 2: ENROLLMENTS & BATCH CAPACITY */}

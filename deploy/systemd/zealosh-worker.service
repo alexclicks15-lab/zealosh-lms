@@ -1,0 +1,33 @@
+# ==============================================================================
+# Zealosh LMS — Outbox Dispatcher & Background Worker Systemd Unit
+# Path: /etc/systemd/system/zealosh-worker.service
+# Executes transactional outbox event dispatching and scheduled email delivery
+# ==============================================================================
+
+[Unit]
+Description=Zealosh LMS Transactional Outbox & Background Worker
+After=network.target zealosh-lms.service
+
+[Service]
+Type=oneshot
+User=zealosh
+Group=zealosh
+WorkingDirectory=/opt/zealosh/current
+ExecStart=/usr/bin/node /opt/zealosh/current/deploy/worker-runner.mjs
+EnvironmentFile=/opt/zealosh/shared/.env.staging
+Environment=ZEALOSH_WORKER_SUPERVISOR=systemd
+
+# Memory & Process Limits
+MemoryMax=1024M
+TimeoutStartSec=60s
+
+# Sandboxing & Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/zealosh/shared/logs /tmp
+
+# Logging
+StandardOutput=append:/opt/zealosh/shared/logs/zealosh-worker.log
+StandardError=append:/opt/zealosh/shared/logs/zealosh-worker-error.log
+

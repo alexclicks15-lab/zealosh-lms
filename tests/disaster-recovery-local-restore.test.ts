@@ -78,12 +78,12 @@ describe('Zealosh LMS — Disaster Recovery Migration Replay & Schema Restoratio
     expect(Number(res.rows[0].count)).toBe(3);
   });
 
-  it('DR-02: should replay all 29 chronological migrations without errors in < 45 seconds', async () => {
+  it('DR-02: should replay all 30 chronological migrations without errors in < 45 seconds', async () => {
     replayStartTime = Date.now();
     const migrationsDir = path.resolve(process.cwd(), 'supabase/migrations');
     const files = fs.readdirSync(migrationsDir).filter((f) => f.endsWith('.sql')).sort();
 
-    expect(files.length).toBe(29);
+    expect(files.length).toBe(30);
 
     for (const fileName of files) {
       const migPath = path.join(migrationsDir, fileName);
@@ -108,8 +108,8 @@ describe('Zealosh LMS — Disaster Recovery Migration Replay & Schema Restoratio
     }
 
     replayDurationMs = Date.now() - replayStartTime;
-    expect(appliedMigrations.length).toBe(29);
-    // Strict recovery SLA: All 29 migrations must replay in under 45 seconds
+    expect(appliedMigrations.length).toBe(30);
+    // Strict recovery SLA: All 30 migrations must replay in under 45 seconds
     expect(replayDurationMs).toBeLessThan(45000);
   });
 
@@ -152,6 +152,13 @@ describe('Zealosh LMS — Disaster Recovery Migration Replay & Schema Restoratio
       'question_bank_items',
       'event_outbox',
       'pwa_push_subscriptions',
+      'syllabus_versions',
+      'workspace_layouts',
+      'instructor_office_hours',
+      'mentorship_appointments',
+      'calendar_feed_tokens',
+      'whatsapp_opt_ins',
+      'whatsapp_message_logs',
     ];
 
     for (const tbl of expectedKeyTables) {

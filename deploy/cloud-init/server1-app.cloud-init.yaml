@@ -1,0 +1,167 @@
+#cloud-config
+# ==============================================================================
+# Zealosh LMS — Server 1 (Application, API & Web Server) Cloud-Init Bootstrap
+# Target OS: Ubuntu 24.04 LTS (Noble Numbat)
+# Role: Next.js Standalone LMS, Outbox Dispatch Worker, Nginx Reverse Proxy
+# Brand: Zealosh Training & Consultants (Kollam, Kerala, India)
+# Environment: Staging / Production Template
+# NOTE: Zero hardcoded secrets. Environment variables injected via staging-secrets.env.
+# ==============================================================================
+
+hostname: zealosh-app-01
+fqdn: app.zealosh.com
+manage_etc_hosts: true
+timezone: Asia/Kolkata
+
+# System Updates & Upgrades
+package_update: true
+package_upgrade: true
+package_reboot_if_required: false
+
+# User and Group Configuration
+groups:
+  - zealosh
+
+users:
+  - default
+  - name: zealosh
+    gecos: Zealosh LMS Service Account
+    primary_group: zealosh
+    groups: [sudo]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    # ssh_authorized_keys should be supplied via cloud provider metadata or cloud-init userdata
+
+# Essential Packages Installation
+packages:
+  - curl
+  - wget
+  - gnupg
+  - ca-certificates
+  - lsb-release
+  - git
+  - jq
+  - tar
+  - rsync
+  - unzip
+  - ufw
+  - fail2ban
+  - unattended-upgrades
+  - logrotate
+  - htop
+  - iotop
+  - sysstat
+  - net-tools
+  - nginx
+  - certbot
+  - python3-certbot-nginx
+
+# Filesystem Preparation and Template Deployment
+write_files:
+  # UFW Basic Firewall Defaults
+  - path: /etc/default/ufw
+    owner: root:root
+    permissions: '0644'
+    content: |
+      DEFAULT_INPUT_POLICY="DROP"
+      DEFAULT_OUTPUT_POLICY="ACCEPT"
+      DEFAULT_FORWARD_POLICY="DROP"
+      DEFAULT_APPLICATION_POLICY="SKIP"
+      MANAGE_BUILTINS="no"
+      IPT_SYSCTL="/etc/ufw/sysctl.conf"
+
+  # Fail2ban Jails for SSH and Nginx
+  - path: /etc/fail2ban/jail.local
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [DEFAULT]
+      bantime = 1h
+      findtime = 10m
+      maxretry = 5
+      backend = systemd
+
+      [sshd]
+      enabled = true
+      port = 22
+      mode = aggressive
+
+      [nginx-http-auth]
+      enabled = true
+      port = http,https
+
+      [nginx-limit-req]
+      enabled = true
+      port = http,https
+
+  # Automated Security Patching
+  - path: /etc/apt/apt.conf.d/50unattended-upgrades
+    owner: root:root
+    permissions: '0644'
+    content: |
+      Unattended-Upgrade::Allowed-Origins {
+          "${distro_id}:${distro_codename}-security";
+      };
+      Unattended-Upgrade::Package-Blacklist {};
+      Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+      Unattended-Upgrade::MinimalSteps "true";
+      Unattended-Upgrade::InstallOnShutdown "false";
+      Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+      Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
+      Unattended-Upgrade::Automatic-Reboot "false";
+
+  # Logrotate Configuration for Zealosh LMS
+  - path: /etc/logrotate.d/zealosh
+    owner: root:root
+    permissions: '0644'
+    content: |
+      /var/www/zealosh/shared/logs/*.log {
+          daily
+          missingok
+          rotate 14
+          compress
+          delaycompress
+          notifempty
+          create 0640 zealosh zealosh
+          sharedscripts
+      }
+
+# Bootstrap Execution Commands
+runcmd:
+  # 1. Setup Node.js 20 LTS Repository & PM2
+  - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  - apt-get install -y nodejs
+  - npm install -g pm2
+
+  # 2. Setup Zealosh Directory Hierarchy
+  - mkdir -p /var/www/zealosh/releases
+  - mkdir -p /var/www/zealosh/shared/data
+  - mkdir -p /var/www/zealosh/shared/logs
+  - mkdir -p /var/www/zealosh/shared/uploads
+  - mkdir -p /var/www/zealosh/backups
+  - mkdir -p /etc/zealosh
+  - chown -R zealosh:zealosh /var/www/zealosh
+  - chown -R zealosh:zealosh /etc/zealosh
+  - chmod 750 /var/www/zealosh
+  - chmod 750 /etc/zealosh
+
+  # 3. Configure Firewall Rules (UFW)
+  - ufw --force reset
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp comment 'SSH'
+  - ufw allow 80/tcp comment 'HTTP Nginx'
+  - ufw allow 443/tcp comment 'HTTPS Nginx'
+  - ufw --force enable
+
+  # 4. Enable System Services
+  - systemctl enable fail2ban
+  - systemctl restart fail2ban
+  - systemctl enable nginx
+  - systemctl restart nginx
+  - systemctl enable unattended-upgrades
+
+  # 5. Output Verification Banner
+  - echo "Zealosh LMS Server 1 cloud-init bootstrap completed successfully at $(date -u)" >> /var/log/zealosh-bootstrap.log
+

@@ -54,6 +54,7 @@ const nextConfig = {
   },
   webpack: (config) => {
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
+    config.cache = false;
     return config;
   },
 };

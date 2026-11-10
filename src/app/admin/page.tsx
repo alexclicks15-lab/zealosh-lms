@@ -45,7 +45,8 @@ import {
   Lock,
   Unlock,
   Play,
-  LifeBuoy
+  LifeBuoy,
+  LayoutGrid
 } from 'lucide-react';
 import { 
   PlatformSettings, 
@@ -70,6 +71,7 @@ import {
 import { useTheme } from '@/components/ThemeProvider';
 import { CmsPageList } from '@/components/cms/CmsPageList';
 import { CmsEditorWorkspace } from '@/components/cms/CmsEditorWorkspace';
+import { WebsiteStudioWorkspace } from '@/components/cms/WebsiteStudioWorkspace';
 
 export default function SuperadminControlCenter() {
   const { updateTheme: setLiveTheme } = useTheme();
@@ -745,6 +747,24 @@ export default function SuperadminControlCenter() {
             >
               <Users className="w-3.5 h-3.5 text-white" />
               <span>Admissions & Pipeline</span>
+            </Link>
+
+            <Link
+              href="/admin/curriculum"
+              className="inline-flex items-center gap-1.5 bg-[#4f8c4c] hover:bg-[#3a7536] text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors shadow-xs"
+              title="Open Academic Curriculum Hierarchy & Syllabus Version Control"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-white" />
+              <span>Curriculum & Syllabus</span>
+            </Link>
+
+            <Link
+              href="/admin/workspace"
+              className="inline-flex items-center gap-1.5 bg-[#4f8c4c]/90 hover:bg-[#3a7536] text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors shadow-xs"
+              title="Customize Dashboard Layout & Widget Arrangement"
+            >
+              <LayoutGrid className="w-3.5 h-3.5 text-white" />
+              <span>Workspace Layout</span>
             </Link>
 
             <Link
@@ -3054,7 +3074,7 @@ export default function SuperadminControlCenter() {
           )}
 
           {/* =============================================================== */}
-          {/* TAB: VISUAL PAGE BUILDER & CMS                                  */}
+          {/* TAB: VISUAL PAGE BUILDER & CMS / WEBSITE STUDIO                 */}
           {/* =============================================================== */}
           {activeTab === 'cms' && (
             <div>
@@ -3064,7 +3084,9 @@ export default function SuperadminControlCenter() {
                   onExit={() => setActiveCmsPageId(null)}
                 />
               ) : (
-                <CmsPageList onOpenEditor={(id) => setActiveCmsPageId(id)} />
+                <WebsiteStudioWorkspace
+                  initialPageId={activeCmsPageId}
+                />
               )}
             </div>
           )}

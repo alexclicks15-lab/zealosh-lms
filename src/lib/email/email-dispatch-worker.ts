@@ -80,6 +80,13 @@ export class EmailDispatchWorker {
       details: [],
     };
 
+    // 0. Automatically recover any stale leases from previous ungraceful worker terminations
+    try {
+      await this.recoverStaleLeases(leaseTimeoutMs);
+    } catch (err: any) {
+      console.warn(`[EmailDispatchWorker] Stale lease recovery warning: ${err?.message}`);
+    }
+
     // 1. Claim eligible jobs atomically
     const claimedJobs = await db.claimEmailOutboxJobs(workerId, limit, leaseTimeoutMs);
     if (!claimedJobs || claimedJobs.length === 0) {

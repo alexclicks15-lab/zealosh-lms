@@ -18,7 +18,12 @@ import {
   ArrowRight,
   ShieldCheck,
 } from 'lucide-react';
-import { CmsPage, CmsPageType, CmsVersionStatus } from '@/types/cms';
+import { CmsPage, CmsPageType, CmsTemplate, CmsVersionStatus } from '@/types/cms';
+import {
+  getAllPageTypes,
+  CANONICAL_PAGE_TYPE_REGISTRY,
+  suggestSlugForPageType,
+} from '@/lib/cms/page-type-registry';
 
 interface CmsPageListProps {
   onOpenEditor: (pageId: string) => void;
@@ -36,6 +41,8 @@ export function CmsPageList({ onOpenEditor }: CmsPageListProps) {
   const [newTitle, setNewTitle] = useState('');
   const [newSlug, setNewSlug] = useState('');
   const [newPageType, setNewPageType] = useState<CmsPageType>('STANDARD');
+  const [templates, setTemplates] = useState<CmsTemplate[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [slugValidation, setSlugValidation] = useState<{ valid: boolean; reason?: string } | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -61,8 +68,21 @@ export function CmsPageList({ onOpenEditor }: CmsPageListProps) {
     }
   };
 
+  const fetchTemplates = async () => {
+    try {
+      const res = await fetch('/api/cms/templates');
+      const data = await res.json();
+      if (data.templates) {
+        setTemplates(data.templates);
+      }
+    } catch (e: any) {
+      console.error('Failed to load templates:', e);
+    }
+  };
+
   useEffect(() => {
     fetchPages();
+    fetchTemplates();
   }, []);
 
   // Validate slug debounced
@@ -86,12 +106,16 @@ export function CmsPageList({ onOpenEditor }: CmsPageListProps) {
   const handleTitleChange = (val: string) => {
     setNewTitle(val);
     if (!newSlug || newSlug === newTitle.toLowerCase().replace(/[^a-z0-9]/g, '-')) {
-      const generated = val
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]/g, '-')
-        .replace(/-+/g, '-');
+      const generated = suggestSlugForPageType(newPageType, val);
       setNewSlug(generated);
+    }
+  };
+
+  const handlePageTypeChange = (type: CmsPageType) => {
+    setNewPageType(type);
+    const suggested = suggestSlugForPageType(type, newTitle);
+    if (suggested) {
+      setNewSlug(suggested);
     }
   };
 
@@ -109,6 +133,7 @@ export function CmsPageList({ onOpenEditor }: CmsPageListProps) {
           title: newTitle.trim(),
           slug: newSlug.trim(),
           pageType: newPageType,
+          templateId: selectedTemplateId || undefined,
         }),
       });
       const data = await res.json();
@@ -119,6 +144,7 @@ export function CmsPageList({ onOpenEditor }: CmsPageListProps) {
       setShowCreateModal(false);
       setNewTitle('');
       setNewSlug('');
+      setSelectedTemplateId('');
       await fetchPages();
       onOpenEditor(data.page.id);
     } catch (err: any) {
@@ -207,11 +233,11 @@ export function CmsPageList({ onOpenEditor }: CmsPageListProps) {
           className="text-xs bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-700 font-semibold focus:outline-hidden"
         >
           <option value="ALL">All Page Types</option>
-          <option value="HOMEPAGE">Homepage</option>
-          <option value="STANDARD">Standard Page</option>
-          <option value="COURSE_LANDING">Course Landing Page</option>
-          <option value="ADMISSIONS">Admissions Page</option>
-          <option value="CAMPAIGN">Campaign Page</option>
+          {getAllPageTypes().map((pt) => (
+            <option key={pt.type} value={pt.type}>
+              {pt.label}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -266,7 +292,9 @@ export function CmsPageList({ onOpenEditor }: CmsPageListProps) {
                         <div className="text-slate-400 font-mono text-[11px] mt-0.5">/{page.slug}</div>
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="badge-slate text-[10px] uppercase font-bold">{page.pageType}</span>
+                        <span className="badge-slate text-[10px] uppercase font-bold">
+                          {CANONICAL_PAGE_TYPE_REGISTRY[page.pageType as CmsPageType]?.label || page.pageType}
+                        </span>
                       </td>
                       <td className="py-3.5 px-4">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] ${statusBadge}`}>
@@ -371,19 +399,43 @@ export function CmsPageList({ onOpenEditor }: CmsPageListProps) {
               </div>
 
               <div>
-                <label htmlFor="cms-create-pagetype" className="block text-xs font-bold text-slate-700 mb-1">Page Category & Type</label>
+                <label htmlFor="cms-create-pagetype" className="block text-xs font-bold text-slate-700 mb-1">
+                  Page Type & Purpose
+                </label>
                 <select
                   id="cms-create-pagetype"
                   value={newPageType}
-                  onChange={(e) => setNewPageType(e.target.value as CmsPageType)}
+                  onChange={(e) => handlePageTypeChange(e.target.value as CmsPageType)}
                   className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#4f8c4c]/20 focus:border-[#4f8c4c]"
                 >
-                  <option value="STANDARD">Standard Informational Page</option>
-                  <option value="COURSE_LANDING">Course Landing Page</option>
-                  <option value="ADMISSIONS">Admissions & Enrollment Page</option>
-                  <option value="CAMPAIGN">Campaign & Marketing Page</option>
-                  <option value="HOMEPAGE">Homepage</option>
+                  {getAllPageTypes().map((pt) => (
+                    <option key={pt.type} value={pt.type}>
+                      {pt.label} ({pt.category})
+                    </option>
+                  ))}
                 </select>
+              </div>
+
+              <div>
+                <label htmlFor="cms-create-template" className="block text-xs font-bold text-slate-700 mb-1">
+                  Starting Template (Optional)
+                </label>
+                <select
+                  id="cms-create-template"
+                  value={selectedTemplateId}
+                  onChange={(e) => setSelectedTemplateId(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#4f8c4c]/20 focus:border-[#4f8c4c]"
+                >
+                  <option value="">Default institutional starter layout</option>
+                  {templates.map((tpl) => (
+                    <option key={tpl.id} value={tpl.id}>
+                      {tpl.name} {tpl.isSystem ? '(System Template)' : '(Custom)'}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  System templates provide pre-structured responsive sections adhering to Zealosh design standards.
+                </p>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">

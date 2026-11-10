@@ -1,28 +1,32 @@
 // Zealosh LMS — CMS Templates API
-// GET /api/cms/templates — List templates
+// GET /api/cms/templates — List templates (supports ?pageType= and ?category= filters)
 // POST /api/cms/templates — Save new page/section template
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/store/db';
-import { verifyToken } from '@/lib/auth/jwt';
+import { authorizeCmsOperation } from '@/lib/auth/rbac';
 import { CmsTemplate } from '@/types/cms';
-
-function extractUserToken(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  let token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : undefined;
-  if (!token) {
-    const cookieHeader = request.headers.get('cookie') || '';
-    const match = cookieHeader.match(/zealosh_token=([^;]+)/);
-    if (match) token = match[1];
-  }
-  if (!token) return null;
-  return verifyToken(token);
-}
 
 export async function GET(request: Request) {
   try {
-    const templates = await db.getCmsTemplates();
-    return NextResponse.json({ success: true, templates });
+    const { searchParams } = new URL(request.url);
+    const pageType = searchParams.get('pageType');
+    const category = searchParams.get('category');
+    const systemOnly = searchParams.get('system') === 'true';
+
+    let templates = await db.getCmsTemplates();
+
+    if (pageType) {
+      templates = templates.filter((t) => t.pageType === pageType);
+    }
+    if (category) {
+      templates = templates.filter((t) => t.category.toUpperCase() === category.toUpperCase());
+    }
+    if (systemOnly) {
+      templates = templates.filter((t) => t.isSystem);
+    }
+
+    return NextResponse.json({ success: true, templates, total: templates.length });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Failed to list templates' }, { status: 500 });
   }
@@ -30,10 +34,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const payload = extractUserToken(request);
-    if (!payload || !payload.userId) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    const authResult = authorizeCmsOperation(request, 'MANAGE_TEMPLATES');
+    if ('errorResponse' in authResult) {
+      return authResult.errorResponse;
     }
+    const { actor } = authResult;
 
     const body = await request.json();
     if (!body.name || !body.nodesSnapshot) {
@@ -47,13 +52,15 @@ export async function POST(request: Request) {
       description: body.description || '',
       category: body.category || 'GENERAL',
       templateType: body.templateType || 'PAGE',
+      pageType: body.pageType || 'STANDARD',
+      isSystem: body.isSystem && actor.role === 'SUPER_ADMIN' ? true : false,
       previewImageUrl: body.previewImageUrl,
       nodesSnapshot: body.nodesSnapshot,
-      createdBy: payload.userId,
+      createdBy: actor.userId,
       createdAt: new Date().toISOString(),
     };
 
-    const saved = await db.saveCmsTemplate(template, payload.userId);
+    const saved = await db.saveCmsTemplate(template, actor.userId);
     return NextResponse.json({ success: true, template: saved }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Failed to save template' }, { status: 400 });

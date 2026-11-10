@@ -4,20 +4,9 @@
 
 import { NextResponse } from 'next/server';
 import { cmsService } from '@/lib/cms/cms-service';
-import { verifyToken } from '@/lib/auth/jwt';
+import { authorizeCmsOperation, extractAuthToken } from '@/lib/auth/rbac';
 import { handleCmsApiError } from '@/lib/cms/api-response';
-
-function extractUserToken(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  let token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : undefined;
-  if (!token) {
-    const cookieHeader = request.headers.get('cookie') || '';
-    const match = cookieHeader.match(/zealosh_token=([^;]+)/);
-    if (match) token = match[1];
-  }
-  if (!token) return null;
-  return verifyToken(token);
-}
+import { isValidPageType } from '@/lib/cms/page-type-registry';
 
 export async function GET(request: Request) {
   try {
@@ -27,9 +16,9 @@ export async function GET(request: Request) {
     const status = searchParams.get('status') || undefined;
 
     if (!publishedOnly) {
-      const payload = extractUserToken(request);
-      if (!payload || !payload.userId) {
-        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      const authResult = authorizeCmsOperation(request, 'VIEW');
+      if ('errorResponse' in authResult) {
+        return authResult.errorResponse;
       }
     }
 
@@ -50,19 +39,22 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const payload = extractUserToken(request);
-    if (!payload || !payload.userId) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    const authResult = authorizeCmsOperation(request, 'CREATE');
+    if ('errorResponse' in authResult) {
+      return authResult.errorResponse;
     }
-
-    const allowedRoles = ['SUPER_ADMIN', 'ORG_ADMIN', 'COURSE_MANAGER'];
-    if (!allowedRoles.includes(payload.role)) {
-      return NextResponse.json({ error: 'Forbidden: Insufficient privileges' }, { status: 403 });
-    }
+    const { actor } = authResult;
 
     const body = await request.json();
     if (!body.title || !body.slug) {
       return NextResponse.json({ error: 'Title and slug are required' }, { status: 400 });
+    }
+
+    if (body.pageType && !isValidPageType(body.pageType)) {
+      return NextResponse.json(
+        { error: `Invalid pageType "${body.pageType}". Must be one of the registered page types.` },
+        { status: 400 }
+      );
     }
 
     const result = await cmsService.createPage(
@@ -73,7 +65,7 @@ export async function POST(request: Request) {
         templateId: body.templateId,
         seoMetadata: body.seoMetadata,
       },
-      payload.userId
+      actor.userId
     );
 
     return NextResponse.json(

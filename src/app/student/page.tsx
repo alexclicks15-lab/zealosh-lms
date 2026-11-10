@@ -251,6 +251,13 @@ export default function StudentDashboard() {
               <MessageSquare className="w-3.5 h-3.5 text-[#4f8c4c]" />
               <span>Channels & Messaging</span>
             </Link>
+            <Link
+              href="/student/mentorship"
+              className="btn-secondary text-xs py-2 px-3.5 shadow-xs bg-emerald-50 hover:bg-emerald-100 text-[#3a7536] border border-emerald-200"
+            >
+              <Clock className="w-3.5 h-3.5 text-[#4f8c4c]" />
+              <span>1-on-1 Mentorship</span>
+            </Link>
           </div>
         </div>
       </div>

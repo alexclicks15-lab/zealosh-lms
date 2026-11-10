@@ -1,7 +1,63 @@
 // Zealosh LMS — Enterprise Relational CMS & Visual PageBuilder Domain Types
 // Standards: wj-page-builder separation of structure and content, strict typing
 
-export type CmsPageType = 'HOMEPAGE' | 'STANDARD' | 'COURSE_LANDING' | 'ADMISSIONS' | 'CAMPAIGN';
+export type CmsCanonicalPageType =
+  | 'HOMEPAGE'
+  | 'ABOUT'
+  | 'FEATURES'
+  | 'SOLUTIONS'
+  | 'PRICING'
+  | 'COURSES'
+  | 'COURSE_DETAILS'
+  | 'INSTRUCTORS'
+  | 'INSTRUCTOR_PROFILE'
+  | 'CONTACT'
+  | 'FAQ'
+  | 'BLOG'
+  | 'BLOG_DETAILS'
+  | 'TESTIMONIALS'
+  | 'CAREERS'
+  | 'PRIVACY_POLICY'
+  | 'TERMS';
+
+export type CmsLegacyPageType = 'STANDARD' | 'COURSE_LANDING' | 'ADMISSIONS' | 'CAMPAIGN';
+
+export type CmsPageType = CmsCanonicalPageType | CmsLegacyPageType;
+
+export type CmsPageCategory =
+  | 'MARKETING'
+  | 'ACADEMIC'
+  | 'INFORMATIONAL'
+  | 'LEGAL'
+  | 'COMMUNITY'
+  | 'SYSTEM';
+
+export type CmsPageOperation =
+  | 'CREATE'
+  | 'EDIT'
+  | 'PREVIEW'
+  | 'PUBLISH'
+  | 'SCHEDULE'
+  | 'ROLLBACK'
+  | 'DELETE';
+
+export type CmsPublishingBehavior = 'MANUAL' | 'SCHEDULED' | 'IMMEDIATE';
+
+export interface PageTypeDefinition {
+  type: CmsPageType;
+  label: string;
+  description: string;
+  category: CmsPageCategory;
+  defaultTemplateId: string;
+  permittedOperations: CmsPageOperation[];
+  defaultPublishingBehavior: CmsPublishingBehavior;
+  requiredMetadata: string[];
+  hasDynamicBindings: boolean;
+  isPublic: boolean;
+  isCreatable: boolean;
+  canonicalSlugPrefix: string;
+  legacyAlias?: string;
+}
 
 export type CmsVersionStatus =
   | 'DRAFT'
@@ -64,8 +120,9 @@ export interface CmsPageVersion {
 export interface CmsDynamicBinding {
   source: 'course' | 'batch' | 'instructor' | 'platform_settings';
   entityId?: string;
-  field: string;
+  field?: string;
   fallback?: string;
+  queryParams?: Record<string, string | number | boolean>;
 }
 
 export interface CmsNodeStyles {
@@ -73,11 +130,19 @@ export interface CmsNodeStyles {
   textColor?: string;
   padding?: string;
   margin?: string;
+  marginTop?: string;
+  marginBottom?: string;
   borderRadius?: string;
   border?: string;
   boxShadow?: string;
   textAlign?: 'left' | 'center' | 'right' | 'justify';
   customClass?: string;
+  maxWidth?: string;
+  display?: string;
+  flex?: string;
+  flexWrap?: string;
+  gap?: string;
+  width?: string;
 }
 
 export interface CmsResponsiveStyles {
@@ -109,6 +174,8 @@ export interface CmsTemplate {
   description: string;
   category: string;
   templateType: 'PAGE' | 'SECTION';
+  pageType?: CmsPageType;
+  isSystem?: boolean;
   previewImageUrl?: string;
   nodesSnapshot: CmsPageNode[];
   createdBy: string;

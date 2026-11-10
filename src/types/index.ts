@@ -3328,6 +3328,183 @@ export interface OperationalDashboardMetrics {
   systemHealth: 'HEALTHY' | 'DEGRADED' | 'MAINTENANCE';
 }
 
+// --- Milestone ZM-IMPL-11: Product Gap Closure Domain Models ---
+export interface SyllabusVersion {
+  id: string;
+  courseId: string;
+  versionNumber: number;
+  version?: string;
+  title: string;
+  changelog?: string;
+  changeSummary?: string;
+  treeSnapshot?: any[];
+  snapshotData?: any;
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  createdBy?: string;
+  publishedBy?: string;
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkspaceWidgetConfig {
+  id?: string;
+  widgetId?: string;
+  component?: string;
+  title?: string;
+  visible?: boolean;
+  enabled?: boolean;
+  collapsed?: boolean;
+  order: number;
+  colSpan?: number; // 1 to 12
+  rowSpan?: number;
+  column?: number;
+  size?: 'HALF' | 'FULL' | string;
+  settings?: Record<string, any>;
+}
+
+export interface WorkspaceLayout {
+  id: string;
+  userId?: string;
+  role: string;
+  layoutName: string;
+  widgetsConfig: WorkspaceWidgetConfig[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InstructorOfficeHour {
+  id: string;
+  instructorId: string;
+  instructorName?: string;
+  courseId?: string;
+  courseTitle?: string;
+  dayOfWeek: number; // 0=Sunday, 1=Monday... 6=Saturday
+  startTime: string; // "HH:MM" e.g. "09:00"
+  endTime: string;   // "HH:MM" e.g. "12:00"
+  slotDurationMinutes: number; // 15, 30, 45, 60
+  bufferMinutes?: number;
+  maxStudentsPerSlot?: number;
+  locationType?: 'VIRTUAL' | 'IN_PERSON' | 'HYBRID';
+  meetingInstructions?: string;
+  meetingUrl?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MentorshipAppointment {
+  id: string;
+  officeHourId?: string;
+  instructorId: string;
+  instructorName?: string;
+  studentId: string;
+  studentName?: string;
+  studentEmail?: string;
+  courseId: string;
+  courseTitle?: string;
+  batchId?: string;
+  scheduledStart: string; // ISO 8601
+  scheduledEnd: string;   // ISO 8601
+  scheduledStartTime?: string;
+  scheduledEndTime?: string;
+  durationMinutes: number;
+  status: 'BOOKED' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' | 'RESCHEDULED' | 'NO_SHOW' | 'SCHEDULED';
+  meetingRoomId?: string;
+  meetingUrl?: string;
+  studentNotes?: string;
+  instructorFeedback?: string;
+  cancellationReason?: string;
+  cancelledBy?: string;
+  cancelledAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CalendarFeedToken {
+  id: string;
+  userId: string;
+  token: string;
+  feedName: string;
+  scope: 'ALL' | 'CLASSES' | 'EXAMS' | 'MENTORSHIP';
+  isActive: boolean;
+  lastAccessedAt?: string;
+  revokedAt?: string;
+  createdAt: string;
+}
+
+export interface WhatsAppOptIn {
+  id: string;
+  userId?: string;
+  phoneNumber: string;
+  status: 'OPTED_IN' | 'OPTED_OUT';
+  optedIn?: boolean;
+  optInSource: string;
+  consentTimestamp: string;
+  optOutTimestamp?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LeadRecord {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  courseInterest?: string;
+  status: string;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WhatsAppMessageLog {
+  id: string;
+  userId?: string;
+  phoneNumber: string;
+  templateName: string;
+  direction: 'INBOUND' | 'OUTBOUND';
+  status: 'QUEUED' | 'SENT' | 'DELIVERED' | 'READ' | 'FAILED';
+  wamid?: string;
+  payload?: Record<string, any>;
+  errorMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExecutiveKpiSummary {
+  activeLearnersCount: number;
+  courseCompletionRatePercent: number;
+  grossRevenueINR: number;
+  averageExamPassRatePercent: number;
+  admissionsConversionRatePercent: number;
+  leadToEnrollmentVelocityDays: number;
+  totalEnquiries: number;
+  totalApplications: number;
+  totalAdmitted: number;
+  totalCertificatesIssued: number;
+}
+
+export interface ConversionFunnelStage {
+  stageId: string;
+  stageName: string;
+  count: number;
+  conversionPercentFromTop: number;
+  dropOffCount: number;
+  dropOffPercent: number;
+}
+
+export interface ConversionFunnelReport {
+  generatedAt: string;
+  startDate?: string;
+  endDate?: string;
+  totalTopFunnel: number;
+  totalBottomFunnel: number;
+  overallConversionPercent: number;
+  stages: ConversionFunnelStage[];
+}
+
 
 export * from './config';
 export * from './reporting';

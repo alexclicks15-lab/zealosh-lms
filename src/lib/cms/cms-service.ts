@@ -14,7 +14,7 @@ import {
 } from '@/types/cms';
 import { isReservedSlug, normalizeSlug } from './sanitizer';
 import { validateTree, generateNodeId } from './tree-engine';
-import { createHomepageStarterNodes } from './templates-seed';
+import { createHomepageStarterNodes, getStarterNodesForPageType } from './templates-seed';
 
 export class CmsService {
   /**
@@ -133,106 +133,7 @@ export class CmsService {
     }
 
     if (initialNodes.length === 0) {
-      if (initialPage.pageType === 'HOMEPAGE') {
-        initialNodes = createHomepageStarterNodes(versionId);
-      } else {
-        // Standard blank starter: Section -> Container -> Row -> Column -> Heading + Paragraph
-        const secId = generateNodeId('section');
-        const contId = generateNodeId('container');
-        const rowId = generateNodeId('row');
-        const colId = generateNodeId('column');
-        const hId = generateNodeId('heading');
-        const pId = generateNodeId('paragraph');
-
-        initialNodes = [
-          {
-            id: secId,
-            pageVersionId: versionId,
-            parentId: null,
-            nodeType: 'SECTION',
-            componentType: 'section',
-            position: 0,
-            props: { tag: 'section', fullWidth: false },
-            styles: { backgroundColor: '#ffffff', padding: '4rem 1rem' },
-            responsiveStyles: {},
-            enabled: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: contId,
-            pageVersionId: versionId,
-            parentId: secId,
-            nodeType: 'CONTAINER',
-            componentType: 'container',
-            position: 0,
-            props: { fluid: false, maxWidth: '1280px' },
-            styles: { margin: '0 auto', padding: '0 1rem' },
-            responsiveStyles: {},
-            enabled: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: rowId,
-            pageVersionId: versionId,
-            parentId: contId,
-            nodeType: 'ROW',
-            componentType: 'row',
-            position: 0,
-            props: { justify: 'start', align: 'stretch', gap: '1.5rem', wrap: true },
-            styles: {},
-            responsiveStyles: {},
-            enabled: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: colId,
-            pageVersionId: versionId,
-            parentId: rowId,
-            nodeType: 'COLUMN',
-            componentType: 'column',
-            position: 0,
-            props: { colSpan: 12 },
-            styles: { padding: '0.75rem' },
-            responsiveStyles: {},
-            enabled: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: hId,
-            pageVersionId: versionId,
-            parentId: colId,
-            nodeType: 'COMPONENT',
-            componentType: 'heading',
-            position: 0,
-            props: { text: params.title, level: 'h1' },
-            styles: { textColor: '#0f172a', textAlign: 'left', margin: '0 0 1rem 0' },
-            responsiveStyles: {},
-            enabled: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: pId,
-            pageVersionId: versionId,
-            parentId: colId,
-            nodeType: 'COMPONENT',
-            componentType: 'paragraph',
-            position: 1,
-            props: {
-              text: 'Welcome to this page. Add components from the left sidebar to build your layout.',
-            },
-            styles: { textColor: '#475569', textAlign: 'left', margin: '0 0 1rem 0' },
-            responsiveStyles: {},
-            enabled: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ];
-      }
+      initialNodes = getStarterNodesForPageType(initialPage.pageType, versionId, initialPage.title);
     }
 
     const savedPage = await db.saveCmsPage(initialPage, actorId);
